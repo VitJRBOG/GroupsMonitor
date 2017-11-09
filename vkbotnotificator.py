@@ -8,6 +8,7 @@ import json
 import copy
 import urllib
 
+
 def starter():
 
     try:
@@ -131,6 +132,8 @@ def autorization(data_access, auth_type):
 
 def main(vk_admin_session, vk_bot_session):
 
+    print("COMPUTER [Main]: Program was started.")
+
     PATH = read_path()
 
     # Вечный цикл
@@ -194,6 +197,29 @@ def get_post(vk_admin_session, owner_id):
 
 def send_message(vk_bot_session, item, send_to, last_date):
 
+    def get_attachments(item):
+        attachments = item["attachments"]
+
+        list_media = []
+
+        i = 0
+        while i < len(attachments):
+            media_item = attachments[i]
+
+            media = attachments[i][media_item["type"]]
+
+            id_media = media_item["type"] + str(media["owner_id"]) +\
+                       "_" + str(media["id"])
+
+            if "access_key" in media:
+                id_media += "_" + media["access_key"]
+
+            list_media.append(id_media)
+            i += 1
+
+        return ",".join(list_media)
+
+
     text = ""
 
     if len(item["text"]) > 1000:
@@ -228,6 +254,16 @@ def send_message(vk_bot_session, item, send_to, last_date):
             "user_id": send_to,
             "message": text_post
         }
+
+    if "attachments" in item:
+
+        list_media = get_attachments(item)
+
+        values = {
+                "user_id": send_to,
+                "message": text_post,
+                "attachment": list_media
+            }
 
     vk_bot_session.method("messages.send", values)
 

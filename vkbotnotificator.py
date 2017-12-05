@@ -277,8 +277,8 @@ def send_message(vk_bot_session, item, send_to, last_date):
 
         text = ""
 
-        if len(item["text"]) > 1000:
-            text = item["text"][0:1000] + "... \n [long text]"
+        if len(item["text"]) > 3800:
+            text = item["text"][0:3800] + "... \n [long text]"
         else:
             text = item["text"]
 

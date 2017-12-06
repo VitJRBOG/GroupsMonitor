@@ -6,7 +6,6 @@ import time
 import os
 import json
 import copy
-import urllib
 import datetime
 
 
@@ -18,6 +17,7 @@ def starter():
             file_text = open("path.txt", "w")
             file_text.write("")
             file_text.close()
+
             print("COMPUTER: Was created file \"path.txt\".")
 
         PATH = read_path()
@@ -54,6 +54,7 @@ def starter():
         vk_admin_session = autorization(data_access_admin, "token")
         vk_bot_session = autorization(data_access_bot, "token")
 
+        print("COMPUTER [Starter]: Program was started.")
         main(vk_admin_session, vk_bot_session)
 
     except Exception as var_except:
@@ -134,214 +135,359 @@ def autorization(data_access, auth_type):
 
     except Exception as var_except:
         print(
-            "COMPUTER [.. -> Authorization" +
-            "]: Error, " + str(var_except) +
+            "COMPUTER [.. -> Authorization" + "]: Error, " +
+            str(var_except) +
+            ". Exit from program...")
+        exit(0)
+
+
+def notificator(sender, sessions_list, subject_data):
+    sender += " -> Notificator"
+
+    try:
+        vk_admin_session = sessions_list["admin"]
+        vk_bot_session = sessions_list["bot"]
+
+        def get_posts(sender, vk_admin_session, subject_data):
+            sender += " -> Get post"
+
+            try:
+                owner_id = int(subject_data["owner_id"])
+                count = int(subject_data["posts_count"])
+                post_filter = str(subject_data["filter"])
+
+                values = {
+                    'owner_id': owner_id,
+                    'count': count,
+                    'filter': post_filter
+                }
+
+                time.sleep(1)
+
+                response = vk_admin_session.method("wall.get", values)
+
+                return response
+
+            # Общий обработчик исключений
+            # TODO: Добавить частные обработчики
+
+            except Exception as var_except:
+                print(
+                    "COMPUTER [" + sender + "]: Error, " +
+                    str(var_except) +
+                    ". Exit from program...")
+                exit(0)
+
+        def make_message(sender, vk_admin_session, item):
+            sender += " -> Make message"
+
+            message = ""
+
+            try:
+
+                # Функция возвращает автора поста
+                # и время размещения в предложке
+                def get_signature(sender, vk_admin_session, item):
+                    sender += " -> Get signature"
+
+                    try:
+                        post_signature = ""
+
+                        if str(item["from_id"])[0] == "-":
+                            author_values = {
+                                "group_id": int(str(item["from_id"])[1:])
+                            }
+
+                            time.sleep(1)
+
+                            response_author =\
+                                vk_admin_session.method("groups.getById",
+                                                        author_values)
+
+                            author_name = response_author[0]["name"]
+
+                            author_url = "*" +\
+                                response_author[0]["screen_name"] + " " +\
+                                "(" + author_name + ")"
+
+                            date = datetime.datetime.fromtimestamp(
+                                int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
+
+                            post_signature = author_url + "\n" + str(date)
+
+                        else:
+                            author_values = {
+                                "user_ids": item["from_id"]
+                            }
+
+                            time.sleep(1)
+
+                            response_author =\
+                                vk_admin_session.method("users.get",
+                                                        author_values)
+
+                            first_name = response_author[0]["first_name"]
+                            last_name = response_author[0]["last_name"]
+
+                            author_full_name = first_name + " " + last_name
+
+                            author_url = "*id" + str(item["from_id"]) +\
+                                " (" + author_full_name + ")"
+
+                            date = datetime.datetime.fromtimestamp(
+                                int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
+
+                            post_signature = author_url + "\n" + str(date)
+
+                        return post_signature
+
+                    except Exception as var_except:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) +
+                            ". Exit from program...")
+                        exit(0)
+
+                # Функция возвращает текст из поста
+                def get_text(sender, item):
+                    sender += " -> Get text"
+
+                    try:
+                        post_text = ""
+
+                        post_text = item["text"]
+
+                        return post_text
+
+                    except Exception as var_except:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) +
+                            ". Exit from program...")
+                        exit(0)
+
+                # Функция возвращает URL поста
+                def get_url(sender, item):
+                    sender += " -> Get URL"
+
+                    try:
+                        post_url = ""
+
+                        id_post = str(item["owner_id"]) + "_" + str(item["id"])
+
+                        post_url = "https://vk.com/wall" + id_post
+
+                        return post_url
+
+                    except Exception as var_except:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) +
+                            ". Exit from program...")
+                        exit(0)
+
+                # Функция возвращает прикрепления к посту
+                def get_attachments(sender, item):
+                    sender += " -> Get attachments"
+
+                    try:
+                        list_media = []
+
+                        if "attachments" in item:
+                            attachments = item["attachments"]
+
+                            i = 0
+                            while i < len(attachments):
+                                media_item = attachments[i]
+
+                                if media_item["type"] == "photo" or\
+                                   media_item["type"] == "video" or\
+                                   media_item["type"] == "audio" or\
+                                   media_item["type"] == "doc":
+
+                                    media = media_item[media_item["type"]]
+
+                                    id_media = media_item["type"] +\
+                                        str(media["owner_id"]) +\
+                                        "_" + str(media["id"])
+
+                                    if "access_key" in media:
+                                        id_media += "_" + media["access_key"]
+
+                                    list_media.append(id_media)
+
+                                i += 1
+
+                        if "copy_history" in item:
+                            repost = item["copy_history"][0]
+
+                            post_url = "wall" +\
+                                str(repost["owner_id"]) + "_" +\
+                                str(repost["id"])
+
+                            if "access_key" in repost:
+                                post_url += "_" + repost["access_key"]
+
+                            list_media.append(post_url)
+
+                        if len(list_media) > 0:
+                            return ",".join(list_media)
+
+                        else:
+                            return ""
+
+                    except Exception as var_except:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) +
+                            ". Exit from program...")
+                        exit(0)
+
+                post_signature = get_signature(sender, vk_admin_session, item)
+                post_text = get_text(sender, item)
+                post_url = get_url(sender, item)
+                post_attachments = get_attachments(sender, item)
+
+                post_length = len(post_signature + post_text + post_url)
+
+                if post_length > 4096:
+                    difference = post_length - 4096
+                    post_text = post_text[0:post_length - difference]
+
+                message = post_signature + "\n\n" +\
+                    post_text + "\n\n" +\
+                    post_url
+
+                return message, post_attachments
+
+            except Exception as var_except:
+                print(
+                    "COMPUTER [" + sender + "]: Error, " +
+                    str(var_except) +
+                    ". Exit from program...")
+                exit(0)
+
+        def send_message(sender, vk_bot_session, subject_data, message_object):
+            sender += " -> Send message"
+
+            try:
+                user_id = subject_data["send_to"]
+                message = message_object["message"]
+                post_attachments = message_object["post_attachments"]
+
+                if post_attachments != "":
+                    values = {
+                        "user_id": user_id,
+                        "message": message,
+                        "attachment": post_attachments
+                    }
+                else:
+                    values = {
+                        "user_id": user_id,
+                        "message": message
+                    }
+
+                time.sleep(1)
+
+                vk_bot_session.method("messages.send", values)
+
+            except Exception as var_except:
+                if str(var_except) == "Captcha needed":
+                    print(
+                        "COMPUTER [" + sender + "]: Error, " +
+                        str(var_except) + ". " +
+                        "Timeout: 60 sec.")
+                    time.sleep(60)
+
+                    return send_message(sender, vk_bot_session,
+                                        subject_data, message_object)
+                else:
+                    print(
+                        "COMPUTER [" + sender + "]: Error, " +
+                        str(var_except) +
+                        ". Exit from program...")
+                    exit(0)
+
+        response = get_posts(sender, vk_admin_session, subject_data)
+
+        last_date = int(subject_data["last_date"])
+
+        i = len(response["items"]) - 1
+
+        while i >= 0:
+            item = response["items"][i]
+
+            if item["date"] > last_date:
+
+                message, post_attachments = make_message(sender,
+                                                         vk_admin_session,
+                                                         item)
+
+                message_object = {
+                    "message": message,
+                    "post_attachments": post_attachments
+                }
+
+                send_message(sender, vk_bot_session,
+                             subject_data, message_object)
+
+                last_date = item["date"]
+
+                date = datetime.datetime.fromtimestamp(
+                            int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
+
+                print(subject_data["name"] + "'s new " +
+                      subject_data["filter"] + ": " + str(date))
+
+            i -= 1
+
+        return last_date
+
+    except Exception as var_except:
+        print(
+            "COMPUTER [" + str(sender) + "]: Error, " +
+            str(var_except) +
             ". Exit from program...")
         exit(0)
 
 
 def main(vk_admin_session, vk_bot_session):
+    sender = "Main"
 
     try:
-
-        print("COMPUTER [Main]: Program was started.")
-
         PATH = read_path()
 
-        # Вечный цикл
-
         while True:
+            data_json = read_json(sender, PATH, "data")
 
-            data_json = read_json("Main", PATH, "data")
-
-            publics = copy.deepcopy(data_json["publics"])
+            subjects = copy.deepcopy(data_json["subjects"])
 
             i = 0
 
-            while i < len(publics):
+            while i < len(subjects):
+                sessions_list = {
+                    "admin": vk_admin_session,
+                    "bot": vk_bot_session
+                }
 
-                #  Задержка, чтобы не посылать запросы слишком часто
-                #  Требование ВК: не чаще 3 запросов в секунду
+                subject_data = copy.deepcopy(subjects[i])
 
-                if i > 0:
-                    time.sleep(1)
+                last_date = notificator(sender, sessions_list, subject_data)
 
-                response = get_post(vk_admin_session, publics[i]["id"])
+                data_json["subjects"][i]["last_date"] = str(last_date)
 
-                j = len(response["items"]) - 1
-
-                while j >= 0:
-
-                    item = response["items"][j]
-
-                    last_date = int(publics[i]["last_date"])
-
-                    if item["date"] > last_date:
-
-                        last_date, date = send_message(vk_bot_session, item,
-                                                       publics[i]["id"],
-                                                       last_date)
-
-                        data_json["publics"][i]["last_date"] = str(last_date)
-
-                        write_json("Main", PATH, "data", data_json)
-
-                        print(str("New last date " + publics[i]["name"] +
-                                  ": " + str(date)))
-
-                        #  Задержка, чтобы не посылать запросы слишком часто
-                        #  Требование ВК: не чаще 3 запросов в секунду
-
-                        time.sleep(1)
-
-                    j -= 1
+                write_json(sender, PATH, "data", data_json)
 
                 i += 1
 
-            # Задержка на 60 секунд
-
             time.sleep(60)
 
     except Exception as var_except:
         print(
-            "COMPUTER [.. -> Main" +
-            "]: Error, " + str(var_except) +
+            "COMPUTER [" + str(sender) + "]: Error, " +
+            str(var_except) +
             ". Exit from program...")
         exit(0)
-
-
-def get_post(vk_admin_session, owner_id):
-
-    try:
-
-        values = {
-            'owner_id': int(owner_id),
-            'count': 50,
-            'filter': "suggests"
-        }
-
-        response = vk_admin_session.method("wall.get", values)
-
-        return response
-
-    except Exception as var_except:
-        print(
-            "COMPUTER [.. -> Get post" +
-            "]: Error, " + str(var_except) +
-            ". Exit from program...")
-        exit(0)
-
-
-def send_message(vk_bot_session, item, send_to, last_date):
-
-    try:
-
-        def get_attachments(item):
-
-            try:
-                attachments = item["attachments"]
-
-                list_media = []
-
-                i = 0
-                while i < len(attachments):
-                    media_item = attachments[i]
-
-                    if media_item["type"] == "photo" or\
-                       media_item["type"] == "video" or\
-                       media_item["type"] == "audio" or\
-                       media_item["type"] == "doc":
-
-                        media = media_item[media_item["type"]]
-
-                        id_media = media_item["type"] +\
-                                   str(media["owner_id"]) +\
-                                   "_" + str(media["id"])
-
-                        if "access_key" in media:
-                            id_media += "_" + media["access_key"]
-
-                        list_media.append(id_media)
-
-                    i += 1
-
-                return ",".join(list_media)
-
-            except Exception as var_except:
-                print(
-                    "COMPUTER [.. -> Send message -> " +
-                    "Get attachments]: Error, " + str(var_except) +
-                    ". Exit from program...")
-                exit(0)
-
-
-        text = ""
-
-        if len(item["text"]) > 3800:
-            text = item["text"][0:3800] + "... \n [long text]"
-        else:
-            text = item["text"]
-
-        post_info = {
-                "text": text,
-                "from_id": item["from_id"],
-                "id": item["id"],
-                "owner_id": item["owner_id"]
-            }
-
-        response_author = vk_bot_session.method("users.get", {
-                                                "user_ids": item["from_id"]})
-
-        first_name = response_author[0]["first_name"]
-        last_name = response_author[0]["last_name"]
-
-        author_full_name = first_name + " " + last_name
-
-        author_url = "*id" + str(item["from_id"]) + " (" + author_full_name + ")"
-
-        id_post = str(post_info["owner_id"]) + "_" + str(post_info["id"])
-
-        date = datetime.datetime.fromtimestamp(
-            int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
-
-        text_post = author_url +\
-                    "\n" + str(date) + "\n" +\
-                    "\n" + post_info["text"] + "\n" +\
-                    "\n" + "https://vk.com/wall" + id_post
-
-        values = {
-                "user_id": send_to,
-                "message": text_post
-            }
-
-        if "attachments" in item:
-
-            list_media = get_attachments(item)
-
-            values = {
-                    "user_id": send_to,
-                    "message": text_post,
-                    "attachment": list_media
-                }
-
-        vk_bot_session.method("messages.send", values)
-
-        return item["date"], date
-
-    except Exception as var_except:
-        if str(var_except) == "Captcha needed":
-            print(
-                "COMPUTER [.. -> Send message" +
-                "]: Error, " + str(var_except) + ". " +
-                "Timeout: 60 sec.")
-            time.sleep(60)
-            starter()
-        else:
-            print(
-                "COMPUTER [.. -> Send message" +
-                "]: Error, " + str(var_except) +
-                ". Exit from program...")
-            exit(0)
 
 
 starter()

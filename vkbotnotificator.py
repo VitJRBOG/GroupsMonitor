@@ -172,11 +172,41 @@ def notificator(sender, sessions_list, subject_data):
             # TODO: Добавить частные обработчики
 
             except Exception as var_except:
-                print(
-                    "COMPUTER [" + sender + "]: Error, " +
-                    str(var_except) +
-                    ". Exit from program...")
-                exit(0)
+                if str(var_except).lower().find("captcha needed") !=\
+                   -1:
+                    print(
+                        "COMPUTER [" + sender + "]: Error, " +
+                        str(var_except) + ". " +
+                        "Timeout: 60 sec.")
+                    time.sleep(60)
+
+                    return get_posts(sender, vk_admin_session, subject_data)
+
+                elif str(var_except).lower().find("failed to establish " +
+                                                  "a new connection") != -1:
+                    print(
+                        "COMPUTER [" + sender + "]: Error, " +
+                        str(var_except) + ". " +
+                        "Timeout: 60 sec.")
+                    time.sleep(60)
+
+                    return get_posts(sender, vk_admin_session, subject_data)
+
+                elif str(var_except).lower().find("connection aborted") != -1:
+                    print(
+                        "COMPUTER [" + sender + "]: Error, " +
+                        str(var_except) + ". " +
+                        "Timeout: 60 sec.")
+                    time.sleep(60)
+
+                    return get_posts(sender, vk_admin_session, subject_data)
+
+                else:
+                    print(
+                        "COMPUTER [" + sender + "]: Error, " +
+                        str(var_except) +
+                        ". Exit from program...")
+                    exit(0)
 
         def make_message(sender, vk_admin_session, item):
             sender += " -> Make message"
@@ -392,7 +422,8 @@ def notificator(sender, sessions_list, subject_data):
                 vk_bot_session.method("messages.send", values)
 
             except Exception as var_except:
-                if str(var_except) == "Captcha needed":
+                if str(var_except).lower().find("captcha needed") !=\
+                   -1:
                     print(
                         "COMPUTER [" + sender + "]: Error, " +
                         str(var_except) + ". " +
@@ -401,6 +432,28 @@ def notificator(sender, sessions_list, subject_data):
 
                     return send_message(sender, vk_bot_session,
                                         subject_data, message_object)
+
+                elif str(var_except).lower().find("connection aborted") != -1:
+                    print(
+                        "COMPUTER [" + sender + "]: Error, " +
+                        str(var_except) + ". " +
+                        "Timeout: 60 sec.")
+                    time.sleep(60)
+
+                    return send_message(sender, vk_bot_session,
+                                        subject_data, message_object)
+
+                elif str(var_except).lower().find("failed to establish " +
+                                                  "a new connection") != -1:
+                    print(
+                        "COMPUTER [" + sender + "]: Error, " +
+                        str(var_except) + ". " +
+                        "Timeout: 60 sec.")
+                    time.sleep(60)
+
+                    return send_message(sender, vk_bot_session,
+                                        subject_data, message_object)
+
                 else:
                     print(
                         "COMPUTER [" + sender + "]: Error, " +

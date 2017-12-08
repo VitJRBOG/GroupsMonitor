@@ -378,15 +378,28 @@ def notificator(sender, sessions_list, subject_data):
                 post_url = get_url(sender, item)
                 post_attachments = get_attachments(sender, item)
 
-                post_length = len(post_signature + post_text + post_url)
+                mes_long_text = "...\n[long text]"
 
-                if post_length > 4096:
-                    difference = post_length - 4096
-                    post_text = post_text[0:post_length - difference]
+                post_length = len(post_signature + "\n\n" +
+                                  post_text +
+                                  mes_long_text + "\n\n" +
+                                  post_url)
 
-                message = post_signature + "\n\n" +\
-                    post_text + "\n\n" +\
-                    post_url
+                limit_symbols = 3900
+
+                if post_length > limit_symbols:
+                    count_symbols = post_length -\
+                        (post_length - limit_symbols) - 1
+                    post_text = post_text[0:count_symbols]
+
+                    message = post_signature + "\n\n" +\
+                        post_text +\
+                        mes_long_text + "\n\n" +\
+                        post_url
+                else:
+                    message = post_signature + "\n\n" +\
+                        post_text + "\n\n" +\
+                        post_url
 
                 return message, post_attachments
 

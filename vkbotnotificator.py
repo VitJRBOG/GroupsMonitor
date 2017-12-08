@@ -241,7 +241,8 @@ def notificator(sender, sessions_list, subject_data):
                                 "(" + author_name + ")"
 
                             date = datetime.datetime.fromtimestamp(
-                                int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
+                                int(item["date"])).strftime("%d.%m.%Y \
+                                                            %H:%M:%S")
 
                             post_signature = author_url + "\n" + str(date)
 
@@ -265,7 +266,8 @@ def notificator(sender, sessions_list, subject_data):
                                 " (" + author_full_name + ")"
 
                             date = datetime.datetime.fromtimestamp(
-                                int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
+                                int(item["date"])).strftime("%d.%m.%Y \
+                                                            %H:%M:%S")
 
                             post_signature = author_url + "\n" + str(date)
 

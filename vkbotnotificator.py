@@ -1,4 +1,4 @@
-# coding: utf-8
+# coding: utf8
 
 
 import vk_api
@@ -94,9 +94,10 @@ def read_json(sender, path, file_name):
 
 
 def write_json(sender, path, file_name, loads_json):
+
     try:
         file_json = open(str(path) + str(file_name) + ".json", "w")
-        file_json.write(json.dumps(loads_json, indent=4, ensure_ascii=False))
+        file_json.write(json.dumps(loads_json, indent=4, ensure_ascii=True))
         file_json.close()
 
     except Exception as var_except:

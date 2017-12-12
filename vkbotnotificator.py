@@ -94,6 +94,8 @@ def read_path():
 
 
 def read_json(sender, path, file_name):
+    sender += " -> Read JSON"
+
     try:
         loads_json = json.loads(open(str(path) + str(file_name) +
                                      ".json", 'r').read())  # dict
@@ -101,13 +103,14 @@ def read_json(sender, path, file_name):
         return loads_json
     except Exception as var_except:
         print(
-            "COMPUTER [.. -> " + str(sender) +
-            " -> Read JSON]: Error, " + str(var_except) +
+            "COMPUTER [" + str(sender) +
+            "]: Error, " + str(var_except) +
             ". Exit from program...")
         exit(0)
 
 
 def write_json(sender, path, file_name, loads_json):
+    sender += " -> Write JSON"
 
     try:
         file_json = open(str(path) + str(file_name) + ".json", "w")
@@ -116,8 +119,8 @@ def write_json(sender, path, file_name, loads_json):
 
     except Exception as var_except:
         print(
-            "COMPUTER [.. -> " + str(sender) +
-            " -> Write JSON]: Error, " + str(var_except) +
+            "COMPUTER [" + str(sender) +
+            "]: Error, " + str(var_except) +
             ". Exit from program...")
         exit(0)
 
@@ -150,7 +153,7 @@ def autorization(data_access, auth_type):
 
     except Exception as var_except:
         print(
-            "COMPUTER [.. -> Authorization" + "]: Error, " +
+            "COMPUTER [.. -> Authorization]: Error, " +
             str(var_except) +
             ". Exit from program...")
         exit(0)

@@ -777,7 +777,7 @@ class Notificator():
 
                         try:
 
-                            post_signature = ""
+                            post_signature = "Topic: "
 
                             post_signature += comments_values["topic_title"] +\
                                 "\n"

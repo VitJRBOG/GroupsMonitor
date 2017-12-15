@@ -32,7 +32,14 @@ def starter():
                         "topics": [],
                         "topic_notificator_settings": {
                             "post_count": 0,
-                            "send_to": 0
+                            "send_to": 0,
+                            "check_topics": 0
+                        },
+                        "photo_notificator_settings": {
+                            "photo_count": 0,
+                            "check_photo": 0,
+                            "send_to": 0,
+                            "last_date": "0"
                         },
                         "send_to": 0,
                         "filter": "",
@@ -1087,6 +1094,392 @@ class Notificator():
                 ". Exit from program...")
             exit(0)
 
+    def new_album_photo(self, sender, sessions_list, subject_data):
+
+        try:
+            self.sender = sender
+            self.sessions_list = sessions_list
+            self.subject_data = subject_data
+
+            vk_admin_session = sessions_list["admin"]
+            vk_bot_session = sessions_list["bot"]
+
+            sender += " -> Notificator -> New album photo"
+
+            def get_photo(sender, vk_admin_session, subject_data):
+                sender += " -> Get photo"
+
+                try:
+                    settings = subject_data["photo_notificator_settings"]
+
+                    owner_id = int(subject_data["owner_id"])
+                    count = int(settings["photo_count"])
+
+                    values = {
+                        "owner_id": owner_id,
+                        "count": count,
+                        "no_service_albums": 1
+                    }
+
+                    time.sleep(1)
+
+                    response = vk_admin_session.method("photos.getAll", values)
+
+                    return response
+
+                except Exception as var_except:
+                    if str(var_except).lower().find("captcha needed") !=\
+                       -1:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) + ". " +
+                            "Timeout: 60 sec.")
+                        time.sleep(60)
+
+                        return get_posts(sender, vk_admin_session, subject_data)
+
+                    elif str(var_except).lower().find("failed to establish " +
+                                                      "a new connection") != -1:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) + ". " +
+                            "Timeout: 60 sec.")
+                        time.sleep(60)
+
+                        return get_posts(sender, vk_admin_session, subject_data)
+
+                    elif str(var_except).lower().find("connection aborted") != -1:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) + ". " +
+                            "Timeout: 60 sec.")
+                        time.sleep(60)
+
+                        return get_posts(sender, vk_admin_session, subject_data)
+
+                    else:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) +
+                            ". Exit from program...")
+                        exit(0)
+
+            def get_album(sender, vk_admin_session, item):
+                sender += " -> Get album"
+
+                try:
+                    owner_id = int(item["owner_id"])
+                    album_id = int(item["album_id"])
+
+                    values = {
+                        "owner_id": owner_id,
+                        "album_ids": album_id
+                    }
+
+                    time.sleep(1)
+
+                    response = vk_admin_session.method("photos.getAlbums", values)
+
+                    return response
+
+                except Exception as var_except:
+                    if str(var_except).lower().find("captcha needed") !=\
+                       -1:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) + ". " +
+                            "Timeout: 60 sec.")
+                        time.sleep(60)
+
+                        return get_posts(sender, vk_admin_session, subject_data)
+
+                    elif str(var_except).lower().find("failed to establish " +
+                                                      "a new connection") != -1:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) + ". " +
+                            "Timeout: 60 sec.")
+                        time.sleep(60)
+
+                        return get_posts(sender, vk_admin_session, subject_data)
+
+                    elif str(var_except).lower().find("connection aborted") != -1:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) + ". " +
+                            "Timeout: 60 sec.")
+                        time.sleep(60)
+
+                        return get_posts(sender, vk_admin_session, subject_data)
+
+                    else:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) +
+                            ". Exit from program...")
+                        exit(0)
+
+
+            def make_message(sender, vk_admin_session, item):
+                sender += " -> Make message"
+
+                message = ""
+
+                try:
+
+                    # Функция возвращает автора поста
+                    # и время размещения в предложке
+                    def get_signature(sender, vk_admin_session, item):
+                        sender += " -> Get signature"
+
+                        try:
+                            post_signature = "Album: "
+
+                            post_signature += item["album_title"] +\
+                                "\n"
+
+                            author_values = {
+                                    "user_ids": item["user_id"]
+                                }
+
+                            time.sleep(1)
+
+                            response_author =\
+                                vk_admin_session.method("users.get",
+                                                        author_values)
+
+                            first_name = response_author[0]["first_name"]
+                            last_name = response_author[0]["last_name"]
+
+                            author_full_name = first_name + " " + last_name
+
+                            author_url = "*id" + str(item["user_id"]) +\
+                                " (" + author_full_name + ")"
+
+                            date = datetime.datetime.fromtimestamp(
+                                int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
+
+                            post_signature += author_url + "\n" + str(date)
+
+                            return post_signature
+
+                        except Exception as var_except:
+                            print(
+                                "COMPUTER [" + sender + "]: Error, " +
+                                str(var_except) +
+                                ". Exit from program...")
+                            exit(0)
+
+                    # Функция возвращает текст из поста
+                    def get_text(sender, item):
+                        sender += " -> Get text"
+
+                        try:
+                            post_text = ""
+
+                            post_text = item["text"]
+
+                            return post_text
+
+                        except Exception as var_except:
+                            print(
+                                "COMPUTER [" + sender + "]: Error, " +
+                                str(var_except) +
+                                ". Exit from program...")
+                            exit(0)
+
+                    # Функция возвращает URL поста
+                    def get_url(sender, item):
+                        sender += " -> Get URL"
+
+                        try:
+                            post_url = ""
+
+                            id_post = str(item["owner_id"]) + "_" + str(item["id"])
+
+                            post_url = "https://vk.com/photo" + id_post
+
+                            return post_url
+
+                        except Exception as var_except:
+                            print(
+                                "COMPUTER [" + sender + "]: Error, " +
+                                str(var_except) +
+                                ". Exit from program...")
+                            exit(0)
+
+                    # Функция возвращает прикрепления к посту
+                    def get_attachments(sender, item):
+                        sender += " -> Get attachments"
+
+                        try:
+                            media = "photo" + str(item["owner_id"]) +\
+                                "_" + str(item["id"])
+
+                            return media
+
+                        except Exception as var_except:
+                            print(
+                                "COMPUTER [" + sender + "]: Error, " +
+                                str(var_except) +
+                                ". Exit from program...")
+                            exit(0)
+
+                    post_signature = get_signature(sender,
+                                                   vk_admin_session,
+                                                   item)
+                    post_text = get_text(sender, item)
+                    post_url = get_url(sender, item)
+                    post_attachments = get_attachments(sender, item)
+
+                    mes_long_text = "...\n[long text]"
+
+                    post_length = len(post_signature + "\n\n" +
+                                      post_text +
+                                      mes_long_text + "\n\n" +
+                                      post_url)
+
+                    limit_symbols = 3900
+
+                    if post_length > limit_symbols:
+                        count_symbols = post_length -\
+                            (post_length - limit_symbols) - 1
+                        post_text = post_text[0:count_symbols]
+
+                        message = post_signature + "\n\n" +\
+                            post_text +\
+                            mes_long_text + "\n\n" +\
+                            post_url
+                    else:
+                        message = post_signature + "\n\n" +\
+                            post_text + "\n\n" +\
+                            post_url
+
+                    return message, post_attachments
+
+                except Exception as var_except:
+                    print(
+                        "COMPUTER [" + sender + "]: Error, " +
+                        str(var_except) +
+                        ". Exit from program...")
+                    exit(0)
+
+            def send_message(sender, vk_bot_session,
+                             subject_data, message_object):
+                sender += " -> Send message"
+
+                try:
+                    peer_id = subject_data["photo_notificator_settings"]["send_to"]
+                    message = message_object["message"]
+                    post_attachments = message_object["post_attachments"]
+
+                    if post_attachments != "":
+                        values = {
+                            "peer_id": peer_id,
+                            "message": message,
+                            "attachment": post_attachments
+                        }
+                    else:
+                        values = {
+                            "peer_id": peer_id,
+                            "message": message
+                        }
+
+                    time.sleep(1)
+
+                    vk_bot_session.method("messages.send", values)
+
+                except Exception as var_except:
+                    if str(var_except).lower().find("captcha needed") !=\
+                       -1:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) + ". " +
+                            "Timeout: 60 sec.")
+                        time.sleep(60)
+
+                        return send_message(sender, vk_bot_session,
+                                            subject_data, message_object)
+
+                    elif str(var_except).lower().find("connection aborted") != -1:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) + ". " +
+                            "Timeout: 60 sec.")
+                        time.sleep(60)
+
+                        return send_message(sender, vk_bot_session,
+                                            subject_data, message_object)
+
+                    elif str(var_except).lower().find("failed to establish a new connection") != -1:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) + ". " +
+                            "Timeout: 60 sec.")
+                        time.sleep(60)
+
+                        return send_message(sender, vk_bot_session,
+                                            subject_data, message_object)
+
+                    else:
+                        print(
+                            "COMPUTER [" + sender + "]: Error, " +
+                            str(var_except) +
+                            ". Exit from program...")
+                        exit(0)
+
+            response = get_photo(sender, vk_admin_session, subject_data)
+
+            last_date = int(subject_data["photo_notificator_settings"]["last_date"])
+
+            i = len(response["items"]) - 1
+
+            while i >= 0:
+                item = response["items"][i]
+
+                if item["date"] > last_date:
+
+                    album_response = get_album(sender, vk_admin_session, item)
+
+                    album = {
+                        "album_title": album_response["items"][0]["title"],
+                        "album_id": album_response["items"][0]["id"]
+                    }
+
+                    item.update(album)
+
+                    message, post_attachments =\
+                        make_message(sender,
+                                     vk_admin_session,
+                                     item)
+
+                    message_object = {
+                        "message": message,
+                        "post_attachments": post_attachments
+                    }
+
+                    send_message(sender, vk_bot_session,
+                                 subject_data, message_object)
+
+                    last_date = item["date"]
+
+                    date = datetime.datetime.fromtimestamp(
+                                int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
+
+                    print(album["album_title"] + "'s new " +
+                          "photo" + ": " + str(date))
+
+                i -= 1
+
+            return last_date
+
+        except Exception as var_except:
+            print(
+                "COMPUTER [" + str(sender) + "]: Error, " +
+                str(var_except) +
+                ". Exit from program...")
+            exit(0)
+
 
 def main(vk_admin_session, vk_bot_session):
 
@@ -1130,6 +1523,18 @@ def main(vk_admin_session, vk_bot_session):
                                                                     subject_data)
 
                     data_json["subjects"][i] = copy.deepcopy(subject_data)
+
+                    write_json(sender, PATH, "data", data_json)
+
+                if subject_data["photo_notificator_settings"]["check_photo"] == 1:
+
+                    subject_data = copy.deepcopy(data_json["subjects"][i])
+
+                    last_date = objNotificator.new_album_photo(sender,
+                                                               sessions_list,
+                                                               subject_data)
+
+                    data_json["subjects"][i]["photo_notificator_settings"]["last_date"] = str(last_date)
 
                     write_json(sender, PATH, "data", data_json)
 

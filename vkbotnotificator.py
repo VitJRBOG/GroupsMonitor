@@ -9,7 +9,53 @@ import copy
 import datetime
 
 
+def exception_handler(sender, var_except):
+    try:
+        if str(var_except).lower().find("captcha needed") != -1:
+            print(
+                "COMPUTER [" + sender + "]: Error, " +
+                str(var_except) + ". " +
+                "Timeout: 60 sec.")
+            time.sleep(60)
+
+            return
+
+        elif str(var_except).lower().find("failed to establish " +
+                                          "a new connection") != -1:
+            print(
+                "COMPUTER [" + sender + "]: Error, " +
+                str(var_except) + ". " +
+                "Timeout: 60 sec.")
+            time.sleep(60)
+
+            return
+
+        elif str(var_except).lower().find("connection aborted") != -1:
+            print(
+                "COMPUTER [" + sender + "]: Error, " +
+                str(var_except) + ". " +
+                "Timeout: 60 sec.")
+            time.sleep(60)
+
+            return
+
+        else:
+            print(
+                "COMPUTER [" + sender + "]: Error, " +
+                str(var_except) +
+                ". Exit from program...")
+            exit(0)
+    except Exception as var_except:
+        sender += " -> Exception handler"
+        print(
+            "COMPUTER [" + sender + "]: Error, " +
+            str(var_except) +
+            ". Exit from program...")
+        exit(0)
+
+
 def starter():
+    sender = "Starter"
 
     try:
 
@@ -20,7 +66,7 @@ def starter():
 
             print("COMPUTER: Was created file \"path.txt\".")
 
-        PATH = read_path()
+        PATH = read_path(sender)
 
         if os.path.exists(PATH + "data.json") is False:
             print("\nCOMPUTER: WARNING! File \"data.json\" not found!")
@@ -79,12 +125,16 @@ def starter():
         main(vk_admin_session, vk_bot_session)
 
     except Exception as var_except:
-        print(
-            "COMPUTER: Error, " + str(var_except) + ". Exit from program...")
-        exit(0)
+        exception_handler(sender, var_except)
+        return starter()
 
 
-def read_path():
+def read_path(sender):
+    if sender != "":
+        sender += " -> Read \"path.txt\""
+    else:
+        sender += "Read \"path.txt\""
+
     try:
         path = str(open("path.txt", "r").read())
 
@@ -94,10 +144,8 @@ def read_path():
         return path
 
     except Exception as var_except:
-        print(
-            "COMPUTER [.. -> Read \"path.txt\"]: Error, " + str(var_except) +
-            ". Exit from program...")
-        exit(0)
+        exception_handler(sender, var_except)
+        return read_path(sender)
 
 
 def read_json(sender, path, file_name):
@@ -109,11 +157,8 @@ def read_json(sender, path, file_name):
 
         return loads_json
     except Exception as var_except:
-        print(
-            "COMPUTER [" + str(sender) +
-            "]: Error, " + str(var_except) +
-            ". Exit from program...")
-        exit(0)
+        exception_handler(sender, var_except)
+        return read_json(sender, path, file_name)
 
 
 def write_json(sender, path, file_name, loads_json):
@@ -125,11 +170,8 @@ def write_json(sender, path, file_name, loads_json):
         file_json.close()
 
     except Exception as var_except:
-        print(
-            "COMPUTER [" + str(sender) +
-            "]: Error, " + str(var_except) +
-            ". Exit from program...")
-        exit(0)
+        exception_handler(sender, var_except)
+        return write_json(sender, path, file_name, loads_json)
 
 
 def autorization(data_access, auth_type):
@@ -159,11 +201,8 @@ def autorization(data_access, auth_type):
         return vk_session
 
     except Exception as var_except:
-        print(
-            "COMPUTER [.. -> Authorization]: Error, " +
-            str(var_except) +
-            ". Exit from program...")
-        exit(0)
+        exception_handler(sender, var_except)
+        return autorization(data_access, auth_type)
 
 
 class Notificator():
@@ -200,45 +239,9 @@ class Notificator():
 
                     return response
 
-                # Общий обработчик исключений
-                # TODO: Добавить частные обработчики
-
                 except Exception as var_except:
-                    if str(var_except).lower().find("captcha needed") !=\
-                       -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    elif str(var_except).lower().find("failed to establish " +
-                                                      "a new connection") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    elif str(var_except).lower().find("connection aborted") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    else:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) +
-                            ". Exit from program...")
-                        exit(0)
+                    exception_handler(sender, var_except)
+                    return get_posts(sender, vk_admin_session, subject_data)
 
             def make_message(sender, vk_admin_session, item):
                 sender += " -> Make message"
@@ -304,11 +307,9 @@ class Notificator():
                             return post_signature
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + sender + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_signature(sender, vk_admin_session,
+                                                 item)
 
                     # Функция возвращает текст из поста
                     def get_text(sender, item):
@@ -322,11 +323,8 @@ class Notificator():
                             return post_text
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + sender + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_text(sender, item)
 
                     # Функция возвращает URL поста
                     def get_url(sender, item):
@@ -342,11 +340,8 @@ class Notificator():
                             return post_url
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + sender + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_url(sender, item)
 
                     # Функция возвращает прикрепления к посту
                     def get_attachments(sender, item):
@@ -399,11 +394,8 @@ class Notificator():
                                 return ""
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + sender + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_attachments(sender, item)
 
                     post_signature = get_signature(sender,
                                                    vk_admin_session,
@@ -438,11 +430,8 @@ class Notificator():
                     return message, post_attachments
 
                 except Exception as var_except:
-                    print(
-                        "COMPUTER [" + sender + "]: Error, " +
-                        str(var_except) +
-                        ". Exit from program...")
-                    exit(0)
+                    exception_handler(sender, var_except)
+                    return make_message(sender, vk_admin_session, item)
 
             def send_message(sender, vk_bot_session,
                              subject_data, message_object):
@@ -470,43 +459,9 @@ class Notificator():
                     vk_bot_session.method("messages.send", values)
 
                 except Exception as var_except:
-                    if str(var_except).lower().find("captcha needed") !=\
-                       -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return send_message(sender, vk_bot_session,
+                    exception_handler(sender, var_except)
+                    return send_message(sender, vk_bot_session,
                                             subject_data, message_object)
-
-                    elif str(var_except).lower().find("connection aborted") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return send_message(sender, vk_bot_session,
-                                            subject_data, message_object)
-
-                    elif str(var_except).lower().find("failed to establish a new connection") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return send_message(sender, vk_bot_session,
-                                            subject_data, message_object)
-
-                    else:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) +
-                            ". Exit from program...")
-                        exit(0)
 
             response = get_posts(sender, vk_admin_session, subject_data)
 
@@ -545,11 +500,8 @@ class Notificator():
             return last_date
 
         except Exception as var_except:
-            print(
-                "COMPUTER [" + str(sender) + "]: Error, " +
-                str(var_except) +
-                ". Exit from program...")
-            exit(0)
+            exception_handler(sender, var_except)
+            return new_post(self, sender, sessions_list, subject_data)
 
     def new_topic_message(self, sender, sessions_list, subject_data):
 
@@ -587,41 +539,8 @@ class Notificator():
                     return response["items"]
 
                 except Exception as var_except:
-                    if str(var_except).lower().find("captcha needed") !=\
-                       -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    elif str(var_except).lower().find("failed to establish " +
-                                                      "a new connection") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    elif str(var_except).lower().find("connection aborted") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    else:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) +
-                            ". Exit from program...")
-                        exit(0)
+                    exception_handler(sender, var_except)
+                    return get_posts(sender, vk_admin_session, subject_data)
 
             def checking_existence(sender, subject_data, response):
                 sender += " -> Checking existence"
@@ -715,11 +634,8 @@ class Notificator():
                     return subject_data
 
                 except Exception as var_except:
-                    print(
-                        "COMPUTER [" + str(sender) + "]: Error, " +
-                        str(var_except) +
-                        ". Exit from program...")
-                    exit(0)
+                    exception_handler(sender, var_except)
+                    return checking_existence(sender, subject_data, response)
 
             def get_comments(sender, vk_admin_session, subject_data):
                 sender += " -> Get comments"
@@ -767,11 +683,8 @@ class Notificator():
                     return list_response
 
                 except Exception as var_except:
-                    print(
-                        "COMPUTER [" + str(sender) + "]: Error, " +
-                        str(var_except) +
-                        ". Exit from program...")
-                    exit(0)
+                    exception_handler(sender, var_except)
+                    return get_comments(sender, vk_admin_session, subject_data)
 
             def make_message(sender, vk_admin_session,
                              subject_data, comments_values, item):
@@ -838,11 +751,9 @@ class Notificator():
                             return post_signature
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + str(sender) + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_signature(sender, vk_admin_session,
+                                                 comments_values, item)
 
                     def get_text(sender, item):
                         sender += " -> Get text"
@@ -856,11 +767,8 @@ class Notificator():
                             return post_text
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + str(sender) + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_text(sender, item)
 
                     def get_url(sender, comments_values, item):
                         sender += " -> Get URL"
@@ -878,11 +786,8 @@ class Notificator():
                             return comment_url
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + str(sender) + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_url(sender, comments_values, item)
 
                     def get_attachments(sender, item):
                         sender += " -> Get attachments"
@@ -923,11 +828,8 @@ class Notificator():
                                 return ""
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + str(sender) + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_attachments(sender, item)
 
                     post_signature = get_signature(sender, vk_admin_session,
                                                    comments_values, item)
@@ -961,11 +863,9 @@ class Notificator():
                     return message, post_attachments
 
                 except Exception as var_except:
-                    print(
-                        "COMPUTER [" + str(sender) + "]: Error, " +
-                        str(var_except) +
-                        ". Exit from program...")
-                    exit(0)
+                    exception_handler(sender, var_except)
+                    return make_message(sender, vk_admin_session,
+                             subject_data, comments_values, item)
 
             def send_message(sender, vk_bot_session,
                              subject_data, message_object):
@@ -993,43 +893,9 @@ class Notificator():
                     vk_bot_session.method("messages.send", values)
 
                 except Exception as var_except:
-                    if str(var_except).lower().find("captcha needed") !=\
-                       -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return send_message(sender, vk_bot_session,
-                                            subject_data, message_object)
-
-                    elif str(var_except).lower().find("connection aborted") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return send_message(sender, vk_bot_session,
-                                            subject_data, message_object)
-
-                    elif str(var_except).lower().find("failed to establish a new connection") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return send_message(sender, vk_bot_session,
-                                            subject_data, message_object)
-
-                    else:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) +
-                            ". Exit from program...")
-                        exit(0)
+                    exception_handler(sender, var_except)
+                    return send_message(sender, vk_bot_session,
+                                        subject_data, message_object)
 
             response = get_topics(sender, vk_admin_session, subject_data)
             subject_data = checking_existence(sender, subject_data, response)
@@ -1088,11 +954,8 @@ class Notificator():
             return subject_data
 
         except Exception as var_except:
-            print(
-                "COMPUTER [" + str(sender) + "]: Error, " +
-                str(var_except) +
-                ". Exit from program...")
-            exit(0)
+            exception_handler(sender, var_except)
+            return new_topic_message(self, sender, sessions_list, subject_data)
 
     def new_album_photo(self, sender, sessions_list, subject_data):
 
@@ -1128,41 +991,8 @@ class Notificator():
                     return response
 
                 except Exception as var_except:
-                    if str(var_except).lower().find("captcha needed") !=\
-                       -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    elif str(var_except).lower().find("failed to establish " +
-                                                      "a new connection") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    elif str(var_except).lower().find("connection aborted") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    else:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) +
-                            ". Exit from program...")
-                        exit(0)
+                    exception_handler(sender, var_except)
+                    return get_photo(sender, vk_admin_session, subject_data)
 
             def get_album(sender, vk_admin_session, item):
                 sender += " -> Get album"
@@ -1183,42 +1013,8 @@ class Notificator():
                     return response
 
                 except Exception as var_except:
-                    if str(var_except).lower().find("captcha needed") !=\
-                       -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    elif str(var_except).lower().find("failed to establish " +
-                                                      "a new connection") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    elif str(var_except).lower().find("connection aborted") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return get_posts(sender, vk_admin_session, subject_data)
-
-                    else:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) +
-                            ". Exit from program...")
-                        exit(0)
-
+                    exception_handler(sender, var_except)
+                    return get_posts(sender, vk_admin_session, subject_data)
 
             def make_message(sender, vk_admin_session, item):
                 sender += " -> Make message"
@@ -1264,11 +1060,9 @@ class Notificator():
                             return post_signature
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + sender + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_signature(sender, vk_admin_session,
+                                                 item)
 
                     # Функция возвращает текст из поста
                     def get_text(sender, item):
@@ -1282,11 +1076,8 @@ class Notificator():
                             return post_text
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + sender + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_text(sender, item)
 
                     # Функция возвращает URL поста
                     def get_url(sender, item):
@@ -1302,11 +1093,8 @@ class Notificator():
                             return post_url
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + sender + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_url(sender, item)
 
                     # Функция возвращает прикрепления к посту
                     def get_attachments(sender, item):
@@ -1319,11 +1107,8 @@ class Notificator():
                             return media
 
                         except Exception as var_except:
-                            print(
-                                "COMPUTER [" + sender + "]: Error, " +
-                                str(var_except) +
-                                ". Exit from program...")
-                            exit(0)
+                            exception_handler(sender, var_except)
+                            return get_attachments(sender, item)
 
                     post_signature = get_signature(sender,
                                                    vk_admin_session,
@@ -1358,11 +1143,8 @@ class Notificator():
                     return message, post_attachments
 
                 except Exception as var_except:
-                    print(
-                        "COMPUTER [" + sender + "]: Error, " +
-                        str(var_except) +
-                        ". Exit from program...")
-                    exit(0)
+                    exception_handler(sender, var_except)
+                    return make_message(sender, vk_admin_session, item)
 
             def send_message(sender, vk_bot_session,
                              subject_data, message_object):
@@ -1390,43 +1172,9 @@ class Notificator():
                     vk_bot_session.method("messages.send", values)
 
                 except Exception as var_except:
-                    if str(var_except).lower().find("captcha needed") !=\
-                       -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return send_message(sender, vk_bot_session,
+                    exception_handler(sender, var_except)
+                    return send_message(sender, vk_bot_session,
                                             subject_data, message_object)
-
-                    elif str(var_except).lower().find("connection aborted") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return send_message(sender, vk_bot_session,
-                                            subject_data, message_object)
-
-                    elif str(var_except).lower().find("failed to establish a new connection") != -1:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) + ". " +
-                            "Timeout: 60 sec.")
-                        time.sleep(60)
-
-                        return send_message(sender, vk_bot_session,
-                                            subject_data, message_object)
-
-                    else:
-                        print(
-                            "COMPUTER [" + sender + "]: Error, " +
-                            str(var_except) +
-                            ". Exit from program...")
-                        exit(0)
 
             response = get_photo(sender, vk_admin_session, subject_data)
 
@@ -1474,11 +1222,8 @@ class Notificator():
             return last_date
 
         except Exception as var_except:
-            print(
-                "COMPUTER [" + str(sender) + "]: Error, " +
-                str(var_except) +
-                ". Exit from program...")
-            exit(0)
+            exception_handler(sender, var_except)
+            return new_album_photo(self, sender, sessions_list, subject_data)
 
 
 def main(vk_admin_session, vk_bot_session):
@@ -1488,7 +1233,7 @@ def main(vk_admin_session, vk_bot_session):
     sender = "Main"
 
     try:
-        PATH = read_path()
+        PATH = read_path(sender)
 
         while True:
             data_json = read_json(sender, PATH, "data")
@@ -1543,11 +1288,8 @@ def main(vk_admin_session, vk_bot_session):
             time.sleep(60)
 
     except Exception as var_except:
-        print(
-            "COMPUTER [" + str(sender) + "]: Error, " +
-            str(var_except) +
-            ". Exit from program...")
-        exit(0)
+        exception_handler(sender, var_except)
+        return main(vk_admin_session, vk_bot_session)
 
 
 starter()

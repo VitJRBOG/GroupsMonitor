@@ -568,6 +568,10 @@ class Notificator():
                                 if response_item["id"] ==\
                                    topics_subject_item["id"]:
                                     not_exist = False
+                                    if subject_data["topics"][j]["title"] !=\
+                                       response_item["title"]:
+                                        subject_data["topics"][j]["title"] =\
+                                            response_item["title"]
                                     break
                                 else:
                                     not_exist = True

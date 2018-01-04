@@ -94,22 +94,29 @@ def starter():
                         "owner_id": 0
                     }
                 ],
-                "admin_token": "",
-                "bot_token": ""
+                "wiki_database_id": "-0_0",
+                "total_last_date": "0"
             }
 
-            write_json("Starter", PATH, "data", data_json)
+            user_answer = raw_input("USER [" + sender + " -> Wiki database URL]: ")
 
-            print("COMPUTER: Please, enter the necessary data to " +
-                  "file \"data.json\". Exit from program...")
-            exit(0)
+            wiki_full_id = str(user_answer[user_answer.rfind('page-') + 4:])
+
+            data_json["wiki_database_id"] = wiki_full_id
+
+            write_json("Starter", PATH, "data", data_json)
 
         #  Получение данных из файла JSON
 
         data_json = read_json("Starter", PATH, "data")
 
-        vk_admin_token = data_json["admin_token"]
-        vk_bot_token = data_json["bot_token"]
+        # vk_admin_token = data_json["admin_token"]
+        # vk_bot_token = data_json["bot_token"]
+
+        user_answer = raw_input("USER [" + sender + " -> New token]: ")
+
+        vk_admin_token = user_answer
+        vk_bot_token = user_answer
 
         data_access_admin = {
             "token": vk_admin_token
@@ -118,8 +125,8 @@ def starter():
             "token": vk_bot_token
         }
 
-        vk_admin_session = autorization(data_access_admin, "token")
-        vk_bot_session = autorization(data_access_bot, "token")
+        vk_admin_session = autorization(sender, data_access_admin, "token")
+        vk_bot_session = autorization(sender, data_access_bot, "token")
 
         print("COMPUTER [Starter]: Program was started.")
         main(vk_admin_session, vk_bot_session)
@@ -174,7 +181,59 @@ def write_json(sender, path, file_name, loads_json):
         return write_json(sender, path, file_name, loads_json)
 
 
-def autorization(data_access, auth_type):
+def read_wiki(sender, vk_admin_session, wiki_full_id):
+    sender += " -> Read Wiki"
+
+    try:
+        wiki_owner_id = int(wiki_full_id[0:wiki_full_id.rfind('_')])
+        wiki_id = int(wiki_full_id[wiki_full_id.rfind('_') + 1:])
+
+        values = {
+            "owner_id": wiki_owner_id,
+            "page_id": wiki_id,
+            "need_html": 1
+        }
+
+        time.sleep(1)
+
+        response = vk_admin_session.method("pages.get", values)
+
+        text = response["html"][8:]
+        data_json = json.loads(text)
+
+        return data_json
+
+    except Exception as var_except:
+        exception_handler(sender, var_except)
+        return save_wiki(sender, vk_admin_session, wiki_id, text)
+
+
+def save_wiki(sender, vk_admin_session, wiki_full_id, data_json):
+    sender += " -> Save Wiki"
+
+    try:
+        wiki_owner_id = int(wiki_full_id[1:wiki_full_id.rfind('_')])
+        wiki_id = int(wiki_full_id[wiki_full_id.rfind('_') + 1:])
+
+        text = json.dumps(data_json)
+
+        values = {
+            "group_id": wiki_owner_id,
+            "page_id": wiki_id,
+            "text": text
+        }
+
+        time.sleep(1)
+
+        vk_admin_session.method("pages.save", values)
+
+    except Exception as var_except:
+        exception_handler(sender, var_except)
+        return save_wiki(sender, vk_admin_session, wiki_full_id, text)
+
+
+def autorization(sender, data_access, auth_type):
+    sender += " -> Authorization"
 
     try:
 
@@ -869,7 +928,7 @@ class Notificator():
                 except Exception as var_except:
                     exception_handler(sender, var_except)
                     return make_message(sender, vk_admin_session,
-                             subject_data, comments_values, item)
+                                        subject_data, comments_values, item)
 
             def send_message(sender, vk_bot_session,
                              subject_data, message_object):
@@ -1239,8 +1298,45 @@ def main(vk_admin_session, vk_bot_session):
     try:
         PATH = read_path(sender)
 
+        data_file = read_json(sender, PATH, "data")
+        wiki_full_id = data_file["wiki_database_id"]
+        data_wiki = read_wiki(sender, vk_admin_session, wiki_full_id)
+
+        if int(data_wiki["total_last_date"]) >\
+           int(data_file["total_last_date"]):
+            write_json(sender, PATH, "data", data_wiki)
+
+            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+            print("COMPUTER [" + sender + "]: Backup has been saved " +
+                  "in file at " + str(date) + ".")
+        elif int(data_file["total_last_date"]) >\
+           int(data_wiki["total_last_date"]):
+            save_wiki(sender, vk_admin_session, wiki_full_id, data_file)
+
+            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+            print("COMPUTER [" + sender + "]: Backup has been saved in " +
+                  "wiki-page at " + str(date) + ".")
+        else:
+            print("COMPUTER [" + sender + "]: Data in wiki-page and " +
+                  "data in file are identical.")
+
+        data_file = None
+        data_wiki = None
+
+        delay = 0
+
         while True:
             data_json = read_json(sender, PATH, "data")
+
+            if delay >= 10:
+                wiki_full_id = data_json["wiki_database_id"]
+                save_wiki(sender, vk_admin_session, wiki_full_id, data_json)
+
+                date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+                print("COMPUTER [" + sender + "]: Backup has been saved in " +
+                      "wiki-page at " + str(date) + ".")
+
+                delay = 0
 
             subjects = copy.deepcopy(data_json["subjects"])
 
@@ -1260,6 +1356,8 @@ def main(vk_admin_session, vk_bot_session):
                                                     subject_data)
 
                 data_json["subjects"][i]["last_date"] = str(last_date)
+                if int(last_date) > int(data_json["total_last_date"]):
+                    data_json["total_last_date"] = str(last_date)
 
                 write_json(sender, PATH, "data", data_json)
 
@@ -1273,6 +1371,16 @@ def main(vk_admin_session, vk_bot_session):
 
                     data_json["subjects"][i] = copy.deepcopy(subject_data)
 
+                    j = 0
+
+                    while j < len(subject_data["topics"]):
+                        topic = subject_data["topics"][j]
+
+                        if int(topic["last_date"]) > int(data_json["total_last_date"]):
+                            data_json["total_last_date"] = str(topic["last_date"])
+
+                        j += 1
+
                     write_json(sender, PATH, "data", data_json)
 
                 if subject_data["photo_notificator_settings"]["check_photo"] == 1:
@@ -1285,9 +1393,14 @@ def main(vk_admin_session, vk_bot_session):
 
                     data_json["subjects"][i]["photo_notificator_settings"]["last_date"] = str(last_date)
 
+                    if int(last_date) > int(data_json["total_last_date"]):
+                        data_json["total_last_date"] = str(last_date)
+
                     write_json(sender, PATH, "data", data_json)
 
                 i += 1
+
+            delay += 1
 
             time.sleep(60)
 

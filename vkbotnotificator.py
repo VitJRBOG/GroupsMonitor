@@ -38,6 +38,14 @@ def exception_handler(sender, var_except):
             time.sleep(60)
 
             return
+        elif str(var_except).lower().find("response code 504") != -1:
+            print(
+                "COMPUTER [" + sender + "]: Error, " +
+                str(var_except) + ". " +
+                "Timeout: 60 sec.")
+            time.sleep(60)
+
+            return
 
         else:
             print(

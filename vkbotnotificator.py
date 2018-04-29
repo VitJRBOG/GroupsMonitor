@@ -46,6 +46,14 @@ def exception_handler(sender, var_except):
             time.sleep(60)
 
             return
+        elif str(var_except).lower().find("response code 502") != -1:
+            print(
+                "COMPUTER [" + sender + "]: Error, " +
+                str(var_except) + ". " +
+                "Timeout: 60 sec.")
+            time.sleep(60)
+
+            return
 
         else:
             print(
@@ -53,6 +61,7 @@ def exception_handler(sender, var_except):
                 str(var_except) +
                 ". Exit from program...")
             exit(0)
+
     except Exception as var_except:
         sender += " -> Exception handler"
         print(

@@ -64,3 +64,16 @@ def exception_handler(sender, var_except):
             str(var_except) +
             ". Exit from program...")
         exit(0)
+
+
+def message_output(sender, message):
+    try:
+        print("COMPUTER [" + sender + "]: " + message)
+
+    except Exception as var_except:
+        sender += " -> Message output"
+        print(
+            "COMPUTER [" + sender + "]: Error, " +
+            str(var_except) +
+            ". Exit from program...")
+        exit(0)

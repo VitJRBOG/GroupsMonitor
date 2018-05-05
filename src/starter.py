@@ -2,10 +2,10 @@
 
 
 import os
-import bughandler
+import logger
 import datamanager
 import vk_api
-import main
+import core
 
 
 def start():
@@ -18,12 +18,15 @@ def start():
             file_text.write("")
             file_text.close()
 
-            print("COMPUTER: Was created file \"path.txt\".")
+            mess_for_log = "Was created file \"path.txt\"."
+            logger.message_output(sender, mess_for_log)
 
         PATH = datamanager.read_path(sender)
 
         if os.path.exists(PATH + "data.json") is False:
-            print("\nCOMPUTER: WARNING! File \"data.json\" not found!")
+
+            mess_for_log = "\nWARNING! File \"data.json\" not found!"
+            logger.message_output(sender, mess_for_log)
 
             data_json = {
                 "subjects": [
@@ -82,11 +85,13 @@ def start():
         vk_admin_session = autorization(sender, data_access_admin, "token")
         vk_bot_session = autorization(sender, data_access_bot, "token")
 
-        print("COMPUTER [Start]: Program was started.")
-        main.core(vk_admin_session, vk_bot_session)
+        mess_for_log = "Program was started."
+        logger.message_output(sender, mess_for_log)
+
+        core.main(vk_admin_session, vk_bot_session)
 
     except Exception as var_except:
-        bughandler.exception_handler(sender, var_except)
+        logger.exception_handler(sender, var_except)
         return start()
 
 
@@ -112,13 +117,16 @@ def autorization(sender, data_access, auth_type):
 
         if auth_type != "token" and auth_type != "login":
 
-            print("COMPUTER: Error of authorization. Exit from program...")
+            mess_for_log = "Error of authorization. Exit from program..."
+            logger.message_output(sender, mess_for_log)
+
             exit(0)
 
         return vk_session
 
     except Exception as var_except:
-        bughandler.exception_handler(sender, var_except)
+        logger.exception_handler(sender, var_except)
         return autorization(data_access, auth_type)
+
 
 start()

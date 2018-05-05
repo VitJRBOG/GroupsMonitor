@@ -4,12 +4,12 @@
 import time
 import copy
 import datetime
-import bughandler
+import logger
 import notificator
 import datamanager
 
 
-def core(vk_admin_session, vk_bot_session):
+def main(vk_admin_session, vk_bot_session):
 
     # TODO: Отрефакторить эту функцию, здесь слишком много хлама
 
@@ -27,18 +27,24 @@ def core(vk_admin_session, vk_bot_session):
             datamanager.write_json(sender, PATH, "data", data_wiki)
 
             date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-            print("COMPUTER [" + sender + "]: Backup has been saved " +
-                  "in file at " + str(date) + ".")
+
+            mess_for_log = "Backup has been saved in file at " +\
+                str(date) + "."
+            logger.message_output(sender, mess_for_log)
+
         elif int(data_file["total_last_date"]) >\
            int(data_wiki["total_last_date"]):
             datamanager.save_wiki(sender, vk_admin_session, wiki_full_id, data_file)
 
             date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-            print("COMPUTER [" + sender + "]: Backup has been saved in " +
-                  "wiki-page at " + str(date) + ".")
+
+            mess_for_log = "Backup has been saved in wiki-page at " +\
+                str(date) + "."
+            logger.message_output(sender, mess_for_log)
         else:
-            print("COMPUTER [" + sender + "]: Data in wiki-page and " +
-                  "data in file are identical.")
+
+            mess_for_log = "Data in wiki-page and data in file are identical."
+            logger.message_output(sender, mess_for_log)
 
         data_file = None
         data_wiki = None
@@ -53,8 +59,10 @@ def core(vk_admin_session, vk_bot_session):
                 datamanager.save_wiki(sender, vk_admin_session, wiki_full_id, data_json)
 
                 date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-                print("COMPUTER [" + sender + "]: Backup has been saved in " +
-                      "wiki-page at " + str(date) + ".")
+
+                mess_for_log = "Backup has been saved in wiki-page at " +\
+                    str(date) + "."
+                logger.message_output(sender, mess_for_log)
 
                 delay = 0
 
@@ -118,5 +126,5 @@ def core(vk_admin_session, vk_bot_session):
             time.sleep(60)
 
     except Exception as var_except:
-        bughandler.exception_handler(sender, var_except)
-        return core(vk_admin_session, vk_bot_session)
+        logger.exception_handler(sender, var_except)
+        return main(vk_admin_session, vk_bot_session)

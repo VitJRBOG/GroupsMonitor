@@ -3,7 +3,7 @@
 
 import json
 import time
-import bughandler
+import logger
 
 
 def read_path(sender):
@@ -21,7 +21,7 @@ def read_path(sender):
         return path
 
     except Exception as var_except:
-        bughandler.exception_handler(sender, var_except)
+        logger.exception_handler(sender, var_except)
         return read_path(sender)
 
 
@@ -34,7 +34,7 @@ def read_json(sender, path, file_name):
 
         return loads_json
     except Exception as var_except:
-        bughandler.exception_handler(sender, var_except)
+        logger.exception_handler(sender, var_except)
         return read_json(sender, path, file_name)
 
 
@@ -47,7 +47,7 @@ def write_json(sender, path, file_name, loads_json):
         file_json.close()
 
     except Exception as var_except:
-        bughandler.exception_handler(sender, var_except)
+        logger.exception_handler(sender, var_except)
         return write_json(sender, path, file_name, loads_json)
 
 
@@ -74,7 +74,7 @@ def read_wiki(sender, vk_admin_session, wiki_full_id):
         return data_json
 
     except Exception as var_except:
-        bughandler.exception_handler(sender, var_except)
+        logger.exception_handler(sender, var_except)
         return save_wiki(sender, vk_admin_session, wiki_id, text)
 
 
@@ -98,5 +98,5 @@ def save_wiki(sender, vk_admin_session, wiki_full_id, data_json):
         vk_admin_session.method("pages.save", values)
 
     except Exception as var_except:
-        bughandler.exception_handler(sender, var_except)
+        logger.exception_handler(sender, var_except)
         return save_wiki(sender, vk_admin_session, wiki_full_id, text)

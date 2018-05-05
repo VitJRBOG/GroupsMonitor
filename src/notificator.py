@@ -1,7 +1,7 @@
 # coding: utf-8
 
 
-import bughandler
+import logger
 import time
 import datetime
 import copy
@@ -37,7 +37,7 @@ def new_post(sender, sessions_list, subject_data):
                     return response
 
                 except Exception as var_except:
-                    bughandler.exception_handler(sender, var_except)
+                    logger.exception_handler(sender, var_except)
                     return get_posts(sender, vk_admin_session, subject_data)
 
             def make_message(sender, vk_admin_session, item):
@@ -104,7 +104,7 @@ def new_post(sender, sessions_list, subject_data):
                             return post_signature
 
                         except Exception as var_except:
-                            bughandler.exception_handler(sender, var_except)
+                            logger.exception_handler(sender, var_except)
                             return get_signature(sender, vk_admin_session,
                                                  item)
 
@@ -120,7 +120,7 @@ def new_post(sender, sessions_list, subject_data):
                             return post_text
 
                         except Exception as var_except:
-                            bughandler.exception_handler(sender, var_except)
+                            logger.exception_handler(sender, var_except)
                             return get_text(sender, item)
 
                     # Функция возвращает URL поста
@@ -137,7 +137,7 @@ def new_post(sender, sessions_list, subject_data):
                             return post_url
 
                         except Exception as var_except:
-                            bughandler.exception_handler(sender, var_except)
+                            logger.exception_handler(sender, var_except)
                             return get_url(sender, item)
 
                     # Функция возвращает прикрепления к посту
@@ -191,7 +191,7 @@ def new_post(sender, sessions_list, subject_data):
                                 return ""
 
                         except Exception as var_except:
-                            bughandler.exception_handler(sender, var_except)
+                            logger.exception_handler(sender, var_except)
                             return get_attachments(sender, item)
 
                     post_signature = get_signature(sender,
@@ -227,7 +227,7 @@ def new_post(sender, sessions_list, subject_data):
                     return message, post_attachments
 
                 except Exception as var_except:
-                    bughandler.exception_handler(sender, var_except)
+                    logger.exception_handler(sender, var_except)
                     return make_message(sender, vk_admin_session, item)
 
             def send_message(sender, vk_bot_session,
@@ -256,7 +256,7 @@ def new_post(sender, sessions_list, subject_data):
                     vk_bot_session.method("messages.send", values)
 
                 except Exception as var_except:
-                    bughandler.exception_handler(sender, var_except)
+                    logger.exception_handler(sender, var_except)
                     return send_message(sender, vk_bot_session, subject_data, message_object)
 
             response = get_posts(sender, vk_admin_session, subject_data)
@@ -288,15 +288,18 @@ def new_post(sender, sessions_list, subject_data):
                     date = datetime.datetime.fromtimestamp(
                                 int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
 
-                    print(subject_data["name"] + "'s new " +
-                          subject_data["filter"] + ": " + str(date))
+                    mess_for_log = subject_data["name"] +\
+                        "'s new " +\
+                        subject_data["filter"] +\
+                        ": " + str(date)
+                    logger.message_output(sender, mess_for_log)
 
                 i -= 1
 
             return last_date
 
         except Exception as var_except:
-            bughandler.exception_handler(sender, var_except)
+            logger.exception_handler(sender, var_except)
             return new_post(sender, sessions_list, subject_data)
 
 
@@ -333,7 +336,7 @@ def new_topic_message(sender, sessions_list, subject_data):
                 return response["items"]
 
             except Exception as var_except:
-                bughandler.exception_handler(sender, var_except)
+                logger.exception_handler(sender, var_except)
                 return get_topics(sender, vk_admin_session, subject_data)
 
         def checking_existence(sender, subject_data, response):
@@ -432,7 +435,7 @@ def new_topic_message(sender, sessions_list, subject_data):
                 return subject_data
 
             except Exception as var_except:
-                bughandler.exception_handler(sender, var_except)
+                logger.exception_handler(sender, var_except)
                 return checking_existence(sender, subject_data, response)
 
         def get_comments(sender, vk_admin_session, subject_data):
@@ -481,7 +484,7 @@ def new_topic_message(sender, sessions_list, subject_data):
                 return list_response
 
             except Exception as var_except:
-                bughandler.exception_handler(sender, var_except)
+                logger.exception_handler(sender, var_except)
                 return get_comments(sender, vk_admin_session, subject_data)
 
         def make_message(sender, vk_admin_session,
@@ -549,7 +552,7 @@ def new_topic_message(sender, sessions_list, subject_data):
                         return post_signature
 
                     except Exception as var_except:
-                        bughandler.exception_handler(sender, var_except)
+                        logger.exception_handler(sender, var_except)
                         return get_signature(sender, vk_admin_session,
                                              comments_values, item)
 
@@ -565,7 +568,7 @@ def new_topic_message(sender, sessions_list, subject_data):
                         return post_text
 
                     except Exception as var_except:
-                        bughandler.exception_handler(sender, var_except)
+                        logger.exception_handler(sender, var_except)
                         return get_text(sender, item)
 
                 def get_url(sender, comments_values, item):
@@ -584,7 +587,7 @@ def new_topic_message(sender, sessions_list, subject_data):
                         return comment_url
 
                     except Exception as var_except:
-                        bughandler.exception_handler(sender, var_except)
+                        logger.exception_handler(sender, var_except)
                         return get_url(sender, comments_values, item)
 
                 def get_attachments(sender, item):
@@ -626,7 +629,7 @@ def new_topic_message(sender, sessions_list, subject_data):
                             return ""
 
                     except Exception as var_except:
-                        bughandler.exception_handler(sender, var_except)
+                        logger.exception_handler(sender, var_except)
                         return get_attachments(sender, item)
 
                 post_signature = get_signature(sender, vk_admin_session,
@@ -661,7 +664,7 @@ def new_topic_message(sender, sessions_list, subject_data):
                 return message, post_attachments
 
             except Exception as var_except:
-                bughandler.exception_handler(sender, var_except)
+                logger.exception_handler(sender, var_except)
                 return make_message(sender, vk_admin_session,
                                     subject_data, comments_values, item)
 
@@ -691,7 +694,7 @@ def new_topic_message(sender, sessions_list, subject_data):
                 vk_bot_session.method("messages.send", values)
 
             except Exception as var_except:
-                bughandler.exception_handler(sender, var_except)
+                logger.exception_handler(sender, var_except)
                 return send_message(sender, vk_bot_session,
                                     subject_data, message_object)
 
@@ -742,8 +745,9 @@ def new_topic_message(sender, sessions_list, subject_data):
                     date = datetime.datetime.fromtimestamp(
                                 int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
 
-                    print(comments_values["topic_title"] + "'s new " +
-                          "comment" + ": " + str(date))
+                    mess_for_log = comments_values["topic_title"] +\
+                        "'s new comment" + ": " + str(date)
+                    logger.message_output(sender, mess_for_log)
 
                 j -= 1
 
@@ -752,7 +756,7 @@ def new_topic_message(sender, sessions_list, subject_data):
         return subject_data
 
     except Exception as var_except:
-        bughandler.exception_handler(sender, var_except)
+        logger.exception_handler(sender, var_except)
         return new_topic_message(sender, sessions_list, subject_data)
 
 
@@ -787,7 +791,7 @@ def new_album_photo(sender, sessions_list, subject_data):
                 return response
 
             except Exception as var_except:
-                bughandler.exception_handler(sender, var_except)
+                logger.exception_handler(sender, var_except)
                 return get_photo(sender, vk_admin_session, subject_data)
 
         def get_album(sender, vk_admin_session, item):
@@ -809,7 +813,7 @@ def new_album_photo(sender, sessions_list, subject_data):
                 return response
 
             except Exception as var_except:
-                bughandler.exception_handler(sender, var_except)
+                logger.exception_handler(sender, var_except)
                 return get_album(sender, vk_admin_session, subject_data)
 
         def make_message(sender, vk_admin_session, item):
@@ -856,7 +860,7 @@ def new_album_photo(sender, sessions_list, subject_data):
                         return post_signature
 
                     except Exception as var_except:
-                        bughandler.exception_handler(sender, var_except)
+                        logger.exception_handler(sender, var_except)
                         return get_signature(sender, vk_admin_session,
                                              item)
 
@@ -872,7 +876,7 @@ def new_album_photo(sender, sessions_list, subject_data):
                         return post_text
 
                     except Exception as var_except:
-                        bughandler.exception_handler(sender, var_except)
+                        logger.exception_handler(sender, var_except)
                         return get_text(sender, item)
 
                 # Функция возвращает URL поста
@@ -889,7 +893,7 @@ def new_album_photo(sender, sessions_list, subject_data):
                         return post_url
 
                     except Exception as var_except:
-                        bughandler.exception_handler(sender, var_except)
+                        logger.exception_handler(sender, var_except)
                         return get_url(sender, item)
 
                 # Функция возвращает прикрепления к посту
@@ -903,7 +907,7 @@ def new_album_photo(sender, sessions_list, subject_data):
                         return media
 
                     except Exception as var_except:
-                        bughandler.exception_handler(sender, var_except)
+                        logger.exception_handler(sender, var_except)
                         return get_attachments(sender, item)
 
                 post_signature = get_signature(sender,
@@ -939,7 +943,7 @@ def new_album_photo(sender, sessions_list, subject_data):
                 return message, post_attachments
 
             except Exception as var_except:
-                bughandler.exception_handler(sender, var_except)
+                logger.exception_handler(sender, var_except)
                 return make_message(sender, vk_admin_session, item)
 
         def send_message(sender, vk_bot_session,
@@ -968,7 +972,7 @@ def new_album_photo(sender, sessions_list, subject_data):
                 vk_bot_session.method("messages.send", values)
 
             except Exception as var_except:
-                bughandler.exception_handler(sender, var_except)
+                logger.exception_handler(sender, var_except)
                 return send_message(sender, vk_bot_session, subject_data, message_object)
 
         response = get_photo(sender, vk_admin_session, subject_data)
@@ -1009,13 +1013,14 @@ def new_album_photo(sender, sessions_list, subject_data):
                 date = datetime.datetime.fromtimestamp(
                             int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
 
-                print(album["album_title"] + "'s new " +
-                      "photo" + ": " + str(date))
+                mess_for_log = album["album_title"] +\
+                    "'s new photo" + ": " + str(date)
+                logger.message_output(sender, mess_for_log)
 
             i -= 1
 
         return last_date
 
     except Exception as var_except:
-        bughandler.exception_handler(sender, var_except)
+        logger.exception_handler(sender, var_except)
         return new_album_photo(sender, sessions_list, subject_data)

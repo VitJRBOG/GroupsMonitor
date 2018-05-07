@@ -32,8 +32,7 @@ def main(vk_admin_session, vk_bot_session):
                 str(date) + "."
             logger.message_output(sender, mess_for_log)
 
-        elif int(data_file["total_last_date"]) >\
-           int(data_wiki["total_last_date"]):
+        elif int(data_file["total_last_date"]) > int(data_wiki["total_last_date"]):
             datamanager.save_wiki(sender, vk_admin_session, wiki_full_id, data_file)
 
             date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
@@ -78,7 +77,9 @@ def main(vk_admin_session, vk_bot_session):
 
                 subject_data = copy.deepcopy(subjects[i])
 
-                last_date = notificator.new_post(sender, sessions_list, subject_data)
+                objNewPost = notificator.NewPost()
+
+                last_date = objNewPost.new_post(sender, sessions_list, subject_data)
 
                 data_json["subjects"][i]["last_date"] = str(last_date)
                 if int(last_date) > int(data_json["total_last_date"]):
@@ -90,7 +91,9 @@ def main(vk_admin_session, vk_bot_session):
 
                     subject_data = copy.deepcopy(data_json["subjects"][i])
 
-                    subject_data = notificator.new_topic_message(sender, sessions_list, subject_data)
+                    objNewTopicMessage = notificator.NewTopicMessage()
+
+                    subject_data = objNewTopicMessage.new_topic_message(sender, sessions_list, subject_data)
 
                     data_json["subjects"][i] = copy.deepcopy(subject_data)
 
@@ -110,7 +113,9 @@ def main(vk_admin_session, vk_bot_session):
 
                     subject_data = copy.deepcopy(data_json["subjects"][i])
 
-                    last_date = notificator.new_album_photo(sender, sessions_list, subject_data)
+                    objNewAlbumPhoto = notificator.NewAlbumPhoto()
+
+                    last_date = objNewAlbumPhoto.new_album_photo(sender, sessions_list, subject_data)
 
                     data_json["subjects"][i]["photo_notificator_settings"]["last_date"] = str(last_date)
 

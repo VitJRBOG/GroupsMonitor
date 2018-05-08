@@ -79,13 +79,45 @@ def main(vk_admin_session, vk_bot_session):
 
                 objNewPost = notificator.NewPost()
 
-                last_date = objNewPost.new_post(sender, sessions_list, subject_data)
+                response = objNewPost.new_post(sender, sessions_list, subject_data)
 
-                data_json["subjects"][i]["last_date"] = str(last_date)
-                if int(last_date) > int(data_json["total_last_date"]):
-                    data_json["total_last_date"] = str(last_date)
+                last_date = int(subject_data["last_date"])
 
-                datamanager.write_json(sender, PATH, "data", data_json)
+                n = len(response["items"]) - 1
+
+                while n >= 0:
+                    item = response["items"][n]
+
+                    if item["date"] > last_date:
+
+                        message, post_attachments =\
+                            objNewPost.make_message(sender, vk_admin_session, item)
+
+                        message_object = {
+                            "message": message,
+                            "post_attachments": post_attachments
+                        }
+
+                        objNewPost.send_message(sender, vk_bot_session, subject_data, message_object)
+
+                        last_date = item["date"]
+
+                        data_json["subjects"][i]["last_date"] = str(last_date)
+                        if int(last_date) > int(data_json["total_last_date"]):
+                            data_json["total_last_date"] = str(last_date)
+
+                        datamanager.write_json(sender, PATH, "data", data_json)
+
+                        date = datetime.datetime.fromtimestamp(
+                                    int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
+
+                        mess_for_log = subject_data["name"] +\
+                            "'s new " +\
+                            subject_data["filter"] +\
+                            ": " + str(date)
+                        logger.message_output(sender, mess_for_log)
+
+                    n -= 1
 
                 if subject_data["topic_notificator_settings"]["check_topics"] == 1:
 
@@ -93,21 +125,69 @@ def main(vk_admin_session, vk_bot_session):
 
                     objNewTopicMessage = notificator.NewTopicMessage()
 
-                    subject_data = objNewTopicMessage.new_topic_message(sender, sessions_list, subject_data)
+                    response, subject_data, list_response = objNewTopicMessage.new_topic_message(sender, sessions_list, subject_data)
 
-                    data_json["subjects"][i] = copy.deepcopy(subject_data)
+                    n = 0
 
-                    j = 0
+                    while n < len(list_response):
 
-                    while j < len(subject_data["topics"]):
-                        topic = subject_data["topics"][j]
+                        comments_values = list_response[n]
 
-                        if int(topic["last_date"]) > int(data_json["total_last_date"]):
-                            data_json["total_last_date"] = str(topic["last_date"])
+                        j = len(comments_values["comments"]) - 1
 
-                        j += 1
+                        while j >= 0:
 
-                    datamanager.write_json(sender, PATH, "data", data_json)
+                            item = comments_values["comments"][j]
+                            last_date = comments_values["last_date"]
+
+                            if item["date"] > int(last_date):
+
+                                message, post_attachments =\
+                                    objNewTopicMessage.make_message(sender, vk_admin_session, subject_data, comments_values, item)
+
+                                message_object = {
+                                    "message": message,
+                                    "post_attachments": post_attachments
+                                }
+
+                                objNewTopicMessage.send_message(sender, vk_bot_session, subject_data, message_object)
+
+                                last_date = item["date"]
+
+                                k = 0
+
+                                while k < len(subject_data["topics"]):
+
+                                    if comments_values["topic_id"] ==\
+                                      subject_data["topics"][k]["id"]:
+                                        subject_data["topics"][k]["last_date"] = last_date
+
+                                    k += 1
+
+                                data_json["subjects"][i] = copy.deepcopy(subject_data)
+
+                                x = 0
+
+                                while x < len(subject_data["topics"]):
+                                    topic = subject_data["topics"][x]
+
+                                    if int(topic["last_date"]) > int(data_json["total_last_date"]):
+                                        data_json["total_last_date"] = str(topic["last_date"])
+
+                                    x += 1
+
+                                datamanager.write_json(sender, PATH, "data", data_json)
+
+                                date = datetime.datetime.fromtimestamp(
+                                            int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
+
+                                mess_for_log = comments_values["topic_title"] +\
+                                    "'s new comment" + ": " + str(date)
+                                logger.message_output(sender, mess_for_log)
+
+                            j -= 1
+
+                        n += 1
 
                 if subject_data["photo_notificator_settings"]["check_photo"] == 1:
 
@@ -115,14 +195,53 @@ def main(vk_admin_session, vk_bot_session):
 
                     objNewAlbumPhoto = notificator.NewAlbumPhoto()
 
-                    last_date = objNewAlbumPhoto.new_album_photo(sender, sessions_list, subject_data)
+                    response = objNewAlbumPhoto.new_album_photo(sender, sessions_list, subject_data)
 
-                    data_json["subjects"][i]["photo_notificator_settings"]["last_date"] = str(last_date)
+                    last_date = int(subject_data["photo_notificator_settings"]["last_date"])
 
-                    if int(last_date) > int(data_json["total_last_date"]):
-                        data_json["total_last_date"] = str(last_date)
+                    n = len(response["items"]) - 1
 
-                    datamanager.write_json(sender, PATH, "data", data_json)
+                    while n >= 0:
+                        item = response["items"][n]
+
+                        if item["date"] > last_date:
+
+                            album_response = objNewAlbumPhoto.get_album(sender, vk_admin_session, item)
+
+                            album = {
+                                "album_title": album_response["items"][0]["title"],
+                                "album_id": album_response["items"][0]["id"]
+                            }
+
+                            item.update(album)
+
+                            message, post_attachments =\
+                                objNewAlbumPhoto.make_message(sender, vk_admin_session, item)
+
+                            message_object = {
+                                "message": message,
+                                "post_attachments": post_attachments
+                            }
+
+                            objNewAlbumPhoto.send_message(sender, vk_bot_session, subject_data, message_object)
+
+                            last_date = item["date"]
+
+                            data_json["subjects"][i]["photo_notificator_settings"]["last_date"] = str(last_date)
+
+                            if int(last_date) > int(data_json["total_last_date"]):
+                                data_json["total_last_date"] = str(last_date)
+
+                            datamanager.write_json(sender, PATH, "data", data_json)
+
+                            date = datetime.datetime.fromtimestamp(
+                                        int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
+
+                            mess_for_log = album["album_title"] +\
+                                "'s new photo" + ": " + str(date)
+                            logger.message_output(sender, mess_for_log)
+
+                        n -= 1
 
                 i += 1
 

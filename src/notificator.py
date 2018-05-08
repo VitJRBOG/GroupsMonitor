@@ -259,43 +259,11 @@ class NewPost:
             sender += " -> Notificator -> New post"
 
             vk_admin_session = sessions_list["admin"]
-            vk_bot_session = sessions_list["bot"]
+            # vk_bot_session = sessions_list["bot"]
 
             response = self.get_posts(sender, vk_admin_session, subject_data)
 
-            last_date = int(subject_data["last_date"])
-
-            i = len(response["items"]) - 1
-
-            while i >= 0:
-                item = response["items"][i]
-
-                if item["date"] > last_date:
-
-                    message, post_attachments =\
-                        self.make_message(sender, vk_admin_session, item)
-
-                    message_object = {
-                        "message": message,
-                        "post_attachments": post_attachments
-                    }
-
-                    self.send_message(sender, vk_bot_session, subject_data, message_object)
-
-                    last_date = item["date"]
-
-                    date = datetime.datetime.fromtimestamp(
-                                int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
-
-                    mess_for_log = subject_data["name"] +\
-                        "'s new " +\
-                        subject_data["filter"] +\
-                        ": " + str(date)
-                    logger.message_output(sender, mess_for_log)
-
-                i -= 1
-
-            return last_date
+            return response
 
         except Exception as var_except:
             logger.exception_handler(sender, var_except)
@@ -693,7 +661,7 @@ class NewTopicMessage:
         try:
 
             vk_admin_session = sessions_list["admin"]
-            vk_bot_session = sessions_list["bot"]
+            # vk_bot_session = sessions_list["bot"]
 
             sender += " -> Notificator -> New topic message"
 
@@ -701,55 +669,7 @@ class NewTopicMessage:
             subject_data = self.checking_existence(sender, subject_data, response)
             list_response = self.get_comments(sender, vk_admin_session, subject_data)
 
-            i = 0
-
-            while i < len(list_response):
-
-                comments_values = list_response[i]
-
-                j = len(comments_values["comments"]) - 1
-
-                while j >= 0:
-
-                    item = comments_values["comments"][j]
-                    last_date = comments_values["last_date"]
-
-                    if item["date"] > int(last_date):
-
-                        message, post_attachments =\
-                            self.make_message(sender, vk_admin_session, subject_data, comments_values, item)
-
-                        message_object = {
-                            "message": message,
-                            "post_attachments": post_attachments
-                        }
-
-                        self.send_message(sender, vk_bot_session, subject_data, message_object)
-
-                        last_date = item["date"]
-
-                        n = 0
-
-                        while n < len(subject_data["topics"]):
-
-                            if comments_values["topic_id"] ==\
-                              subject_data["topics"][n]["id"]:
-                                subject_data["topics"][n]["last_date"] = last_date
-
-                            n += 1
-
-                        date = datetime.datetime.fromtimestamp(
-                                    int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
-
-                        mess_for_log = comments_values["topic_title"] +\
-                            "'s new comment" + ": " + str(date)
-                        logger.message_output(sender, mess_for_log)
-
-                    j -= 1
-
-                i += 1
-
-            return subject_data
+            return response, subject_data, list_response
 
         except Exception as var_except:
             logger.exception_handler(sender, var_except)
@@ -969,52 +889,13 @@ class NewAlbumPhoto:
         try:
 
             vk_admin_session = sessions_list["admin"]
-            vk_bot_session = sessions_list["bot"]
+            # vk_bot_session = sessions_list["bot"]
 
             sender += " -> Notificator -> New album photo"
 
             response = self.get_photo(sender, vk_admin_session, subject_data)
 
-            last_date = int(subject_data["photo_notificator_settings"]["last_date"])
-
-            i = len(response["items"]) - 1
-
-            while i >= 0:
-                item = response["items"][i]
-
-                if item["date"] > last_date:
-
-                    album_response = self.get_album(sender, vk_admin_session, item)
-
-                    album = {
-                        "album_title": album_response["items"][0]["title"],
-                        "album_id": album_response["items"][0]["id"]
-                    }
-
-                    item.update(album)
-
-                    message, post_attachments =\
-                        self.make_message(sender, vk_admin_session, item)
-
-                    message_object = {
-                        "message": message,
-                        "post_attachments": post_attachments
-                    }
-
-                    self.send_message(sender, vk_bot_session, subject_data, message_object)
-
-                    last_date = item["date"]
-
-                    date = datetime.datetime.fromtimestamp(
-                                int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
-
-                    mess_for_log = album["album_title"] +\
-                        "'s new photo" + ": " + str(date)
-                    logger.message_output(sender, mess_for_log)
-
-                i -= 1
-
-            return last_date
+            return response
 
         except Exception as var_except:
             logger.exception_handler(sender, var_except)

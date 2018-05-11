@@ -135,6 +135,3 @@ def autorization(sender, data_access, auth_type):
     except Exception as var_except:
         logger.exception_handler(sender, var_except)
         return autorization(data_access, auth_type)
-
-
-start()

@@ -18,52 +18,15 @@ def main(vk_admin_session, vk_bot_session):
     try:
         PATH = datamanager.read_path(sender)
 
-        data_file = datamanager.read_json(sender, PATH, "data")
-        wiki_full_id = data_file["wiki_database_id"]
-        data_wiki = datamanager.read_wiki(sender, vk_admin_session, wiki_full_id)
-
-        if int(data_wiki["total_last_date"]) >\
-           int(data_file["total_last_date"]):
-            datamanager.write_json(sender, PATH, "data", data_wiki)
-
-            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-
-            mess_for_log = "Backup has been saved in file at " +\
-                str(date) + "."
-            logger.message_output(sender, mess_for_log)
-
-        elif int(data_file["total_last_date"]) > int(data_wiki["total_last_date"]):
-            datamanager.save_wiki(sender, vk_admin_session, wiki_full_id, data_file)
-
-            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-
-            mess_for_log = "Backup has been saved in wiki-page at " +\
-                str(date) + "."
-            logger.message_output(sender, mess_for_log)
-        else:
-
-            mess_for_log = "Data in wiki-page and data in file are identical."
-            logger.message_output(sender, mess_for_log)
-
-        data_file = None
-        data_wiki = None
 
         delay = 0
 
         while True:
             data_json = datamanager.read_json(sender, PATH, "data")
 
-            if delay >= 10:
-                wiki_full_id = data_json["wiki_database_id"]
-                datamanager.save_wiki(sender, vk_admin_session, wiki_full_id, data_json)
 
-                date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
-                mess_for_log = "Backup has been saved in wiki-page at " +\
-                    str(date) + "."
-                logger.message_output(sender, mess_for_log)
 
-                delay = 0
 
             subjects = copy.deepcopy(data_json["subjects"])
 
@@ -78,8 +41,13 @@ def main(vk_admin_session, vk_bot_session):
                 subject_data = copy.deepcopy(subjects[i])
 
                 objNewPost = notificator.NewPost()
+                    if delay == 0:
+                        datamanager.save_backup(sender, PATH, vk_admin_session, subjects[i])
 
                 response = objNewPost.new_post(sender, sessions_list, subject_data)
+                    if delay >= 10:
+                        datamanager.save_backup(sender, PATH, vk_admin_session, subjects[i])
+                        delay = 1
 
                 last_date = int(subject_data["last_date"])
 

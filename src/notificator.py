@@ -14,8 +14,8 @@ class NewPost:
 
         try:
             owner_id = int(subject_data["owner_id"])
-            count = int(subject_data["posts_count"])
-            post_filter = str(subject_data["filter"])
+            count = int(subject_data["post_checker_settings"]["posts_count"])
+            post_filter = str(subject_data["post_checker_settings"]["filter"])
 
             values = {
                 'owner_id': owner_id,
@@ -228,7 +228,7 @@ class NewPost:
         sender += " -> Send message"
 
         try:
-            peer_id = subject_data["send_to"]
+            peer_id = subject_data["post_checker_settings"]["send_to"]
             message = message_object["message"]
             post_attachments = message_object["post_attachments"]
 
@@ -410,8 +410,8 @@ class NewTopicMessage:
             if str(owner_id)[0] == "-":
                 owner_id = int(str(owner_id)[1:])
 
-            topic_notificator_settings = \
-                subject_data["topic_notificator_settings"]
+            topic_checker_settings = \
+                subject_data["topic_checker_settings"]
 
             i = 0
 
@@ -420,7 +420,7 @@ class NewTopicMessage:
                 topic_id = int(subject_data["topics"][i]["id"])
 
                 values = {
-                    "count": topic_notificator_settings["post_count"],
+                    "count": topic_checker_settings["post_count"],
                     "group_id": owner_id,
                     "topic_id": topic_id,
                     "sort": "desc"
@@ -632,7 +632,7 @@ class NewTopicMessage:
         sender += " -> Send message"
 
         try:
-            peer_id = subject_data["topic_notificator_settings"]["send_to"]
+            peer_id = subject_data["topic_checker_settings"]["send_to"]
             message = message_object["message"]
             post_attachments = message_object["post_attachments"]
 
@@ -682,7 +682,7 @@ class NewAlbumPhoto:
         sender += " -> Get photo"
 
         try:
-            settings = subject_data["photo_notificator_settings"]
+            settings = subject_data["photo_checker_settings"]
 
             owner_id = int(subject_data["owner_id"])
             count = int(settings["photo_count"])
@@ -860,7 +860,7 @@ class NewAlbumPhoto:
         sender += " -> Send message"
 
         try:
-            peer_id = subject_data["photo_notificator_settings"]["send_to"]
+            peer_id = subject_data["photo_checker_settings"]["send_to"]
             message = message_object["message"]
             post_attachments = message_object["post_attachments"]
 

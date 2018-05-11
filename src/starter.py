@@ -29,30 +29,42 @@ class Start():
             logger.message_output(sender, mess_for_log)
 
             data_json = {
+                "bot_token": "",
+                "admin_token": "",
                 "subjects": [
                     {
                         "name": "",
-                        "topics": [],
-                        "topic_notificator_settings": {
-                            "post_count": 0,
-                            "send_to": 0,
-                            "check_topics": 0
-                        },
-                        "photo_notificator_settings": {
-                            "photo_count": 0,
-                            "check_photo": 0,
-                            "send_to": 0,
-                            "last_date": "0"
-                        },
-                        "send_to": 0,
-                        "filter": "",
-                        "last_date": "0",
-                        "posts_count": 0,
-                        "owner_id": 0
+                        "file_name": "",
+                        "path": "",
+                        "check_subject": 0,
+                        "interval": 60
                     }
-                ],
+                ]
+            }
+            subject_json = {
+                "name": "",
                 "wiki_database_id": "-0_0",
-                "total_last_date": "0"
+                "total_last_date": "0",
+                "topics": [],
+                "owner_id": 0,
+                "post_checker_settings": {
+                    "check_posts": 1,
+                    "posts_count": 1,
+                    "last_date": "0",
+                    "filter": "post",
+                    "send_to": 0
+                },
+                "topic_checker_settings": {
+                    "post_count": 1,
+                    "check_topics": 0,
+                    "send_to": 0
+                },
+                "photo_checker_settings": {
+                    "last_date": "0",
+                    "photo_count": 1,
+                    "check_photo": 0,
+                    "send_to": 0
+                }
             }
 
             user_answer = raw_input("USER [" + sender + " -> Wiki database URL]: ")

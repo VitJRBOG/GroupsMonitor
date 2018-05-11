@@ -31,6 +31,28 @@ def exception_handler(sender, var_except):
             time.sleep(60)
 
             return
+        elif str(var_except).lower().find("internal server error") != -1:
+            message = "Error, " +\
+                str(var_except) + ". " +\
+                "Timeout: 60 sec."
+            message_output(sender, message)
+            time.sleep(60)
+
+            return
+        elif str(var_except).lower().find("access_token was " +
+                                          "given to another " +
+                                          "ip address") != -1:
+            message = "Error, " +\
+                str(var_except) + "."
+            message_output(sender, message)
+
+            return
+        elif str(var_except).lower().find("invalid access_token") != -1:
+            message = "Error, " +\
+                str(var_except) + "."
+            message_output(sender, message)
+
+            return
         elif str(var_except).lower().find("response code 504") != -1:
             message = "Error, " +\
                 str(var_except) + ". " +\

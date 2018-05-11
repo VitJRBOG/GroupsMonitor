@@ -8,10 +8,10 @@ import vk_api
 import core
 
 
-def start():
-    sender = "Start"
-
-    try:
+# Сделать классом, и вызывать функции через экземпляр класса из UI
+class Start():
+    def path_checking(self, sender):
+        sender += " -> File \"path.txt\" checking"
 
         if os.path.exists("path.txt") is False:
             file_text = open("path.txt", "w")
@@ -89,10 +89,6 @@ def start():
         logger.message_output(sender, mess_for_log)
 
         core.main(vk_admin_session, vk_bot_session)
-
-    except Exception as var_except:
-        logger.exception_handler(sender, var_except)
-        return start()
 
 
 def autorization(sender, data_access, auth_type):

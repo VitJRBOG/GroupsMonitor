@@ -46,6 +46,8 @@ def start_bot(sender):
 
     PATH = datamanager.read_path(sender)
 
+    objStart.log_file_checking(sender, PATH)
+
     datafile_was_created = objStart.data_checking(sender, PATH)
 
     if datafile_was_created:

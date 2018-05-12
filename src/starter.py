@@ -21,6 +21,13 @@ class Start():
             mess_for_log = "Was created file \"path.txt\"."
             logger.message_output(sender, mess_for_log)
 
+    def log_file_checking(self, sender, PATH):
+        sender += " -> File \"log.txt\" checking"
+
+        if os.path.exists(PATH + "log.txt") is False:
+
+            datamanager.write_text(sender, PATH, "log", "")
+
     def data_checking(self, sender, PATH):
         sender += " -> File \"path.txt\" checking"
 

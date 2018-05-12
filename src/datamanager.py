@@ -52,6 +52,33 @@ def write_json(sender, path, file_name, loads_json):
         return write_json(sender, path, file_name, loads_json)
 
 
+def read_text(sender, path, file_name):
+    sender += " -> Read text"
+
+    try:
+        file_text = open(str(path) + str(file_name) + ".txt", "r")
+        text = file_text.read()
+        file_text.close()
+
+        return text
+    except Exception as var_except:
+        logger.exception_handler(sender, var_except)
+        return read_text(sender, path, file_name)
+
+
+def write_text(sender, path, file_name, text_output):
+    sender += " -> Write text"
+
+    try:
+        file_text = open(str(path) + str(file_name) + ".txt", "w")
+        file_text.write(text_output)
+        file_text.close()
+
+    except Exception as var_except:
+        logger.exception_handler(sender, var_except)
+        return write_text(sender, path, file_name, text_output)
+
+
 def read_wiki(sender, vk_admin_session, wiki_full_id):
     sender += " -> Read Wiki"
 

@@ -2,6 +2,8 @@
 
 
 import time
+import datetime
+import datamanager
 
 
 def exception_handler(sender, var_except):
@@ -85,13 +87,41 @@ def exception_handler(sender, var_except):
 
 
 def message_output(sender, message):
-    try:
-        print("COMPUTER [" + sender + "]: " + message)
+    def to_console(sender, message):
+        try:
+            print("COMPUTER [" + sender + "]: " + message)
 
-    except Exception as var_except:
-        sender += " -> Message output"
-        print(
-            "COMPUTER [" + sender + "]: Error, " +
-            str(var_except) +
-            ". Exit from program...")
-        exit(0)
+        except Exception as var_except:
+            sender += " -> Message output -> To console"
+            print(
+                "COMPUTER [" + sender + "]: Error, " +
+                str(var_except) +
+                ". Exit from program...")
+            exit(0)
+
+    def to_textfile(sender, message):
+        try:
+            PATH = datamanager.read_path(sender)
+            text = datamanager.read_text(sender, PATH, "log")
+
+            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+
+            message = "[" + str(date) + "] " + "[" + str(sender) + "]: " + str(message.encode("utf8"))
+
+            if len(text) > 2:
+                text = message + "\n" + text
+            else:
+                text += message
+
+            datamanager.write_text(sender, PATH, "log", text)
+
+        except Exception as var_except:
+            sender += " -> Message output -> To text file"
+            print(
+                "COMPUTER [" + sender + "]: Error, " +
+                str(var_except) +
+                ". Exit from program...")
+            exit(0)
+
+    to_console(sender, message)
+    to_textfile(sender, message)

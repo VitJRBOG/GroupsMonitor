@@ -29,13 +29,13 @@ class Start():
             datamanager.write_text(sender, PATH, "log", "")
 
     def data_checking(self, sender, PATH):
-        sender += " -> File \"path.txt\" checking"
+        sender += " -> File \"data.json\" checking"
 
         datafile_was_created = False
 
         if os.path.exists(PATH + "data.json") is False:
 
-            mess_for_log = "\nWARNING! File \"data.json\" not found!"
+            mess_for_log = "WARNING! File \"data.json\" not found!"
             logger.message_output(sender, mess_for_log)
 
             data_json = {
@@ -52,7 +52,7 @@ class Start():
                 ]
             }
 
-            datamanager.write_json("Start", PATH, "data", data_json)
+            datamanager.write_json(sender, PATH, "data", data_json)
 
             subject_json = {
                 "name": "",
@@ -80,7 +80,7 @@ class Start():
                 }
             }
 
-            datamanager.write_json("Start", PATH, "template", subject_json)
+            datamanager.write_json(sender, PATH, "template", subject_json)
 
             datafile_was_created = True
 

@@ -107,23 +107,6 @@ class Start():
 
         return data_json, token_validity
 
-    def update_token(self, PATH, sender, data_json, token_validity, tokens):
-
-        admin_token_validity = token_validity["admin_token"]
-        bot_token_validity = token_validity["bot_token"]
-
-        admin_token = tokens["admin_token"]
-        bot_token = tokens["bot_token"]
-
-        if not admin_token_validity:
-            data_json["admin_token"] = admin_token
-        if not bot_token_validity:
-            data_json["bot_token"] = bot_token
-
-        datamanager.write_json(sender, PATH, "data", data_json)
-
-        return data_json
-
     def starting(self, sender, data_json):
         vk_admin_token = data_json["admin_token"]
         vk_bot_token = data_json["bot_token"]
@@ -142,6 +125,24 @@ class Start():
         logger.message_output(sender, mess_for_log)
 
         core.main(vk_admin_session, vk_bot_session)
+
+
+def update_token(sender, PATH, data_json, token_validity, tokens):
+
+    admin_token_validity = token_validity["admin_token"]
+    bot_token_validity = token_validity["bot_token"]
+
+    admin_token = tokens["admin_token"]
+    bot_token = tokens["bot_token"]
+
+    if not admin_token_validity:
+        data_json["admin_token"] = admin_token
+    if not bot_token_validity:
+        data_json["bot_token"] = bot_token
+
+    datamanager.write_json(sender, PATH, "data", data_json)
+
+    return data_json
 
 
 def autorization(sender, data_access, auth_type):

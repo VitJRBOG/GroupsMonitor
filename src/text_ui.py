@@ -65,6 +65,7 @@ def start_bot(sender):
             bot_token = ""
 
             if not admin_token_validity:
+            data_json = starter.update_token(SENDER, PATH, data_json, token_validity, tokens)
                 admin_token = raw_input("USER [" + sender + "]: ")
             if not bot_token_validity:
                 bot_token = raw_input("USER [" + sender + "]: ")
@@ -74,7 +75,7 @@ def start_bot(sender):
                 "bot_token": bot_token
             }
 
-            data_json = objStart.update_token(sender, PATH, data_json, token_validity, tokens)
+            starter.update_token(sender, PATH, data_json, token_validity, tokens)
 
         objStart.starting(sender, data_json)
 

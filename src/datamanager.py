@@ -131,36 +131,41 @@ def save_wiki(sender, vk_admin_session, wiki_full_id, data_json):
 
 
 def save_backup(sender, PATH, vk_admin_session, subject):
-    sender += " -> Save backup"
+    try:
+        sender += " -> Save backup"
 
-    path_to_subject_json = subject["path"]
+        path_to_subject_json = subject["path"]
 
-    if len(path_to_subject_json) > 0 and path_to_subject_json[0] != "/":
-        path_to_subject_json = PATH + "/" + path_to_subject_json
-    else:
-        path_to_subject_json = PATH + path_to_subject_json
+        if len(path_to_subject_json) > 0 and path_to_subject_json[0] != "/":
+            path_to_subject_json = PATH + "/" + path_to_subject_json
+        else:
+            path_to_subject_json = PATH + path_to_subject_json
 
-    data_from_file = read_json(sender, path_to_subject_json, subject["file_name"])
-    wiki_full_id = data_from_file["wiki_database_id"]
-    data_from_wiki = read_wiki(sender, vk_admin_session, wiki_full_id)
+        data_from_file = read_json(sender, path_to_subject_json, subject["file_name"])
+        wiki_full_id = data_from_file["wiki_database_id"]
+        data_from_wiki = read_wiki(sender, vk_admin_session, wiki_full_id)
 
-    if int(data_from_wiki["total_last_date"]) >\
-       int(data_from_file["total_last_date"]):
-        write_json(sender, PATH, subject["file_name"], data_from_wiki)
+        if int(data_from_wiki["total_last_date"]) >\
+           int(data_from_file["total_last_date"]):
+            write_json(sender, PATH, subject["file_name"], data_from_wiki)
 
-        date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
-        mess_for_log = "Backup has been saved in file at " +\
-            str(date) + "."
-        logger.message_output(sender, mess_for_log)
-    elif int(data_from_file["total_last_date"]) > int(data_from_wiki["total_last_date"]):
-        save_wiki(sender, vk_admin_session, wiki_full_id, data_from_file)
+            mess_for_log = "Backup has been saved in file at " +\
+                str(date) + "."
+            logger.message_output(sender, mess_for_log)
+        elif int(data_from_file["total_last_date"]) > int(data_from_wiki["total_last_date"]):
+            save_wiki(sender, vk_admin_session, wiki_full_id, data_from_file)
 
-        date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
-        mess_for_log = "Backup has been saved in wiki-page at " +\
-            str(date) + "."
-        logger.message_output(sender, mess_for_log)
-    else:
-        mess_for_log = "Data in wiki-page and data in file are identical."
-        logger.message_output(sender, mess_for_log)
+            mess_for_log = "Backup has been saved in wiki-page at " +\
+                str(date) + "."
+            logger.message_output(sender, mess_for_log)
+        else:
+            mess_for_log = "Data in wiki-page and data in file are identical."
+            logger.message_output(sender, mess_for_log)
+
+    except Exception as var_except:
+        logger.exception_handler(sender, var_except)
+        return save_backup(sender, PATH, vk_admin_session, subject)

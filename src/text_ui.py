@@ -187,7 +187,28 @@ def settings():
 
 def log_output():
     SENDER = "Main menu -> Log output"
-    print("COMPUTER [" + SENDER + "]: Here is empty....")
+    print("COMPUTER [" + SENDER + "]: ")
+
+    PATH = datamanager.read_path(SENDER)
+
+    # log_file = datamanager.read_text(SENDER, PATH, "log")
+    # в готовой функции у метода чтения присутствует аргумент, который всё портит
+
+    log_file = open(PATH + "log.txt")
+    log_text = ""
+
+    i = 0
+    for line in log_file:
+
+        log_text += line
+
+        if i >= 20:
+            break
+
+        i += 1
+
+    print("\n" + log_text)
+
     main_menu()
 
 

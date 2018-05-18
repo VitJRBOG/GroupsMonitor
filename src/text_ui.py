@@ -4,6 +4,8 @@
 import starter
 import logger
 import datamanager
+import subprocess
+import os
 
 
 def main_menu():
@@ -22,6 +24,7 @@ def main_menu():
 
     if user_answer == "0":
         print("COMPUTER [" + SENDER + "]: Exit from program...")
+        stop_bot()
         exit(0)
     elif user_answer == "1":
         start_bot()
@@ -57,27 +60,10 @@ def start_bot():
         logger.message_output(SENDER, mess_for_log)
         main_menu()
     else:
-        data_json, token_validity = objStart.tokens_checking(SENDER, PATH)
-        if not token_validity["admin_token"] or not token_validity["bot_token"]:
-            admin_token_validity = token_validity["admin_token"]
-            bot_token_validity = token_validity["bot_token"]
-
-            admin_token = ""
-            bot_token = ""
-
-            if not admin_token_validity:
-                admin_token = raw_input("USER [" + SENDER + "]: ")
-            if not bot_token_validity:
-                bot_token = raw_input("USER [" + SENDER + "]: ")
-
-            tokens = {
-                "admin_token": admin_token,
-                "bot_token": bot_token
-            }
-
-            data_json = starter.update_token(SENDER, PATH, data_json, token_validity, tokens)
-
-        objStart.starting(SENDER, data_json)
+        # objStart.starting()
+        args = ["python", "run_bot.py"]
+        subprocess.Popen(args)
+        main_menu()
 
     main_menu()
 
@@ -200,7 +186,7 @@ def log_output():
     i = 0
     for line in log_file:
 
-        log_text += line
+        log_text = line + log_text
 
         if i >= 20:
             break
@@ -265,8 +251,10 @@ def save_backups():
 
 def stop_bot():
     SENDER = "Main menu -> Stop bot"
-    print("COMPUTER [" + SENDER + "]: Here is empty....")
-    main_menu()
+    proc = subprocess.Popen(["pkill", "-f", "run_bot.py"], stdout=subprocess.PIPE)
+    print("COMPUTER [" + SENDER + "]: Bot has been stopped.")
+    proc.wait()
+    # print("COMPUTER [" + SENDER + "]: Here is empty....")
 
 
 main_menu()

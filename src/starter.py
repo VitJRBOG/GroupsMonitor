@@ -5,10 +5,9 @@ import os
 import logger
 import datamanager
 import vk_api
-import core
+# import core
 
 
-# Сделать классом, и вызывать функции через экземпляр класса из UI
 class Start():
     def path_checking(self, sender):
         sender += " -> File \"path.txt\" checking"
@@ -106,25 +105,6 @@ class Start():
         }
 
         return data_json, token_validity
-
-    def starting(self, sender, data_json):
-        vk_admin_token = data_json["admin_token"]
-        vk_bot_token = data_json["bot_token"]
-
-        data_access_admin = {
-            "token": vk_admin_token
-        }
-        data_access_bot = {
-            "token": vk_bot_token
-        }
-
-        vk_admin_session = autorization(sender, data_access_admin, "token")
-        vk_bot_session = autorization(sender, data_access_bot, "token")
-
-        mess_for_log = "Program was started."
-        logger.message_output(sender, mess_for_log)
-
-        core.main(vk_admin_session, vk_bot_session)
 
 
 def update_token(sender, PATH, data_json, token_validity, tokens):

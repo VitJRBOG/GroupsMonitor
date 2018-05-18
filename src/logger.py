@@ -123,5 +123,5 @@ def message_output(sender, message):
                 ". Exit from program...")
             exit(0)
 
-    to_console(sender, message)
+    # to_console(sender, message)
     to_textfile(sender, message)

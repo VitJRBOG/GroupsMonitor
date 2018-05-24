@@ -100,20 +100,88 @@ def message_output(sender, message):
             exit(0)
 
     def to_textfile(sender, message):
+        def get_unix_date(time_stamp, junk, type_operation):
+            try:
+                if type_operation == "from_line":
+                    idx = junk.find("] ")
+                    if idx != -1:
+                        str_date = junk[1:idx]
+                    else:
+                        return "date not found"
+                elif type_operation == "from_str_date":
+                    str_date = junk
+
+                date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(str_date, time_stamp)))
+                unix_date = int(time.mktime(date.timetuple()))
+
+                return unix_date
+            except Exception as var_except:
+                sender = "HANYA"
+                print(
+                    "COMPUTER [" + sender + "]: Error, " +
+                    str(var_except) +
+                    ". Exit from program...")
+                exit(0)
+
         try:
             PATH = datamanager.read_path(sender)
-            text = datamanager.read_text(sender, PATH, "log")
+            # text = datamanager.read_text(sender, PATH, "log")
+            # в готовой функции у метода чтения присутствует аргумент, который всё портит
+            file = open(PATH + "log.txt")
 
-            date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+            time_stamp = "%d.%m.%Y %H:%M:%S"
 
-            message = "[" + str(date) + "] " + "[" + str(sender) + "]: " + str(message.encode("utf8"))
+            str_date = datetime.datetime.now().strftime(time_stamp)
 
-            if len(text) > 2:
-                text = message + "\n" + text
+            unix_date_now = get_unix_date(time_stamp, str_date, "from_str_date")
+
+            message = "[" + str(str_date) + "] " + "[" + str(sender) + "]: " + str(message.encode("utf8"))
+
+            new_text = ""
+
+            for line in file:
+                unix_date_line = get_unix_date(time_stamp, line, "from_line")
+
+                if unix_date_line > (unix_date_now - 86400):
+                    new_text = line + new_text
+
+            if len(new_text) > 0:
+                new_text = message + "\n" + new_text
             else:
-                text += message
+                new_text = message
 
-            datamanager.write_text(sender, PATH, "log", text)
+            text_array = new_text.split('\n')
+            new_text = ""
+
+            i = 0
+            while i < len(text_array):
+
+                step = False
+
+                j = 0
+                while j < len(text_array) - i - 1:
+
+                    current_time = get_unix_date(time_stamp, text_array[j], "from_line")
+                    next_time = get_unix_date(time_stamp, text_array[j + 1], "from_line")
+
+                    if current_time < next_time:
+                        next_line = text_array[j + 1]
+                        current_line = text_array[j]
+                        text_array[j + 1] = current_line
+                        text_array[j] = next_line
+                        step = True
+                    j += 1
+
+                if not step:
+                    break
+
+                i += 1
+
+            if len(text_array[0]) == 0:
+                text_array.pop(0)
+            new_text = '\n'.join(text_array)
+
+            datamanager.write_text(sender, PATH, "log", new_text)
 
         except Exception as var_except:
             sender += " -> Message output -> To text file"

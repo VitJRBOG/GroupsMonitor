@@ -224,6 +224,53 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
             n -= 1
 
+    def check_for_comments_photo(total_sender, subject_data):
+        sender = total_sender + " -> " + subject_data["name"] + " -> Photo comments checking"
+
+        subject_data = datamanager.read_json(sender,
+                                             path_to_subject_json,
+                                             subject["file_name"])
+
+        objNewPhotoComment = dataloader.NewPhotoComment()
+
+        response = objNewPhotoComment.new_photo_comment(sender, sessions_list, subject_data)
+
+        last_date = int(subject_data["photo_comments_checker_settings"]["last_date"])
+
+        n = len(response["items"]) - 1
+        while n >= 0:
+            item = response["items"][n]
+
+            if item["date"] > last_date:
+
+                message, comment_attachments =\
+                    objNewPhotoComment.make_message(sender, vk_admin_session, item, subject_data)
+
+                message_object = {
+                    "message": message,
+                    "comment_attachments": comment_attachments
+                }
+
+                objNewPhotoComment.send_message(sender, vk_bot_session, subject_data, message_object)
+
+                last_date = item["date"]
+
+                subject_data["photo_comments_checker_settings"]["last_date"] = str(last_date)
+
+                if int(last_date) > int(subject_data["total_last_date"]):
+                    subject_data["total_last_date"] = str(last_date)
+
+                datamanager.write_json(sender, PATH, subject["file_name"], subject_data)
+
+                date = datetime.datetime.fromtimestamp(
+                            int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
+
+                mess_for_log = subject_data["name"] +\
+                    "'s new comment under photo: " + str(date)
+                logger.message_output(sender, mess_for_log)
+
+            n -= 1
+
     vk_admin_session = sessions_list["admin"]
     vk_bot_session = sessions_list["bot"]
 
@@ -254,6 +301,9 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
     if subject_data["photo_checker_settings"]["check_photo"] == 1:
         check_for_albums(total_sender, subject_data)
+
+    if subject_data["photo_comments_checker_settings"]["check_comments"] == 1:
+        check_for_comments_photo(total_sender, subject_data)
 
 
 class CommunitiChecker(Thread):

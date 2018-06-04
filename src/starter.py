@@ -76,6 +76,12 @@ class Start():
                     "photo_count": 1,
                     "check_photo": 0,
                     "send_to": 0
+                },
+                "photo_comments_checker_settings": {
+                    "comment_count": 1,
+                    "check_comments": 0,
+                    "last_date": "0",
+                    "send_to": 0
                 }
             }
 

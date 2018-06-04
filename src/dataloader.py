@@ -900,3 +900,279 @@ class NewAlbumPhoto:
         except Exception as var_except:
             logger.exception_handler(sender, var_except)
             return self.new_album_photo(sender, sessions_list, subject_data)
+
+
+class NewPhotoComment():
+
+    def get_comments(self, sender, vk_admin_session, subject_data):
+        sender += " -> Get comments"
+
+        try:
+
+            owner_id = int(subject_data["owner_id"])
+            count = int(subject_data["photo_comments_checker_settings"]["comment_count"])
+
+            values = {
+                "owner_id": owner_id,
+                "count": count
+            }
+
+            time.sleep(1)
+
+            response = vk_admin_session.method("photos.getAllComments", values)
+
+            return response
+
+        except Exception as var_except:
+            logger.exception_handler(sender, var_except)
+            return self.get_comments(sender, vk_admin_session, subject_data)
+
+    def make_message(self, sender, vk_admin_session, item, subject_data):
+        sender += " -> Make message"
+
+        message = ""
+
+        try:
+
+            def get_signature(sender, vk_admin_session, item, subject_data):
+                sender += " -> Get signature"
+
+                try:
+
+                    comment_signature = ""
+
+                    def get_subject_name(sender, vk_admin_session, subject_data):
+
+                        try:
+
+                            subject_values = {
+                                "group_id": int(str(subject_data["owner_id"])[1:])
+                            }
+
+                            time.sleep(1)
+
+                            response_subject =\
+                                vk_admin_session.method("groups.getById",
+                                                        subject_values)
+
+                            subject_name = response_subject[0]["name"]
+
+                            return subject_name
+
+                        except Exception as var_except:
+                            logger.exception_handler(sender, var_except)
+                            return get_subject_name(sender, vk_admin_session, subject_data)
+
+                    if str(item["from_id"])[0] == "-":
+                        author_values = {
+                            "group_id": int(str(item["from_id"])[1:])
+                        }
+
+                        time.sleep(1)
+
+                        response_author =\
+                            vk_admin_session.method("groups.getById",
+                                                    author_values)
+
+                        author_name = response_author[0]["name"]
+
+                        author_url = "*" +\
+                            response_author[0]["screen_name"] + " " +\
+                            "(" + author_name + ")"
+
+                        date = datetime.datetime.fromtimestamp(
+                            int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
+
+                        subject_name = get_subject_name(sender, vk_admin_session, subject_data)
+
+                        comment_signature = "Comment under photo: " + subject_name + "\n" +\
+                            author_url + "\n" + str(date)
+
+                    else:
+                        author_values = {
+                            "user_ids": item["from_id"]
+                        }
+
+                        time.sleep(1)
+
+                        response_author =\
+                            vk_admin_session.method("users.get",
+                                                    author_values)
+
+                        first_name = response_author[0]["first_name"]
+                        last_name = response_author[0]["last_name"]
+
+                        author_full_name = first_name + " " + last_name
+
+                        author_url = "*id" + str(item["from_id"]) +\
+                            " (" + author_full_name + ")"
+
+                        date = datetime.datetime.fromtimestamp(
+                            int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
+
+                        subject_name = get_subject_name(sender, vk_admin_session, subject_data)
+
+                        comment_signature = "Comment under photo: " + subject_name + "\n" +\
+                            author_url + "\n" + str(date)
+
+                    return comment_signature
+
+                except Exception as var_except:
+                    logger.exception_handler(sender, var_except)
+                    return self.get_signature(sender, vk_admin_session, item, subject_data)
+
+            def get_text(sender, item):
+                sender += " -> Get text"
+
+                try:
+
+                    comment_text = ""
+
+                    comment_text = item["text"]
+
+                    return comment_text
+
+                except Exception as var_except:
+                    logger.exception_handler(sender, var_except)
+                    return self.get_text(sender, item)
+
+            def get_url(sender, item, subject_data):
+
+                sender += " -> Get URL"
+
+                try:
+
+                    photo_url = ""
+
+                    owner_id = subject_data["owner_id"]
+
+                    id_photo = str(owner_id) + "_" + str(item["pid"])
+
+                    photo_url = "https://vk.com/photo" + id_photo
+
+                    return photo_url
+
+                except Exception as var_except:
+                    logger.exception_handler(sender, var_except)
+                    return self.get_url(sender, item, subject_data)
+
+            def get_attachments(sender, item):
+
+                sender += " -> Get attachments"
+
+                try:
+
+                    list_media = []
+
+                    if "attachments" in item:
+                        attachments = item["attachments"]
+
+                        i = 0
+                        while i < len(attachments):
+                            media_item = attachments[i]
+
+                            if media_item["type"] == "photo" or\
+                               media_item["type"] == "video" or\
+                               media_item["type"] == "audio" or\
+                               media_item["type"] == "doc":
+
+                                media = media_item[media_item["type"]]
+
+                                id_media = media_item["type"] +\
+                                    str(media["owner_id"]) +\
+                                    "_" + str(media["id"])
+
+                                if "access_key" in media:
+                                    id_media += "_" + media["access_key"]
+
+                                list_media.append(id_media)
+
+                            i += 1
+
+                    if len(list_media) > 0:
+                        return ",".join(list_media)
+
+                    else:
+                        return ""
+
+                except Exception as var_except:
+                    logger.exception_handler(sender, var_except)
+                    return self.get_attachments(sender, item)
+
+            comment_signature = get_signature(sender,
+                                              vk_admin_session,
+                                              item,
+                                              subject_data)
+            comment_text = get_text(sender, item)
+            photo_url = get_url(sender, item, subject_data)
+            comment_attachments = get_attachments(sender, item)
+
+            mes_long_text = "...\n[long text]"
+
+            comment_length = len(comment_signature + "\n\n" +
+                                 comment_text +
+                                 mes_long_text + "\n\n" +
+                                 photo_url)
+
+            limit_symbols = 3900
+
+            if comment_length > limit_symbols:
+                count_symbols = comment_length -\
+                    (comment_length - limit_symbols) - 1
+                comment_text = comment_text[0:count_symbols]
+
+                message = comment_signature + "\n\n" +\
+                    comment_text +\
+                    mes_long_text + "\n\n" +\
+                    photo_url
+            else:
+                message = comment_signature + "\n\n" +\
+                    comment_text + "\n\n" +\
+                    photo_url
+
+            return message, comment_attachments
+
+        except Exception as var_except:
+            logger.exception_handler(sender, var_except)
+            return self.make_message(sender, vk_admin_session, item, subject_data)
+
+    def send_message(self, sender, vk_bot_session,
+                     subject_data, message_object):
+
+        sender += " -> Send message"
+
+        try:
+
+            peer_id = subject_data["photo_comments_checker_settings"]["send_to"]
+            message = message_object["message"]
+            comment_attachments = message_object["comment_attachments"]
+
+            if comment_attachments != "":
+                values = {
+                    "peer_id": peer_id,
+                    "message": message,
+                    "attachment": comment_attachments
+                }
+            else:
+                values = {
+                    "peer_id": peer_id,
+                    "message": message
+                }
+
+            time.sleep(1)
+
+            vk_bot_session.method("messages.send", values)
+
+        except Exception as var_except:
+            logger.exception_handler(sender, var_except)
+            return self.send_message(sender, vk_bot_session, subject_data, message_object)
+
+    def new_photo_comment(self, sender, sessions_list, subject_data):
+        sender += " -> Notificator -> New comment"
+
+        vk_admin_session = sessions_list["admin"]
+        # vk_bot_session = sessions_list["bot"]
+
+        response = self.get_comments(sender, vk_admin_session, subject_data)
+
+        return response

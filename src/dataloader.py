@@ -985,7 +985,7 @@ class NewPhotoComment():
 
                         subject_name = get_subject_name(sender, vk_admin_session, subject_data)
 
-                        comment_signature = "Comment under photo: " + subject_name + "\n" +\
+                        comment_signature = "Photo comment: " + subject_name + "\n" +\
                             author_url + "\n" + str(date)
 
                     else:

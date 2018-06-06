@@ -82,6 +82,17 @@ class Start():
                     "check_comments": 0,
                     "last_date": "0",
                     "send_to": 0
+                },
+                "post_comments_checker_settings": {
+                    "comment_count": 1,
+                    "filter": "all",
+                    "posts_count": 1,
+                    "check_comments": 0,
+                    "last_date": "0",
+                    "send_to": 0,
+                    "check_by_attachments": 0,
+                    "check_by_keywords": 0,
+                    "keywords": []
                 }
             }
 

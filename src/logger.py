@@ -83,6 +83,7 @@ def exception_handler(sender, var_except):
         message = "Error, " +\
             str(var_except) +\
             ". Exit from program..."
+        message_output(sender, message)
         exit(0)
 
 

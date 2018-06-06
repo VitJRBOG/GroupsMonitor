@@ -287,6 +287,189 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
             n -= 1
 
+    def check_for_comments_post(total_sender, subject_data):
+        sender = total_sender + " -> " + subject_data["name"] + " -> Post comments checking"
+
+        objNewPostComment = dataloader.NewPostComment()
+
+        response = objNewPostComment.get_posts(sender,
+                                               sessions_list["admin"],
+                                               subject_data)
+
+        def sort_posts(posts):
+            for j in range(len(posts) - 1):
+                f = 0
+                for i in range(len(posts) - 1 - j):
+                    if posts[i] < posts[i + 1]:
+                        x = posts[i]
+                        y = posts[i + 1]
+                        posts[i + 1] = x
+                        posts[i] = y
+                        f = 1
+                if f == 0:
+                    break
+            return posts
+
+        posts = response["items"]
+        posts = sort_posts(posts)
+
+        comments = []
+
+        n = len(posts) - 1
+
+        while n >= 0:
+            post = posts[n]
+
+            post_id = {
+                "post_id": post["id"],
+                "post_owner_id": post["owner_id"]
+            }
+
+            response = objNewPostComment.new_post_comment(sender,
+                                                          sessions_list,
+                                                          post, subject_data)
+            items = response["items"]
+
+            i = 0
+
+            while i < len(items):
+                items[i].update(post_id)
+
+                i += 1
+
+            comments.extend(items)
+
+            n -= 1
+
+        def sort_comments(comments):
+            array = comments
+
+            left = []
+            equals = []
+            right = []
+
+            s = int((array[0]["date"] + array[int(len(array) / 2)]["date"] + array[len(array) - 1]["date"]) / 3)
+
+            for item in array:
+                if item["date"] > s:
+                    left.append(item)
+                elif item["date"] < s:
+                    right.append(item)
+                else:
+                    equals.append(item)
+
+            if len(left) > 1:
+                left = sort_comments(left)
+            if len(right) > 1:
+                right = sort_comments(right)
+
+            array = []
+            array.extend(left)
+            array.extend(equals)
+            array.extend(right)
+
+            return array
+
+        if len(comments) > 1:
+            comments = sort_comments(comments)
+
+        last_date = int(subject_data["post_comments_checker_settings"]["last_date"])
+
+        n = len(comments) - 1
+
+        while n >= 0:
+            item = comments[n]
+
+            if item["date"] > last_date:
+
+                check = False
+
+                if subject_data["post_comments_checker_settings"]["check_by_attachments"] == 1:
+
+                    if "attachments" in item:
+                        attachments = item["attachments"]
+
+                        i = 0
+
+                        while i < len(attachments):
+
+                            media_item = attachments[i]
+                            if media_item["type"] == "photo" or\
+                               media_item["type"] == "video" or\
+                               media_item["type"] == "doc" or\
+                               media_item["type"] == "link":
+                                check = True
+
+                            i += 1
+
+                if subject_data["post_comments_checker_settings"]["check_by_keywords"] == 1:
+
+                    if len(item["text"]) > 0 and\
+                       len(subject_data["post_comments_checker_settings"]["keywords"]) == 0:
+                        check = True
+
+                    if len(item["text"]) > 0 and\
+                       len(subject_data["post_comments_checker_settings"]["keywords"]) > 0:
+                        text_array = item["text"].split(' ')
+                        keywords = subject_data["post_comments_checker_settings"]["keywords"]
+
+                        def search(line, underline):  # вместо find, у которого траблы с кодировками
+                            last_i = -1
+                            j = 0
+                            i = 0
+                            while i < len(line):
+                                if line[i] == underline[j]:
+                                    last_i = i
+                                    j += 1
+                                elif last_i > 0:
+                                    last_i = -1
+                                    return last_i
+
+                                if j >= len(underline) - 1:
+                                    return last_i
+                                i += 1
+
+                            if j == len(underline) - 1:
+                                last_i = -1
+
+                            return last_i
+
+                        for word in text_array:
+                            for keyword in keywords:
+                                search_result = search(word, keyword)
+                                if search_result > 0:
+                                    check = True
+                                    break
+
+                if check:
+                    message, comment_attachments =\
+                        objNewPostComment.make_message(sender, vk_admin_session, item, subject_data)
+
+                    message_object = {
+                        "message": message,
+                        "comment_attachments": comment_attachments
+                    }
+
+                    objNewPostComment.send_message(sender, vk_bot_session, subject_data, message_object)
+
+                    last_date = item["date"]
+
+                    subject_data["post_comments_checker_settings"]["last_date"] = str(last_date)
+
+                    if int(last_date) > int(subject_data["total_last_date"]):
+                        subject_data["total_last_date"] = str(last_date)
+
+                    datamanager.write_json(sender, PATH, subject["file_name"], subject_data)
+
+                    date = datetime.datetime.fromtimestamp(
+                                int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
+
+                    mess_for_log = subject_data["name"] +\
+                        "'s new comment under post: " + str(date)
+                    logger.message_output(sender, mess_for_log)
+
+            n -= 1
+
     vk_admin_session = sessions_list["admin"]
     vk_bot_session = sessions_list["bot"]
 
@@ -320,6 +503,9 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
     if subject_data["photo_comments_checker_settings"]["check_comments"] == 1:
         check_for_comments_photo(total_sender, subject_data)
+
+    if subject_data["post_comments_checker_settings"]["check_comments"] == 1:
+        check_for_comments_post(total_sender, subject_data)
 
 
 class CommunitiChecker(Thread):

@@ -63,7 +63,7 @@ class Start():
                     "check_posts": 1,
                     "posts_count": 1,
                     "last_date": "0",
-                    "filter": "post",
+                    "filter": "all",
                     "send_to": 0
                 },
                 "topic_checker_settings": {

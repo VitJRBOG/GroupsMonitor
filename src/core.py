@@ -418,18 +418,23 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
                             j = 0
                             i = 0
                             while i < len(line):
+
                                 if line[i] == underline[j]:
-                                    last_i = i
+                                    if last_i == -1:
+                                        last_i = i
                                     j += 1
-                                elif last_i > 0:
-                                    last_i = -1
+                                else:
+                                    if last_i != -1:
+                                        last_i = -1
+                                    if j > 0:
+                                        j = 0
+
+                                if j == len(underline):
                                     return last_i
 
-                                if j >= len(underline) - 1:
-                                    return last_i
                                 i += 1
 
-                            if j == len(underline) - 1:
+                            if j < len(underline) - 1:
                                 last_i = -1
 
                             return last_i

@@ -307,22 +307,7 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
                                                sessions_list["admin"],
                                                subject_data)
 
-        def sort_posts(posts):
-            for j in range(len(posts) - 1):
-                f = 0
-                for i in range(len(posts) - 1 - j):
-                    if posts[i] < posts[i + 1]:
-                        x = posts[i]
-                        y = posts[i + 1]
-                        posts[i + 1] = x
-                        posts[i] = y
-                        f = 1
-                if f == 0:
-                    break
-            return posts
-
         posts = response["items"]
-        posts = sort_posts(posts)
 
         comments = []
 

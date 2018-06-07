@@ -442,7 +442,7 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
                         for word in text_array:
                             for keyword in keywords:
                                 search_result = search(word, keyword)
-                                if search_result > 0:
+                                if search_result != -1:
                                     check = True
                                     break
 

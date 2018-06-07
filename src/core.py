@@ -112,6 +112,8 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
             n -= 1
 
+        return subject_data
+
     def check_for_topics(total_sender, subject_data):
         sender = total_sender + " -> " + subject_data["name"] + " -> Topic checking"
 
@@ -183,6 +185,8 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
             n += 1
 
+        return subject_data
+
     def check_for_albums(total_sender, subject_data):
         sender = total_sender + " -> " + subject_data["name"] + " -> Photo checking"
 
@@ -240,6 +244,8 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
             n -= 1
 
+        return subject_data
+
     def check_for_comments_photo(total_sender, subject_data):
         sender = total_sender + " -> " + subject_data["name"] + " -> Photo comments checking"
 
@@ -286,6 +292,8 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
                 logger.message_output(sender, mess_for_log)
 
             n -= 1
+
+        return subject_data
 
     def check_for_comments_post(total_sender, subject_data):
         sender = total_sender + " -> " + subject_data["name"] + " -> Post comments checking"
@@ -475,6 +483,8 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
             n -= 1
 
+        return subject_data
+
     vk_admin_session = sessions_list["admin"]
     vk_bot_session = sessions_list["bot"]
 
@@ -498,19 +508,19 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
         datamanager.save_backup(sender, PATH, vk_admin_session, subject)
 
     if subject_data["post_checker_settings"]["check_posts"] == 1:
-        check_for_posts(total_sender, subject_data)
+        subject_data = check_for_posts(total_sender, subject_data)
 
     if subject_data["topic_checker_settings"]["check_topics"] == 1:
-        check_for_topics(total_sender, subject_data)
+        subject_data = check_for_topics(total_sender, subject_data)
 
     if subject_data["photo_checker_settings"]["check_photo"] == 1:
-        check_for_albums(total_sender, subject_data)
+        subject_data = check_for_albums(total_sender, subject_data)
 
     if subject_data["photo_comments_checker_settings"]["check_comments"] == 1:
-        check_for_comments_photo(total_sender, subject_data)
+        subject_data = check_for_comments_photo(total_sender, subject_data)
 
     if subject_data["post_comments_checker_settings"]["check_comments"] == 1:
-        check_for_comments_post(total_sender, subject_data)
+        subject_data = check_for_comments_post(total_sender, subject_data)
 
 
 class CommunitiChecker(Thread):

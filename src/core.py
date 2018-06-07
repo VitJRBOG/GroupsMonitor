@@ -60,21 +60,24 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
         last_date = int(subject_data["post_checker_settings"]["last_date"])
 
-        def sort_items(response):
-            items = response["items"]
-            for j in range(len(items) - 1):
+        def sort_posts(posts):
+            for j in range(len(posts) - 1):
                 f = 0
-                for i in range(len(items) - 1 - j):
-                    if items[i]["date"] < items[i + 1]["date"]:
-                        x = items[i]
-                        y = items[i + 1]
-                        items[i + 1] = x
-                        items[i] = y
+                for i in range(len(posts) - 1 - j):
+                    if posts[i] < posts[i + 1]:
+                        x = posts[i]
+                        y = posts[i + 1]
+                        posts[i + 1] = x
+                        posts[i] = y
                         f = 1
                 if f == 0:
                     break
-            return items
-        items = sort_items(response)
+            return posts
+
+        items = response["items"]
+
+        if len(items) > 1:
+            items = sort_posts(items)
 
         n = len(items) - 1
 

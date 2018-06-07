@@ -107,9 +107,14 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
                 date = datetime.datetime.fromtimestamp(
                             int(last_date)).strftime("%d.%m.%Y %H:%M:%S")
 
+                post_type = subject_data["post_checker_settings"]["filter"]
+
+                if post_type == "all":
+                    post_type = "post"
+
                 mess_for_log = subject_data["name"] +\
                     "'s new " +\
-                    subject_data["post_checker_settings"]["filter"] +\
+                    post_type +\
                     ": " + str(date)
                 logger.message_output(sender, mess_for_log)
 

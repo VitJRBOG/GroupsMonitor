@@ -385,72 +385,78 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
                 check = False
 
-                if subject_data["post_comments_checker_settings"]["check_by_communities"] == 1:
+                if not check:
 
-                    if str(item["from_id"])[0] == "-":
-                        check = True
+                    if subject_data["post_comments_checker_settings"]["check_by_communities"] == 1:
 
-                if subject_data["post_comments_checker_settings"]["check_by_attachments"] == 1:
+                        if str(item["from_id"])[0] == "-":
+                            check = True
 
-                    if "attachments" in item:
-                        attachments = item["attachments"]
+                if not check:
 
-                        i = 0
+                    if subject_data["post_comments_checker_settings"]["check_by_attachments"] == 1:
 
-                        while i < len(attachments):
+                        if "attachments" in item:
+                            attachments = item["attachments"]
 
-                            media_item = attachments[i]
-                            if media_item["type"] == "photo" or\
-                               media_item["type"] == "video" or\
-                               media_item["type"] == "doc" or\
-                               media_item["type"] == "link":
-                                check = True
-
-                            i += 1
-
-                if subject_data["post_comments_checker_settings"]["check_by_keywords"] == 1:
-
-                    if len(item["text"]) > 0 and\
-                       len(subject_data["post_comments_checker_settings"]["keywords"]) == 0:
-                        check = True
-
-                    if len(item["text"]) > 0 and\
-                       len(subject_data["post_comments_checker_settings"]["keywords"]) > 0:
-                        text_array = item["text"].split(' ')
-                        keywords = subject_data["post_comments_checker_settings"]["keywords"]
-
-                        def search(line, underline):  # вместо find, у которого траблы с кодировками
-                            last_i = -1
-                            j = 0
                             i = 0
-                            while i < len(line):
 
-                                if line[i] == underline[j]:
-                                    if last_i == -1:
-                                        last_i = i
-                                    j += 1
-                                else:
-                                    if last_i != -1:
-                                        last_i = -1
-                                    if j > 0:
-                                        j = 0
+                            while i < len(attachments):
 
-                                if j == len(underline):
-                                    return last_i
+                                media_item = attachments[i]
+                                if media_item["type"] == "photo" or\
+                                   media_item["type"] == "video" or\
+                                   media_item["type"] == "doc" or\
+                                   media_item["type"] == "link":
+                                    check = True
 
                                 i += 1
 
-                            if j < len(underline) - 1:
+                if not check:
+
+                    if subject_data["post_comments_checker_settings"]["check_by_keywords"] == 1:
+
+                        if len(item["text"]) > 0 and\
+                           len(subject_data["post_comments_checker_settings"]["keywords"]) == 0:
+                            check = True
+
+                        if len(item["text"]) > 0 and\
+                           len(subject_data["post_comments_checker_settings"]["keywords"]) > 0:
+                            text_array = item["text"].split(' ')
+                            keywords = subject_data["post_comments_checker_settings"]["keywords"]
+
+                            def search(line, underline):  # вместо find, у которого траблы с кодировками
                                 last_i = -1
+                                j = 0
+                                i = 0
+                                while i < len(line):
 
-                            return last_i
+                                    if line[i] == underline[j]:
+                                        if last_i == -1:
+                                            last_i = i
+                                        j += 1
+                                    else:
+                                        if last_i != -1:
+                                            last_i = -1
+                                        if j > 0:
+                                            j = 0
 
-                        for word in text_array:
-                            for keyword in keywords:
-                                search_result = search(word, keyword)
-                                if search_result != -1:
-                                    check = True
-                                    break
+                                    if j == len(underline):
+                                        return last_i
+
+                                    i += 1
+
+                                if j < len(underline) - 1:
+                                    last_i = -1
+
+                                return last_i
+
+                            for word in text_array:
+                                for keyword in keywords:
+                                    search_result = search(word, keyword)
+                                    if search_result != -1:
+                                        check = True
+                                        break
 
                 if check:
                     message, comment_attachments =\

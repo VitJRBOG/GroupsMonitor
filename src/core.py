@@ -64,7 +64,7 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
             for j in range(len(posts) - 1):
                 f = 0
                 for i in range(len(posts) - 1 - j):
-                    if posts[i] < posts[i + 1]:
+                    if posts[i]["date"] < posts[i + 1]["date"]:
                         x = posts[i]
                         y = posts[i + 1]
                         posts[i + 1] = x

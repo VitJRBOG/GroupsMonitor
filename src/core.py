@@ -385,6 +385,11 @@ def algorithm_checker(total_sender, PATH, subject, sessions_list, delay):
 
                 check = False
 
+                if subject_data["post_comments_checker_settings"]["check_by_communities"] == 1:
+
+                    if str(item["from_id"])[0] == "-":
+                        check = True
+
                 if subject_data["post_comments_checker_settings"]["check_by_attachments"] == 1:
 
                     if "attachments" in item:

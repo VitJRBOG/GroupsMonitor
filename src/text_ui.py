@@ -4,8 +4,6 @@
 import starter
 import logger
 import datamanager
-import subprocess
-import os
 
 
 def main_menu():
@@ -24,7 +22,7 @@ def main_menu():
 
     if user_answer == "0":
         print("COMPUTER [" + SENDER + "]: Exit from program...")
-        stop_bot()
+        stop_bot(user_answer)
         exit(0)
     elif user_answer == "1":
         start_bot()
@@ -35,7 +33,7 @@ def main_menu():
     elif user_answer == "4":
         save_backups()
     elif user_answer == "5":
-        stop_bot()
+        stop_bot(user_answer)
     else:
         print("COMPUTER [" + SENDER + "]: Unknown command. Retry query...")
         main_menu()
@@ -60,10 +58,9 @@ def start_bot():
         logger.message_output(SENDER, mess_for_log)
         main_menu()
     else:
-        # objStart.starting()
-        args = ["python", "run_bot.py"]
-        subprocess.Popen(args)
-        main_menu()
+        global out_flag
+
+        out_flag = starter.run()
 
     main_menu()
 
@@ -249,12 +246,12 @@ def save_backups():
     main_menu()
 
 
-def stop_bot():
-    SENDER = "Main menu -> Stop bot"
-    proc = subprocess.Popen(["pkill", "-f", "run_bot.py"], stdout=subprocess.PIPE)
-    print("COMPUTER [" + SENDER + "]: Bot has been stopped.")
-    proc.wait()
-    # print("COMPUTER [" + SENDER + "]: Here is empty....")
+def stop_bot(user_answer):
 
+    global out_flag
+    out_flag["time_to_end"] = True
+
+    if user_answer == "5":
+        main_menu()
 
 main_menu()

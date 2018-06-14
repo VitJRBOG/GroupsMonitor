@@ -21,6 +21,12 @@ def main(vk_admin_session, vk_bot_session):
 
         subjects = copy.deepcopy(data_json["subjects"])
 
+        threads_list = []
+
+        out_flag = {
+            "time_to_end": False
+        }
+
         i = 0
 
         while i < len(subjects):
@@ -37,18 +43,36 @@ def main(vk_admin_session, vk_bot_session):
 
                 interval = subjects[i]["interval"]
 
-                objCommunitiChecker = CommunitiChecker(total_sender, PATH, interval, subjects[i], sessions_list)
+                objCommunitiChecker = CommunitiChecker(out_flag, total_sender,
+                                                       PATH, interval,
+                                                       subjects[i],
+                                                       sessions_list)
                 objCommunitiChecker.start()
 
+                thread_name = "Checker of " + subjects[i]["name"]
 
+                values = {
+                    "thread_name": thread_name,
+                    "thread": objCommunitiChecker
                 }
 
+                threads_list.append(values)
+
+            i += 1
+
+        objThreadListener = ThreadListener(out_flag, total_sender,
+                                           threads_list)
+        objThreadListener.start()
+
+        return out_flag
+
+    except Exception as var_except:
+        logger.exception_handler(sender, var_except)
+        return main(vk_admin_session, vk_bot_session)
 
 
-
-
-
-
+def algorithm_checker(total_sender, PATH, subject,
+                      sessions_list, time_for_backup):
 
     path_to_subject_json = subject["path"]
 
@@ -63,11 +87,8 @@ def main(vk_admin_session, vk_bot_session):
 
     sender = total_sender + " -> " + subject_data["name"]
 
-    if delay == 0:
-        datamanager.save_backup(sender, PATH, vk_admin_session, subject)
-
-    if delay >= 100:
-        datamanager.save_backup(sender, PATH, vk_admin_session, subject)
+    if time_for_backup:
+        datamanager.save_backup(sender, PATH, sessions_list["admin"], subject)
 
     if subject_data["post_checker_settings"]["check_posts"] == 1:
         subject_data = checker.check_for_posts(total_sender,
@@ -103,8 +124,9 @@ def main(vk_admin_session, vk_bot_session):
 
 
 class CommunitiChecker(Thread):
-    def __init__(self, total_sender, PATH, interval, subject, sessions_list):
+    def __init__(self, out_flag, total_sender, PATH, interval, subject, sessions_list):
         Thread.__init__(self)
+        self.out_flag = out_flag
         self.total_sender = total_sender
         self.PATH = PATH
         self.interval = interval
@@ -112,15 +134,62 @@ class CommunitiChecker(Thread):
         self.sessions_list = sessions_list
 
     def run(self):
-        delay = 0
-        while True:
-            algorithm_checker(self.total_sender, self.PATH, self.subject, self.sessions_list, delay)
-            if delay >= 100:
-                delay = 1
-            else:
-                if self.interval < 60:
-                    delay += 1
-                else:
-                    delay += 10
+        time_for_backup = True
+        next_time = 60 * 10 + int(datetime.datetime.now().strftime('%s'))
 
-            time.sleep(self.interval)
+        def flag_checker(out_flag):
+            if out_flag["time_to_end"]:
+                sender = "Thread " + self.subject["name"]
+                message = "Completion implementation a thread of" +\
+                    " listening for " + self.subject["name"] + "."
+                logger.message_output(sender, message)
+                return True
+        while True:
+            if flag_checker(self.out_flag):
+                return
+            algorithm_checker(self.total_sender, self.PATH, self.subject,
+                              self.sessions_list, time_for_backup)
+            now_time = int(datetime.datetime.now().strftime('%s'))
+            if now_time < next_time:
+                time_for_backup = False
+            else:
+                time_for_backup = True
+                next_time = 60 * 10 + now_time
+
+            i = 0
+            while i < self.interval:
+                time.sleep(1)
+                if flag_checker(self.out_flag):
+                    return
+                i += 1
+
+
+class ThreadListener(Thread):
+    def __init__(self, out_flag, sender, threads_list):
+        Thread.__init__(self)
+        self.out_flag = out_flag
+        self.sender = sender
+        self.threads_list = threads_list
+
+    def run(self):
+        def thread_listener(sender, threads_list):
+            count_threads = len(threads_list)
+            i = 0
+            while i < count_threads:
+                if not threads_list[i]["thread"].is_alive():
+                    message = "Thread " + threads_list[i]["thread_name"] +\
+                        " is not responding."
+                    logger.message_output(sender, message)
+                    threads_list[i].pop()
+                    count_threads = len(threads_list)
+                i += 1
+
+        while True:
+            if self.out_flag["time_to_end"]:
+                sender = "Thread listener"
+                message = "Completion implementation a thread of" +\
+                    " listening for a thread listener."
+                logger.message_output(sender, message)
+                return
+            thread_listener(self.sender, self.threads_list)
+            time.sleep(5)

@@ -1406,12 +1406,11 @@ class NewPostComment():
                         while i < len(attachments):
                             media_item = attachments[i]
 
-                            # TODO исправить ошибку при добавлении ссылок
+                            # TODO добавить функцию прикрепления ссылок
 
                             if media_item["type"] == "photo" or\
                                media_item["type"] == "video" or\
                                media_item["type"] == "audio" or\
-                               media_item["type"] == "link" or\
                                media_item["type"] == "doc":
 
                                 media = media_item[media_item["type"]]

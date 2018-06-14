@@ -738,35 +738,66 @@ class NewAlbumPhoto:
                 sender += " -> Get signature"
 
                 try:
-                    post_signature = "Album: "
+                    if item["user_id"] == 100:
 
-                    post_signature += item["album_title"] +\
-                        "\n"
+                        post_signature = "Album: "
 
-                    author_values = {
+                        post_signature += item["album_title"] +\
+                            "\n"
+
+                        author_values = {
+                            "group_id": int(str(item["subject_id"])[1:])
+                        }
+
+                        time.sleep(1)
+
+                        response_author =\
+                            vk_admin_session.method("groups.getById",
+                                                    author_values)
+
+                        author_name = response_author[0]["name"]
+
+                        author_url = "*" +\
+                            response_author[0]["screen_name"] + " " +\
+                            "(" + author_name + ")"
+
+                        date = datetime.datetime.fromtimestamp(
+                            int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
+
+                        post_signature += author_url + "\n" + str(date)
+
+                        return post_signature
+
+                    else:
+                        post_signature = "Album: "
+
+                        post_signature += item["album_title"] +\
+                            "\n"
+
+                        author_values = {
                             "user_ids": item["user_id"]
                         }
 
-                    time.sleep(1)
+                        time.sleep(1)
 
-                    response_author =\
-                        vk_admin_session.method("users.get",
-                                                author_values)
+                        response_author =\
+                            vk_admin_session.method("users.get",
+                                                    author_values)
 
-                    first_name = response_author[0]["first_name"]
-                    last_name = response_author[0]["last_name"]
+                        first_name = response_author[0]["first_name"]
+                        last_name = response_author[0]["last_name"]
 
-                    author_full_name = first_name + " " + last_name
+                        author_full_name = first_name + " " + last_name
 
-                    author_url = "*id" + str(item["user_id"]) +\
-                        " (" + author_full_name + ")"
+                        author_url = "*id" + str(item["user_id"]) +\
+                            " (" + author_full_name + ")"
 
-                    date = datetime.datetime.fromtimestamp(
-                        int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
+                        date = datetime.datetime.fromtimestamp(
+                            int(item["date"])).strftime("%d.%m.%Y %H:%M:%S")
 
-                    post_signature += author_url + "\n" + str(date)
+                        post_signature += author_url + "\n" + str(date)
 
-                    return post_signature
+                        return post_signature
 
                 except Exception as var_except:
                     logger.exception_handler(sender, var_except)

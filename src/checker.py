@@ -388,7 +388,7 @@ def check_for_comments_post(total_sender, PATH, path_to_subject_json, subject, s
 
                     if len(item["text"]) > 0 and\
                        len(subject_data["post_comments_checker_settings"]["keywords"]) > 0:
-                        text_array = item["text"].split(' ')
+                        text = item["text"]
                         keywords = subject_data["post_comments_checker_settings"]["keywords"]
 
                         def search(line, underline):  # вместо find, у которого траблы с кодировками
@@ -415,12 +415,11 @@ def check_for_comments_post(total_sender, PATH, path_to_subject_json, subject, s
 
                             return last_i
 
-                        for word in text_array:
-                            for keyword in keywords:
-                                search_result = search(word, keyword)
-                                if search_result != -1:
-                                    check = True
-                                    break
+                        for keyword in keywords:
+                            search_result = search(text, keyword)
+                            if search_result != -1:
+                                check = True
+                                break
 
             if check:
                 message, comment_attachments =\

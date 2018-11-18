@@ -90,8 +90,8 @@ def exception_handler(sender, var_except):
 def message_output(sender, message):
     def to_console(sender, message):
         date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-        message = "[" + str(date) + "] " + "[" + str(sender) + "]: " + str(message.encode("utf8"))
-        print("[" + sender + "]: " + message)
+        message = "[" + str(date) + "] " + "[" + str(sender) + "]: " + message.encode("utf8")
+        print(message)
 
     def to_textfile(sender, message):
         try:

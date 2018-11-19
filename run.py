@@ -1,11 +1,13 @@
 # coding: utf8
+u"""Модуль запуска приложения."""
 
 
-from view import notificator_workplace
+import processing
 
 
 def starter():
-    notificator_workplace.start_bot()
+    u"""Запуск основных функций."""
+    processing.run_processing()
 
 
 starter()

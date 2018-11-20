@@ -26,7 +26,8 @@ def read_json(path, file_name):
 def write_json(path, file_name, loads_json):
     u"""Записывает json-словарь в json-файл."""
     file_json = open(str(path) + str(file_name) + ".json", "w")
-    file_json.write(json.dumps(loads_json, indent=4, ensure_ascii=True))
+    file_json.write(json.dumps(loads_json, indent=4,
+                               ensure_ascii=False).encode("utf8"))
     file_json.close()
 
 

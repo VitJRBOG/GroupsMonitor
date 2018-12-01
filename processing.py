@@ -28,13 +28,13 @@ def check_access_tokens():
     def check_session(token_owner, access_token):
         u"""Проверяет валидность сессии."""
         vk_session = authorization(access_token)
+        sender = "Check " + token_owner + "'s access token"
         try:
             # КОСТЫЛЬ: проверка идет по id Павла Дурова
             values = {
                 "user_ids": "1"
             }
             vk_session.method("users.get", values)
-            sender = "Check " + token_owner + "'s access token"
             message = token_owner + "'s access token is valid."
             output_data.output_text_row(sender, message)
             return vk_session

@@ -10,7 +10,7 @@ def output_text_row(sender, message):
     def to_console(sender, message):
         u"""Выводит текстовую строку в консоль."""
         date = datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-        output = "[" + str(date) + "] " + "[" + str(sender) + \
+        output = "COMPUTER [" + str(date) + "] " + "[" + str(sender) + \
             "]: " + str(message.encode("utf8"))
         print(output)
 

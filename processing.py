@@ -12,8 +12,8 @@ import thread_starter
 def run_processing():
     u"""Запуск функций обработки."""
     dict_sessions = check_access_tokens()
-    dict_threads = thread_starter.run_thread_starter(dict_sessions)
-    user_answer_checker(dict_threads)
+    data_threads = thread_starter.run_thread_starter(dict_sessions)
+    user_answer_checker(data_threads)
 
 
 def check_access_tokens():
@@ -70,21 +70,29 @@ def check_access_tokens():
     admin_session = check_session("Admin", dict_data["admin_access_token"])
     dict_sessions = {}
     for subject in subjects:
-        vk_session = check_session(
-            subject["name"], subject["sender_access_token"])
-        dict_sessions.update({subject["name"]: vk_session})
+        if subject["check_subject"] == 1:
+            vk_session = check_session(
+                subject["name"], subject["sender_access_token"])
+            dict_sessions.update({subject["name"]: vk_session})
     dict_sessions.update({"Admin": admin_session})
 
     return dict_sessions
 
 
-def user_answer_checker(dict_threads):
+def user_answer_checker(data_threads):
     u"""Проверка команд пользователя."""
     while True:
+        sender = "[Main menu]"
         user_asnwer = raw_input()
         if user_asnwer == "quit":
+            message = "Force quit..."
+            output_data.output_text_row(sender, message)
             exit(0)
         if user_asnwer == "stop":
-            for thread_data in dict_threads:
-                thread_data["flag"] = False
-                # пока временный пример. Изменю, когда опишу работу с потоками.
+            message = "Stopping threads..."
+            output_data.output_text_row(sender, message)
+            for data_thread in data_threads:
+                data_thread["end_flag"].set()
+            message = "Quit..."
+            output_data.output_text_row(sender, message)
+            exit(0)

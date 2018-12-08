@@ -3,13 +3,36 @@ u"""Модуль работы с потоками."""
 
 
 import threading
+import time
 import data_manager
+import output_data
 import checker_algorithms
 
 
 def run_thread_starter(dict_sessions):
     u"""Запуск функций старта потоков."""
+    def run_threads(data_threads):
+        u"""Запускает потоки."""
+        for data_thread in data_threads:
+            data_thread["thread"].start()
+    def thread_checker(data_threads):
+        u"""Запускает поток проверки статуса потоков."""
+        def thread_checker_algorithm(data_threads):
+            u"""Алгоритм проверки статуса потоков."""
+            while True:
+                for data_thread in data_threads:
+                    if not data_thread["thread"].isAlive() and\
+                       not data_thread["end_flag"].isSet():
+                        sender = data_thread["sender"]
+                        message = "WARNING! Operation is stopped..."
+                        output_data.output_text_row(sender, message)
+                time.sleep(30)
+        objThread = threading.Thread(target=thread_checker_algorithm, args=(data_threads,))
+        objThread.daemon = True
+        objThread.start()
     data_threads = thread_creator(dict_sessions)
+    run_threads(data_threads)
+    thread_checker(data_threads)
     return data_threads
 
 

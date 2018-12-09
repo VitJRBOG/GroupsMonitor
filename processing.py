@@ -92,7 +92,15 @@ def user_answer_checker(data_threads):
             message = "Stopping threads..."
             output_data.output_text_row(sender, message)
             for data_thread in data_threads:
+                thread_sender = data_thread["sender"]
                 data_thread["end_flag"].set()
+                if not data_thread["thread"].isAlive() and\
+                   data_thread["end_flag"].isSet():
+                    message = "OK! Monitoring is stopped..."
+                    output_data.output_text_row(thread_sender, message)
+                if data_thread["thread"].isAlive() and\
+                   data_thread["end_flag"].isSet():
+                    message = "WARNING! Monitoring cannot be stopped..."
             message = "Quit..."
             output_data.output_text_row(sender, message)
             exit(0)

@@ -39,10 +39,10 @@ def run_post_monitor(subject_name, subject_data, thread_data):
         if end_flag.isSet():
             before_end_operations(sender)
             return
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        checker.check_for_posts(sender, path_to_json, subject, subject_data,
-                                subject_section_data, sessions_list)
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
+        #### НАБРОСОК
+        monitoring_algorithms.check_for_posts(
+            sender, res_filename, subject_data, monitor_data)
+        #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
@@ -63,10 +63,10 @@ def run_album_photo_monitor(subject_name, subject_data, thread_data):
         if end_flag.isSet():
             before_end_operations(sender)
             return
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        checker.check_for_albums(sender, path_to_json, subject, subject_data,
-                                 subject_section_data, sessions_list)
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
+        #### НАБРОСОК
+        monitoring_algorithms.check_for_albums(
+            sender, res_filename, subject_data, monitor_data)
+        #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
@@ -87,10 +87,10 @@ def run_video_monitor(subject_name, subject_data, thread_data):
         if end_flag.isSet():
             before_end_operations(sender)
             return
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        checker.check_for_videos(sender, path_to_json, subject, subject_data,
-                                 subject_section_data, sessions_list)
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
+        #### НАБРОСОК
+        monitoring_algorithms.check_for_videos(
+            sender, res_filename, subject_data, monitor_data)
+        #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
@@ -111,11 +111,10 @@ def run_photo_comments_monitor(subject_name, subject_data, thread_data):
         if end_flag.isSet():
             before_end_operations(sender)
             return
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        checker.check_for_comments_photo(sender, path_to_json, subject,
-                                         subject_data,
-                                         subject_section_data, sessions_list)
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
+        #### НАБРОСОК
+        monitoring_algorithms.check_for_comments_photo(
+            sender, res_filename, subject_data, monitor_data)
+        #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
@@ -136,11 +135,10 @@ def run_video_comments_monitor(subject_name, subject_data, thread_data):
         if end_flag.isSet():
             before_end_operations(sender)
             return
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        checker.check_for_comments_video(sender, path_to_json, subject,
-                                         subject_data,
-                                         subject_section_data, sessions_list)
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
+        #### НАБРОСОК
+        monitoring_algorithms.check_for_comments_video(
+            sender, res_filename, subject_data, monitor_data)
+        #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
@@ -161,10 +159,10 @@ def run_topic_comments_monitor(subject_name, subject_data, thread_data):
         if end_flag.isSet():
             before_end_operations(sender)
             return
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        checker.check_for_topics(sender, path_to_json, subject, subject_data,
-                                 subject_section_data, sessions_list)
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
+        #### НАБРОСОК
+        monitoring_algorithms.check_for_topics(
+            sender, res_filename, subject_data, monitor_data)
+        #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
@@ -185,11 +183,10 @@ def run_post_comments_monitor(subject_name, subject_data, thread_data):
         if end_flag.isSet():
             before_end_operations(sender)
             return
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        checker.check_for_comments_post(sender, path_to_json, subject,
-                                        subject_data,
-                                        subject_section_data, sessions_list)
-        #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
+        #### НАБРОСОК
+        monitoring_algorithms.check_for_comments_post(
+            sender, res_filename, subject_data, monitor_data)
+        #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)

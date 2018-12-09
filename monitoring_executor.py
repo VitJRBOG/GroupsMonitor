@@ -19,14 +19,20 @@ def before_end_operations(sender):
     output_data.output_text_row(sender, message)
 
 
-def run_post_checker(subject_name, subject_data, end_flag):
-    checker_name = "post_checker_settings"
-    operation_name = "new post checking"
-    sender = subject_name + "'s " + operation_name
+def read_res_files(subject_data, res_filename):
+    u"""Читает ресурсные файлы проверяльщика и возвращает словарь с ними,"""
     PATH = data_manager.read_path()
     subject_path = PATH + subject_data["path"]
-    checker_data = data_manager.read_json(subject_path, checker_name)
-    if checker_data["check_flag"] != 1:
+    monitor_data = data_manager.read_json(subject_path, res_filename)
+    return monitor_data
+
+
+def run_post_monitor(subject_name, subject_data, thread_data):
+    res_filename = thread_data["res_filename"]
+    sender = thread_data["sender"]
+    end_flag = thread_data["end_flag"]
+    monitor_data = read_res_files(subject_data, res_filename)
+    if monitor_data["need_monitoring"] != 1:
         return
     while True:
         before_start_operations(sender)
@@ -37,7 +43,7 @@ def run_post_checker(subject_name, subject_data, end_flag):
         checker.check_for_posts(sender, path_to_json, subject, subject_data,
                                 subject_section_data, sessions_list)
         #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        interval = checker_data["interval"]
+        interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
@@ -45,14 +51,12 @@ def run_post_checker(subject_name, subject_data, end_flag):
                 return
 
 
-def run_album_photo_checker(subject_name, subject_data, end_flag):
-    checker_name = "photo_checker_settings"
-    operation_name = "new album photo checking"
-    sender = subject_name + "'s " + operation_name
-    PATH = data_manager.read_path()
-    subject_path = PATH + subject_data["path"]
-    checker_data = data_manager.read_json(subject_path, checker_name)
-    if checker_data["check_flag"] != 1:
+def run_album_photo_monitor(subject_name, subject_data, thread_data):
+    res_filename = thread_data["res_filename"]
+    sender = thread_data["sender"]
+    end_flag = thread_data["end_flag"]
+    monitor_data = read_res_files(subject_data, res_filename)
+    if monitor_data["need_monitoring"] != 1:
         return
     while True:
         before_start_operations(sender)
@@ -63,7 +67,7 @@ def run_album_photo_checker(subject_name, subject_data, end_flag):
         checker.check_for_albums(sender, path_to_json, subject, subject_data,
                                  subject_section_data, sessions_list)
         #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        interval = checker_data["interval"]
+        interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
@@ -71,14 +75,12 @@ def run_album_photo_checker(subject_name, subject_data, end_flag):
                 return
 
 
-def run_video_checker(subject_name, subject_data, end_flag):
-    checker_name = "video_checker_settings"
-    operation_name = "new video checking"
-    sender = subject_name + "'s " + operation_name
-    PATH = data_manager.read_path()
-    subject_path = PATH + subject_data["path"]
-    checker_data = data_manager.read_json(subject_path, checker_name)
-    if checker_data["check_flag"] != 1:
+def run_video_monitor(subject_name, subject_data, thread_data):
+    res_filename = thread_data["res_filename"]
+    sender = thread_data["sender"]
+    end_flag = thread_data["end_flag"]
+    monitor_data = read_res_files(subject_data, res_filename)
+    if monitor_data["need_monitoring"] != 1:
         return
     while True:
         before_start_operations(sender)
@@ -89,7 +91,7 @@ def run_video_checker(subject_name, subject_data, end_flag):
         checker.check_for_videos(sender, path_to_json, subject, subject_data,
                                  subject_section_data, sessions_list)
         #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        interval = checker_data["interval"]
+        interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
@@ -97,14 +99,12 @@ def run_video_checker(subject_name, subject_data, end_flag):
                 return
 
 
-def run_photo_comments_checker(subject_name, subject_data, end_flag):
-    checker_name = "photo_comments_checker_settings"
-    operation_name = "new photo comment checking"
-    sender = subject_name + "'s " + operation_name
-    PATH = data_manager.read_path()
-    subject_path = PATH + subject_data["path"]
-    checker_data = data_manager.read_json(subject_path, checker_name)
-    if checker_data["check_flag"] != 1:
+def run_photo_comments_monitor(subject_name, subject_data, thread_data):
+    res_filename = thread_data["res_filename"]
+    sender = thread_data["sender"]
+    end_flag = thread_data["end_flag"]
+    monitor_data = read_res_files(subject_data, res_filename)
+    if monitor_data["need_monitoring"] != 1:
         return
     while True:
         before_start_operations(sender)
@@ -116,7 +116,7 @@ def run_photo_comments_checker(subject_name, subject_data, end_flag):
                                          subject_data,
                                          subject_section_data, sessions_list)
         #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        interval = checker_data["interval"]
+        interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
@@ -124,14 +124,12 @@ def run_photo_comments_checker(subject_name, subject_data, end_flag):
                 return
 
 
-def run_video_comments_checker(subject_name, subject_data, end_flag):
-    checker_name = "video_comments_checker_settings"
-    operation_name = "new video comment checking"
-    sender = subject_name + "'s " + operation_name
-    PATH = data_manager.read_path()
-    subject_path = PATH + subject_data["path"]
-    checker_data = data_manager.read_json(subject_path, checker_name)
-    if checker_data["check_flag"] != 1:
+def run_video_comments_monitor(subject_name, subject_data, thread_data):
+    res_filename = thread_data["res_filename"]
+    sender = thread_data["sender"]
+    end_flag = thread_data["end_flag"]
+    monitor_data = read_res_files(subject_data, res_filename)
+    if monitor_data["need_monitoring"] != 1:
         return
     while True:
         before_start_operations(sender)
@@ -143,7 +141,7 @@ def run_video_comments_checker(subject_name, subject_data, end_flag):
                                          subject_data,
                                          subject_section_data, sessions_list)
         #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        interval = checker_data["interval"]
+        interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
@@ -151,14 +149,12 @@ def run_video_comments_checker(subject_name, subject_data, end_flag):
                 return
 
 
-def run_topic_comments_checker(subject_name, subject_data, end_flag):
-    checker_name = "topic_checker_settings"
-    operation_name = "new topic comment checking"
-    sender = subject_name + "'s " + operation_name
-    PATH = data_manager.read_path()
-    subject_path = PATH + subject_data["path"]
-    checker_data = data_manager.read_json(subject_path, checker_name)
-    if checker_data["check_flag"] != 1:
+def run_topic_comments_monitor(subject_name, subject_data, thread_data):
+    res_filename = thread_data["res_filename"]
+    sender = thread_data["sender"]
+    end_flag = thread_data["end_flag"]
+    monitor_data = read_res_files(subject_data, res_filename)
+    if monitor_data["need_monitoring"] != 1:
         return
     while True:
         before_start_operations(sender)
@@ -169,7 +165,7 @@ def run_topic_comments_checker(subject_name, subject_data, end_flag):
         checker.check_for_topics(sender, path_to_json, subject, subject_data,
                                  subject_section_data, sessions_list)
         #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        interval = checker_data["interval"]
+        interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
@@ -177,14 +173,12 @@ def run_topic_comments_checker(subject_name, subject_data, end_flag):
                 return
 
 
-def run_post_comments_checker(subject_name, subject_data, end_flag):
-    checker_name = "post_comments_checker_settings"
-    operation_name = "new post comment checking"
-    sender = subject_name + "'s " + operation_name
-    PATH = data_manager.read_path()
-    subject_path = PATH + subject_data["path"]
-    checker_data = data_manager.read_json(subject_path, checker_name)
-    if checker_data["check_flag"] != 1:
+def run_post_comments_monitor(subject_name, subject_data, thread_data):
+    res_filename = thread_data["res_filename"]
+    sender = thread_data["sender"]
+    end_flag = thread_data["end_flag"]
+    monitor_data = read_res_files(subject_data, res_filename)
+    if monitor_data["need_monitoring"] != 1:
         return
     while True:
         before_start_operations(sender)
@@ -196,7 +190,7 @@ def run_post_comments_checker(subject_name, subject_data, end_flag):
                                         subject_data,
                                         subject_section_data, sessions_list)
         #### СТАРЫЙ ФРАГМЕНТ, НУЖНО МЕНЯТЬ
-        interval = checker_data["interval"]
+        interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():

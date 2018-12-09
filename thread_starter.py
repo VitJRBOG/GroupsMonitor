@@ -6,7 +6,7 @@ import threading
 import time
 import data_manager
 import output_data
-import checker_algorithms
+import monitoring_executor
 
 
 def run_thread_starter(dict_sessions):
@@ -24,7 +24,7 @@ def run_thread_starter(dict_sessions):
                     if not data_thread["thread"].isAlive() and\
                        not data_thread["end_flag"].isSet():
                         sender = data_thread["sender"]
-                        message = "WARNING! Operation is stopped..."
+                        message = "WARNING! Monitoring is stopped..."
                         output_data.output_text_row(sender, message)
                 time.sleep(30)
         objThread = threading.Thread(target=thread_checker_algorithm, args=(data_threads,))
@@ -45,7 +45,7 @@ def thread_creator(dict_sessions):
         subjects_names = []
         subjects_path = {}
         for subject in dict_data["subjects"]:
-            if subject["check_subject"]:
+            if subject["monitor_subject"] == 1:
                 subjects_names.append(subject["name"])
                 subjects_path.update({subject["name"]: subject["path"]})
         return subjects_names, subjects_path
@@ -65,126 +65,140 @@ def thread_creator(dict_sessions):
     
     def preparation_thread(subject_name, subject_data):
         u"""Подготовка потоков."""
-        def thread_post_checker():
-            u"""Создание потока проверки новых постов."""
+        def thread_post_monitoring():
+            u"""Создание потока проверки постов."""
             end_flag = threading.Event()
-            objThread =\
-                threading.Thread(target=checker_algorithms.run_post_checker,
-                                 args=(subject_name, subject_data, end_flag,))
-            objThread.daemon = True
-            operation_name = "new post checking"
+            res_filename = "post_monitor_settings"
+            operation_name = "post monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
-                "thread": objThread,
+                "res_filename": res_filename,
                 "sender": sender,
                 "end_flag": end_flag
             }
+            objThread =\
+                threading.Thread(target=monitoring_executor.run_post_monitor,
+                                 args=(subject_name, subject_data, thread_data,))
+            objThread.daemon = True
+            thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_album_photo_checker():
-            u"""Создание потока проверки новых фотографий."""
+        def thread_album_photo_monitoring():
+            u"""Создание потока проверки фотографий."""
             end_flag = threading.Event()
-            objThread =\
-                threading.Thread(target=checker_algorithms.run_album_photo_checker,
-                                 args=(subject_name, subject_data, end_flag,))
-            objThread.daemon = True
-            operation_name = "new album photo checking"
+            res_filename = "photo_monitor_settings"
+            operation_name = "album photo monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
-                "thread": objThread,
+                "res_filename": res_filename,
                 "sender": sender,
                 "end_flag": end_flag
             }
+            objThread =\
+                threading.Thread(target=monitoring_executor.run_album_photo_monitor,
+                                 args=(subject_name, subject_data, thread_data,))
+            objThread.daemon = True
+            thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_video_checker():
-            u"""Создание потока проверки новых видеозаписей."""
+        def thread_video_monitoring():
+            u"""Создание потока проверки видеозаписей."""
             end_flag = threading.Event()
-            objThread =\
-                threading.Thread(target=checker_algorithms.run_video_checker,
-                                 args=(subject_name, subject_data, end_flag,))
-            objThread.daemon = True
-            operation_name = "new video checking"
+            res_filename = "video_monitor_settings"
+            operation_name = "video monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
-                "thread": objThread,
+                "res_filename": res_filename,
                 "sender": sender,
                 "end_flag": end_flag
             }
+            objThread =\
+                threading.Thread(target=monitoring_executor.run_video_monitor,
+                                 args=(subject_name, subject_data, thread_data,))
+            objThread.daemon = True
+            thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_photo_comments_checker():
-            u"""Создание потока проверки новых комментов под фотками."""
+        def thread_photo_comments_monitoring():
+            u"""Создание потока проверки комментов под фотками."""
             end_flag = threading.Event()
-            objThread =\
-                threading.Thread(target=checker_algorithms.run_photo_comments_checker,
-                                 args=(subject_name, subject_data, end_flag,))
-            objThread.daemon = True
-            operation_name = "new photo comment checking"
+            res_filename = "photo_comments_monitor_settings"
+            operation_name = "photo comment monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
-                "thread": objThread,
+                "res_filename": res_filename,
                 "sender": sender,
                 "end_flag": end_flag
             }
+            objThread =\
+                threading.Thread(target=monitoring_executor.run_photo_comments_monitor,
+                                 args=(subject_name, subject_data, thread_data,))
+            objThread.daemon = True
+            thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_video_comments_checker():
-            u"""Создание потока проверки новых комментов под видео."""
+        def thread_video_comments_monitoring():
+            u"""Создание потока проверки комментов под видео."""
             end_flag = threading.Event()
-            objThread =\
-                threading.Thread(target=checker_algorithms.run_video_comments_checker,
-                                 args=(subject_name, subject_data, end_flag,))
-            objThread.daemon = True
-            operation_name = "new video comment checking"
+            res_filename = "video_comments_monitor_settings"
+            operation_name = "video comment monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
-                "thread": objThread,
+                "res_filename": res_filename,
                 "sender": sender,
                 "end_flag": end_flag
             }
+            objThread =\
+                threading.Thread(target=monitoring_executor.run_video_comments_monitor,
+                                 args=(subject_name, subject_data, thread_data,))
+            objThread.daemon = True
+            thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_topic_comments_checker():
-            u"""Создание потока проверки новых комментов в обсуждениях."""
+        def thread_topic_comments_monitoring():
+            u"""Создание потока проверки комментов в обсуждениях."""
             end_flag = threading.Event()
-            objThread =\
-                threading.Thread(target=checker_algorithms.run_topic_comments_checker,
-                                 args=(subject_name, subject_data, end_flag,))
-            objThread.daemon = True
-            operation_name = "new topic comment checking"
+            res_filename = "topic_monitor_settings"
+            operation_name = "topic comment monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
-                "thread": objThread,
+                "res_filename": res_filename,
                 "sender": sender,
                 "end_flag": end_flag
             }
+            objThread =\
+                threading.Thread(target=monitoring_executor.run_topic_comments_monitor,
+                                 args=(subject_name, subject_data, thread_data,))
+            objThread.daemon = True
+            thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_post_comments_checker():
-            u"""Создание потока проверки новых комментов под постами."""
+        def thread_post_comments_monitoring():
+            u"""Создание потока проверки комментов под постами."""
             end_flag = threading.Event()
-            objThread =\
-                threading.Thread(target=checker_algorithms.run_post_comments_checker,
-                                 args=(subject_name, subject_data, end_flag,))
-            objThread.daemon = True
-            operation_name = "new post comment checking"
+            res_filename = "post_comments_monitor_settings"
+            operation_name = "post comment monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
-                "thread": objThread,
+                "res_filename": res_filename,
                 "sender": sender,
                 "end_flag": end_flag
             }
+            objThread =\
+                threading.Thread(target=monitoring_executor.run_post_comments_monitor,
+                                 args=(subject_name, subject_data, thread_data,))
+            objThread.daemon = True
+            thread_data.update({"thread": objThread})
             return thread_data
 
         threads_list = []
-        threads_list.append(thread_post_checker)
-        threads_list.append(thread_album_photo_checker)
-        threads_list.append(thread_video_checker)
-        threads_list.append(thread_photo_comments_checker)
-        threads_list.append(thread_video_comments_checker)
-        threads_list.append(thread_topic_comments_checker)
-        threads_list.append(thread_post_comments_checker)
+        threads_list.append(thread_post_monitoring)
+        threads_list.append(thread_album_photo_monitoring)
+        threads_list.append(thread_video_monitoring)
+        threads_list.append(thread_photo_comments_monitoring)
+        threads_list.append(thread_video_comments_monitoring)
+        threads_list.append(thread_topic_comments_monitoring)
+        threads_list.append(thread_post_comments_monitoring)
 
         return threads_list
     

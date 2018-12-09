@@ -70,7 +70,7 @@ def check_access_tokens():
     admin_session = check_session("Admin", dict_data["admin_access_token"])
     dict_sessions = {}
     for subject in subjects:
-        if subject["check_subject"] == 1:
+        if subject["monitor_subject"] == 1:
             vk_session = check_session(
                 subject["name"], subject["sender_access_token"])
             dict_sessions.update({subject["name"]: vk_session})

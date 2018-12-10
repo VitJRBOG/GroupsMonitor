@@ -54,10 +54,15 @@ def thread_creator(dict_sessions):
         u"""Собирает словарь с данными о проверяемых субъектах."""
         subjects_data = {}
         for subject_name in subjects_names:
+            PATH = data_manager.read_path()
+            subject_path = PATH + subjects_path[subject_name]
+            external_subject_data = data_manager.read_json(
+                subject_path, "subject_data")
             values = {
                 "sender_session": dict_sessions[subject_name],
                 "admin_session": dict_sessions["Admin"],
-                "path": subjects_path[subject_name]
+                "path": subjects_path[subject_name],
+                "owner_id": external_subject_data["owner_id"]
             }
             subjects_data.update({subject_name: values})
 
@@ -77,7 +82,7 @@ def thread_creator(dict_sessions):
                 "end_flag": end_flag
             }
             objThread =\
-                threading.Thread(target=monitoring_executor.run_post_monitor,
+                threading.Thread(target=monitoring_executor.run_wall_posts_monitor,
                                  args=(subject_name, subject_data, thread_data,))
             objThread.daemon = True
             thread_data.update({"thread": objThread})
@@ -95,7 +100,7 @@ def thread_creator(dict_sessions):
                 "end_flag": end_flag
             }
             objThread =\
-                threading.Thread(target=monitoring_executor.run_album_photo_monitor,
+                threading.Thread(target=monitoring_executor.run_album_photos_monitor,
                                  args=(subject_name, subject_data, thread_data,))
             objThread.daemon = True
             thread_data.update({"thread": objThread})
@@ -113,7 +118,7 @@ def thread_creator(dict_sessions):
                 "end_flag": end_flag
             }
             objThread =\
-                threading.Thread(target=monitoring_executor.run_video_monitor,
+                threading.Thread(target=monitoring_executor.run_videos_monitor,
                                  args=(subject_name, subject_data, thread_data,))
             objThread.daemon = True
             thread_data.update({"thread": objThread})
@@ -185,7 +190,7 @@ def thread_creator(dict_sessions):
                 "end_flag": end_flag
             }
             objThread =\
-                threading.Thread(target=monitoring_executor.run_post_comments_monitor,
+                threading.Thread(target=monitoring_executor.run_wall_post_comments_monitor,
                                  args=(subject_name, subject_data, thread_data,))
             objThread.daemon = True
             thread_data.update({"thread": objThread})

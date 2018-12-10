@@ -1,8 +1,9 @@
 # coding: utf8
-u"""Модуль алгоритмов проверки."""
+u"""Модуль запуска алгоритмов проверки."""
 
 
 import time
+import monitoring_algorithms
 import data_manager
 import output_data
 
@@ -27,7 +28,8 @@ def read_res_files(subject_data, res_filename):
     return monitor_data
 
 
-def run_post_monitor(subject_name, subject_data, thread_data):
+def run_wall_posts_monitor(subject_name, subject_data, thread_data):
+    u"""Запускает алгоритмы проверки постов на стене."""
     res_filename = thread_data["res_filename"]
     sender = thread_data["sender"]
     end_flag = thread_data["end_flag"]
@@ -40,7 +42,7 @@ def run_post_monitor(subject_name, subject_data, thread_data):
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.check_for_posts(
+        monitoring_algorithms.wall_posts_monitor(
             sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
@@ -51,7 +53,8 @@ def run_post_monitor(subject_name, subject_data, thread_data):
                 return
 
 
-def run_album_photo_monitor(subject_name, subject_data, thread_data):
+def run_album_photos_monitor(subject_name, subject_data, thread_data):
+    u"""Запускает алгоритмы проверки фотографий в альбомах."""
     res_filename = thread_data["res_filename"]
     sender = thread_data["sender"]
     end_flag = thread_data["end_flag"]
@@ -64,7 +67,7 @@ def run_album_photo_monitor(subject_name, subject_data, thread_data):
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.check_for_albums(
+        monitoring_algorithms.album_photos_monitor(
             sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
@@ -75,7 +78,8 @@ def run_album_photo_monitor(subject_name, subject_data, thread_data):
                 return
 
 
-def run_video_monitor(subject_name, subject_data, thread_data):
+def run_videos_monitor(subject_name, subject_data, thread_data):
+    u"""Запускает алгоритмы проверки видеороликов."""
     res_filename = thread_data["res_filename"]
     sender = thread_data["sender"]
     end_flag = thread_data["end_flag"]
@@ -88,7 +92,7 @@ def run_video_monitor(subject_name, subject_data, thread_data):
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.check_for_videos(
+        monitoring_algorithms.videos_monitor(
             sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
@@ -100,6 +104,7 @@ def run_video_monitor(subject_name, subject_data, thread_data):
 
 
 def run_photo_comments_monitor(subject_name, subject_data, thread_data):
+    u"""Запускает алгоритмы проверки комментариев под фотографиями."""
     res_filename = thread_data["res_filename"]
     sender = thread_data["sender"]
     end_flag = thread_data["end_flag"]
@@ -112,7 +117,7 @@ def run_photo_comments_monitor(subject_name, subject_data, thread_data):
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.check_for_comments_photo(
+        monitoring_algorithms.photo_comments_monitor(
             sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
@@ -124,6 +129,7 @@ def run_photo_comments_monitor(subject_name, subject_data, thread_data):
 
 
 def run_video_comments_monitor(subject_name, subject_data, thread_data):
+    u"""Запускает алгоритмы проверки комментариев под видеороликами."""
     res_filename = thread_data["res_filename"]
     sender = thread_data["sender"]
     end_flag = thread_data["end_flag"]
@@ -136,7 +142,7 @@ def run_video_comments_monitor(subject_name, subject_data, thread_data):
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.check_for_comments_video(
+        monitoring_algorithms.video_comments_monitor(
             sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
@@ -148,6 +154,7 @@ def run_video_comments_monitor(subject_name, subject_data, thread_data):
 
 
 def run_topic_comments_monitor(subject_name, subject_data, thread_data):
+    u"""Запускает алгоритмы проверки комментариев в обсуждениях."""
     res_filename = thread_data["res_filename"]
     sender = thread_data["sender"]
     end_flag = thread_data["end_flag"]
@@ -160,7 +167,7 @@ def run_topic_comments_monitor(subject_name, subject_data, thread_data):
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.check_for_topics(
+        monitoring_algorithms.topic_comments_monitor(
             sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
@@ -171,7 +178,8 @@ def run_topic_comments_monitor(subject_name, subject_data, thread_data):
                 return
 
 
-def run_post_comments_monitor(subject_name, subject_data, thread_data):
+def run_wall_post_comments_monitor(subject_name, subject_data, thread_data):
+    u"""Запускает алгоритмы проверки комментариев под постами на стене."""
     res_filename = thread_data["res_filename"]
     sender = thread_data["sender"]
     end_flag = thread_data["end_flag"]
@@ -184,7 +192,7 @@ def run_post_comments_monitor(subject_name, subject_data, thread_data):
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.check_for_comments_post(
+        monitoring_algorithms.wall_post_comments_monitor(
             sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]

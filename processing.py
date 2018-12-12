@@ -25,56 +25,57 @@ def check_access_tokens():
 
         return vk_session
 
-    def check_session(token_owner, access_token):
+    def check_session(token_owner, token_purpose, access_token):
         u"""Проверяет валидность сессии."""
         vk_session = authorization(access_token)
-        sender = "Check " + token_owner + "'s access token"
+        sender = "Check " + token_owner + "'s access token for " + token_purpose
         try:
             # КОСТЫЛЬ: проверка идет по id Павла Дурова
             values = {
                 "user_ids": "1"
             }
             vk_session.method("users.get", values)
-            message = token_owner + "'s access token is valid."
-            output_data.output_text_row(sender, message)
             return vk_session
         except Exception as message_error:
             if str(message_error).lower().find("invalid access_token") > -1:
-                message = token_owner + "'s access token is invalid. Need another..."
+                message = token_owner + "'s access token for " + \
+                    token_purpose.replace("_", " ") + " is invalid. Need another..."
                 output_data.output_text_row(sender, message)
-                access_token = request_new_access_token(token_owner)
-                update_access_token(token_owner, access_token)
-                return check_session(token_owner, access_token)
+                access_token = request_new_access_token(
+                    token_owner, token_purpose)
+                update_access_token(token_owner, token_purpose, access_token)
+                return check_session(token_owner, token_purpose, access_token)
 
-    def request_new_access_token(token_owner):
+    def request_new_access_token(token_owner, token_purpose):
         u"""Запрос нового токена доступа."""
-        access_token = input_data.get_vk_user_token(token_owner)
+        access_token = input_data.get_vk_user_token(
+            token_owner, token_purpose.replace("_", " "))
         return access_token
 
-    def update_access_token(token_owner, access_token):
+    def update_access_token(token_owner, token_purpose, access_token):
         u"""Обновляет токен доступа в файле с данными."""
         PATH = data_manager.read_path()
         dict_data = data_manager.read_json(PATH, "data")
-        if token_owner == "Admin":
-            dict_data["admin_access_token"] = access_token
-        else:
-            subjects = dict_data["subjects"]
-            for i, subject in enumerate(subjects):
-                if subject["name"] == token_owner:
-                    dict_data["subjects"][i]["sender_access_token"] = access_token
+        subjects = dict_data["subjects"]
+        for i, subject in enumerate(subjects):
+            if subject["name"] == token_owner:
+                dict_data["subjects"][i]["access_tokens"][token_purpose] = \
+                    access_token
         data_manager.write_json(PATH, "data", dict_data)
 
     PATH = data_manager.read_path()
     dict_data = data_manager.read_json(PATH, "data")
     subjects = dict_data["subjects"]
-    admin_session = check_session("Admin", dict_data["admin_access_token"])
     dict_sessions = {}
     for subject in subjects:
         if subject["monitor_subject"] == 1:
-            vk_session = check_session(
-                subject["name"], subject["sender_access_token"])
-            dict_sessions.update({subject["name"]: vk_session})
-    dict_sessions.update({"Admin": admin_session})
+            token_purposes = subject["access_tokens"].keys()
+            values = {}
+            for token_purpose in token_purposes:
+                vk_session = check_session(
+                    subject["name"], token_purpose, subject["access_tokens"][token_purpose])
+                values.update({token_purpose: vk_session})
+            dict_sessions.update({subject["name"]: values})
 
     return dict_sessions
 

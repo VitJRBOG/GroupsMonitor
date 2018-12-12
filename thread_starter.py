@@ -59,8 +59,7 @@ def thread_creator(dict_sessions):
             external_subject_data = data_manager.read_json(
                 subject_path, "subject_data")
             values = {
-                "sender_session": dict_sessions[subject_name],
-                "admin_session": dict_sessions["Admin"],
+                "vk_sessions": dict_sessions[subject_name],
                 "path": subjects_path[subject_name],
                 "owner_id": external_subject_data["owner_id"]
             }
@@ -70,7 +69,7 @@ def thread_creator(dict_sessions):
     
     def preparation_thread(subject_name, subject_data):
         u"""Подготовка потоков."""
-        def thread_post_monitoring():
+        def thread_post_monitoring(subject_name, subject_data):
             u"""Создание потока проверки постов."""
             end_flag = threading.Event()
             res_filename = "post_monitor_settings"
@@ -88,7 +87,7 @@ def thread_creator(dict_sessions):
             thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_album_photo_monitoring():
+        def thread_album_photo_monitoring(subject_name, subject_data):
             u"""Создание потока проверки фотографий."""
             end_flag = threading.Event()
             res_filename = "photo_monitor_settings"
@@ -106,7 +105,7 @@ def thread_creator(dict_sessions):
             thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_video_monitoring():
+        def thread_video_monitoring(subject_name, subject_data):
             u"""Создание потока проверки видеозаписей."""
             end_flag = threading.Event()
             res_filename = "video_monitor_settings"
@@ -124,7 +123,7 @@ def thread_creator(dict_sessions):
             thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_photo_comments_monitoring():
+        def thread_photo_comments_monitoring(subject_name, subject_data):
             u"""Создание потока проверки комментов под фотками."""
             end_flag = threading.Event()
             res_filename = "photo_comments_monitor_settings"
@@ -142,7 +141,7 @@ def thread_creator(dict_sessions):
             thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_video_comments_monitoring():
+        def thread_video_comments_monitoring(subject_name, subject_data):
             u"""Создание потока проверки комментов под видео."""
             end_flag = threading.Event()
             res_filename = "video_comments_monitor_settings"
@@ -160,7 +159,7 @@ def thread_creator(dict_sessions):
             thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_topic_comments_monitoring():
+        def thread_topic_comments_monitoring(subject_name, subject_data):
             u"""Создание потока проверки комментов в обсуждениях."""
             end_flag = threading.Event()
             res_filename = "topic_monitor_settings"
@@ -178,7 +177,7 @@ def thread_creator(dict_sessions):
             thread_data.update({"thread": objThread})
             return thread_data
 
-        def thread_post_comments_monitoring():
+        def thread_post_comments_monitoring(subject_name, subject_data):
             u"""Создание потока проверки комментов под постами."""
             end_flag = threading.Event()
             res_filename = "post_comments_monitor_settings"
@@ -197,13 +196,20 @@ def thread_creator(dict_sessions):
             return thread_data
 
         threads_list = []
-        threads_list.append(thread_post_monitoring)
-        threads_list.append(thread_album_photo_monitoring)
-        threads_list.append(thread_video_monitoring)
-        threads_list.append(thread_photo_comments_monitoring)
-        threads_list.append(thread_video_comments_monitoring)
-        threads_list.append(thread_topic_comments_monitoring)
-        threads_list.append(thread_post_comments_monitoring)
+        threads_list.append(thread_post_monitoring(
+            subject_name, subject_data))
+        threads_list.append(thread_album_photo_monitoring(
+            subject_name, subject_data))
+        threads_list.append(thread_video_monitoring(
+            subject_name, subject_data))
+        threads_list.append(thread_photo_comments_monitoring(
+            subject_name, subject_data))
+        threads_list.append(thread_video_comments_monitoring(
+            subject_name, subject_data))
+        threads_list.append(thread_topic_comments_monitoring(
+            subject_name, subject_data))
+        threads_list.append(thread_post_comments_monitoring(
+            subject_name, subject_data))
 
         return threads_list
     

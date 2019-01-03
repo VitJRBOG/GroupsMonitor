@@ -2,7 +2,7 @@
 u"""Модуль обработки данных."""
 
 
-import vk_api
+import vkapi
 import data_manager
 import input_data
 import output_data
@@ -11,31 +11,24 @@ import thread_starter
 
 def run_processing():
     u"""Запуск функций обработки."""
-    dict_sessions = check_access_tokens()
-    data_threads = thread_starter.run_thread_starter(dict_sessions)
+    dict_tokens = check_access_tokens()
+    data_threads = thread_starter.run_thread_starter(dict_tokens)
     user_answer_checker(data_threads)
 
 
 def check_access_tokens():
-    u"""Проверяет валидность токенов доступа."""
-    def authorization(access_token):
-        u"""Авторизация в ВК."""
-        vk_session = vk_api.VkApi(token=access_token)
-        vk_session._auth_token()
+    u"""Алгоритм проверки валидности токенов доступа."""
 
-        return vk_session
-
-    def check_session(token_owner, token_purpose, access_token):
-        u"""Проверяет валидность сессии."""
-        vk_session = authorization(access_token)
+    def check_token(token_owner, token_purpose, access_token):
+        u"""Проверяет валидность токена."""
         sender = "Check " + token_owner + "'s access token for " + token_purpose
         try:
             # КОСТЫЛЬ: проверка идет по id Павла Дурова
             values = {
                 "user_ids": "1"
             }
-            vk_session.method("users.get", values)
-            return vk_session
+            vkapi.method("users.get", values, access_token)
+            return access_token
         except Exception as message_error:
             if str(message_error).lower().find("invalid access_token") > -1:
                 message = token_owner + "'s access token for " + \
@@ -44,7 +37,7 @@ def check_access_tokens():
                 access_token = request_new_access_token(
                     token_owner, token_purpose)
                 update_access_token(token_owner, token_purpose, access_token)
-                return check_session(token_owner, token_purpose, access_token)
+                return check_token(token_owner, token_purpose, access_token)
 
     def request_new_access_token(token_owner, token_purpose):
         u"""Запрос нового токена доступа."""
@@ -66,18 +59,18 @@ def check_access_tokens():
     PATH = data_manager.read_path()
     dict_data = data_manager.read_json(PATH, "data")
     subjects = dict_data["subjects"]
-    dict_sessions = {}
+    dict_tokens = {}
     for subject in subjects:
         if subject["monitor_subject"] == 1:
             token_purposes = subject["access_tokens"].keys()
             values = {}
             for token_purpose in token_purposes:
-                vk_session = check_session(
+                access_token = check_token(
                     subject["name"], token_purpose, subject["access_tokens"][token_purpose])
-                values.update({token_purpose: vk_session})
-            dict_sessions.update({subject["name"]: values})
+                values.update({token_purpose: access_token})
+            dict_tokens.update({subject["name"]: values})
 
-    return dict_sessions
+    return dict_tokens
 
 
 def user_answer_checker(data_threads):

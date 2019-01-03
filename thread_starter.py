@@ -9,7 +9,7 @@ import output_data
 import monitoring_executor
 
 
-def run_thread_starter(dict_sessions):
+def run_thread_starter(dict_tokens):
     u"""Запуск функций старта потоков."""
     def run_threads(data_threads):
         u"""Запускает потоки."""
@@ -30,13 +30,13 @@ def run_thread_starter(dict_sessions):
         objThread = threading.Thread(target=thread_checker_algorithm, args=(data_threads,))
         objThread.daemon = True
         objThread.start()
-    data_threads = thread_creator(dict_sessions)
+    data_threads = thread_creator(dict_tokens)
     run_threads(data_threads)
     thread_checker(data_threads)
     return data_threads
 
 
-def thread_creator(dict_sessions):
+def thread_creator(dict_tokens):
     u"""Создает алгоритмы потоков."""
     def select_subjects_data():
         u"""Получение данных о проверяемых субъектах."""
@@ -50,7 +50,7 @@ def thread_creator(dict_sessions):
                 subjects_path.update({subject["name"]: subject["path"]})
         return subjects_names, subjects_path
     
-    def subjects_data_dict_creator(subjects_names, dict_sessions, subjects_path):
+    def subjects_data_dict_creator(subjects_names, dict_tokens, subjects_path):
         u"""Собирает словарь с данными о проверяемых субъектах."""
         subjects_data = {}
         for subject_name in subjects_names:
@@ -59,7 +59,7 @@ def thread_creator(dict_sessions):
             external_subject_data = data_manager.read_json(
                 subject_path, "subject_data")
             values = {
-                "vk_sessions": dict_sessions[subject_name],
+                "access_tokens": dict_tokens[subject_name],
                 "path": subjects_path[subject_name],
                 "owner_id": external_subject_data["owner_id"]
             }
@@ -215,7 +215,7 @@ def thread_creator(dict_sessions):
     
     subjects_names, subjects_path = select_subjects_data()
     subjects_data = subjects_data_dict_creator(
-        subjects_names, dict_sessions, subjects_path)
+        subjects_names, dict_tokens, subjects_path)
     data_threads = []
     for subject_name in subjects_names:
         data_threads.extend(preparation_thread(

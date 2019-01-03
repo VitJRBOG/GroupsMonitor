@@ -10,8 +10,7 @@ def method(method_name, values, access_token):
     request = "https://api.vk.com/method/"
 
     request += method_name
-    request += "?v=" + str(values["v"])
-    request += "&access_token=" + access_token
+    request += "?access_token=" + access_token
 
     keys_values = values.keys()
     for key in keys_values:

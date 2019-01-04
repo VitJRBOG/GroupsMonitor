@@ -2,6 +2,7 @@
 u"""Модуль формирования запросов к VK API."""
 
 
+import json
 import requests
 
 
@@ -16,6 +17,10 @@ def method(method_name, values, access_token):
     for key in keys_values:
         request += "&" + key + "=" + str(values[key])
 
-    response = requests.post(request)
+    server_answer = requests.post(request)
 
-    return response.text
+    str_result = server_answer.text
+
+    result = json.loads(str_result)
+
+    return result

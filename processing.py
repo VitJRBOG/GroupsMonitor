@@ -2,6 +2,8 @@
 u"""Модуль обработки данных."""
 
 
+import os
+import time
 import vkapi
 import data_manager
 import input_data
@@ -22,15 +24,20 @@ def check_access_tokens():
     def check_token(token_owner, token_purpose, access_token):
         u"""Проверяет валидность токена."""
         sender = "Check " + token_owner + "'s access token for " + token_purpose
-        try:
-            # КОСТЫЛЬ: проверка идет по id Павла Дурова
-            values = {
-                "user_ids": "1"
-            }
-            vkapi.method("users.get", values, access_token)
+
+        # КОСТЫЛЬ
+        values = {
+            "group_id": 135892032,
+            "v": 5.92
+        }
+        result = vkapi.method("groups.getOnlineStatus", values, access_token)
+
+        if "response" in result:
             return access_token
-        except Exception as message_error:
-            if str(message_error).lower().find("invalid access_token") > -1:
+        else:
+            message_error = result["error"]["error_msg"]
+            if str(message_error).lower().find("invalid access_token") > -1 or\
+               str(message_error).lower().find("access_token was given to another ip address") > -1:
                 message = token_owner + "'s access token for " + \
                     token_purpose.replace("_", " ") + " is invalid. Need another..."
                 output_data.output_text_row(sender, message)
@@ -65,9 +72,20 @@ def check_access_tokens():
             token_purposes = subject["access_tokens"].keys()
             values = {}
             for token_purpose in token_purposes:
-                access_token = check_token(
-                    subject["name"], token_purpose, subject["access_tokens"][token_purpose])
-                values.update({token_purpose: access_token})
+                need_check_token = False
+                if token_purpose != "admin":
+                    path_to_subject = PATH + subject["path"] + "/"
+                    monitor_settings = data_manager.read_json(
+                        path_to_subject, token_purpose)
+                    if monitor_settings["need_monitoring"] == 1:
+                        need_check_token = True
+                else:
+                    need_check_token = True
+                if need_check_token is True:
+                    access_token = check_token(
+                        subject["name"], token_purpose,
+                        subject["access_tokens"][token_purpose])
+                    values.update({token_purpose: access_token})
             dict_tokens.update({subject["name"]: values})
 
     return dict_tokens
@@ -76,7 +94,7 @@ def check_access_tokens():
 def user_answer_checker(data_threads):
     u"""Проверка команд пользователя."""
     while True:
-        sender = "[Main menu]"
+        sender = "Main menu"
         user_asnwer = raw_input()
         if user_asnwer == "quit":
             message = "Force quit..."
@@ -85,16 +103,22 @@ def user_answer_checker(data_threads):
         if user_asnwer == "stop":
             message = "Stopping threads..."
             output_data.output_text_row(sender, message)
+            waiting_time = 10
             for data_thread in data_threads:
                 thread_sender = data_thread["sender"]
                 data_thread["end_flag"].set()
-                if not data_thread["thread"].isAlive() and\
-                   data_thread["end_flag"].isSet():
-                    message = "OK! Monitoring is stopped..."
-                    output_data.output_text_row(thread_sender, message)
-                if data_thread["thread"].isAlive() and\
-                   data_thread["end_flag"].isSet():
-                    message = "WARNING! Monitoring cannot be stopped..."
+                if data_thread["end_flag"].isSet() and\
+                   data_thread["was_turned_on"]:
+                    for i in range(waiting_time):
+                        time.sleep(1)
+                        if not data_thread["thread"].isAlive():
+                            message = "OK! Monitoring is stopped..."
+                            output_data.output_text_row(thread_sender, message)
+                            break
+                        else:
+                            if i == waiting_time:
+                                message = "WARNING! Monitoring cannot be stopped..."
+                                output_data.output_text_row(thread_sender, message)
             message = "Quit..."
             output_data.output_text_row(sender, message)
             exit(0)

@@ -21,7 +21,8 @@ def run_thread_starter(dict_tokens):
             u"""Алгоритм проверки статуса потоков."""
             while True:
                 for data_thread in data_threads:
-                    if not data_thread["thread"].isAlive() and\
+                    if data_thread["was_turned_on"] and\
+                       not data_thread["thread"].isAlive() and\
                        not data_thread["end_flag"].isSet():
                         sender = data_thread["sender"]
                         message = "WARNING! Monitoring is stopped..."
@@ -55,7 +56,7 @@ def thread_creator(dict_tokens):
         subjects_data = {}
         for subject_name in subjects_names:
             PATH = data_manager.read_path()
-            subject_path = PATH + subjects_path[subject_name]
+            subject_path = PATH + subjects_path[subject_name] + "/"
             external_subject_data = data_manager.read_json(
                 subject_path, "subject_data")
             values = {
@@ -72,12 +73,13 @@ def thread_creator(dict_tokens):
         def thread_post_monitoring(subject_name, subject_data):
             u"""Создание потока проверки постов."""
             end_flag = threading.Event()
-            res_filename = "post_monitor_settings"
+            res_filename = "wall_posts_monitor"
             operation_name = "post monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
                 "res_filename": res_filename,
                 "sender": sender,
+                "was_turned_on": False,
                 "end_flag": end_flag
             }
             objThread =\
@@ -90,12 +92,13 @@ def thread_creator(dict_tokens):
         def thread_album_photo_monitoring(subject_name, subject_data):
             u"""Создание потока проверки фотографий."""
             end_flag = threading.Event()
-            res_filename = "photo_monitor_settings"
+            res_filename = "album_photos_monitor"
             operation_name = "album photo monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
                 "res_filename": res_filename,
                 "sender": sender,
+                "was_turned_on": False,
                 "end_flag": end_flag
             }
             objThread =\
@@ -108,12 +111,13 @@ def thread_creator(dict_tokens):
         def thread_video_monitoring(subject_name, subject_data):
             u"""Создание потока проверки видеозаписей."""
             end_flag = threading.Event()
-            res_filename = "video_monitor_settings"
+            res_filename = "videos_monitor"
             operation_name = "video monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
                 "res_filename": res_filename,
                 "sender": sender,
+                "was_turned_on": False,
                 "end_flag": end_flag
             }
             objThread =\
@@ -126,12 +130,13 @@ def thread_creator(dict_tokens):
         def thread_photo_comments_monitoring(subject_name, subject_data):
             u"""Создание потока проверки комментов под фотками."""
             end_flag = threading.Event()
-            res_filename = "photo_comments_monitor_settings"
+            res_filename = "photo_comments_monitor"
             operation_name = "photo comment monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
                 "res_filename": res_filename,
                 "sender": sender,
+                "was_turned_on": False,
                 "end_flag": end_flag
             }
             objThread =\
@@ -144,12 +149,13 @@ def thread_creator(dict_tokens):
         def thread_video_comments_monitoring(subject_name, subject_data):
             u"""Создание потока проверки комментов под видео."""
             end_flag = threading.Event()
-            res_filename = "video_comments_monitor_settings"
+            res_filename = "video_comments_monitor"
             operation_name = "video comment monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
                 "res_filename": res_filename,
                 "sender": sender,
+                "was_turned_on": False,
                 "end_flag": end_flag
             }
             objThread =\
@@ -162,12 +168,13 @@ def thread_creator(dict_tokens):
         def thread_topic_comments_monitoring(subject_name, subject_data):
             u"""Создание потока проверки комментов в обсуждениях."""
             end_flag = threading.Event()
-            res_filename = "topic_monitor_settings"
+            res_filename = "topic_comments_monitor"
             operation_name = "topic comment monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
                 "res_filename": res_filename,
                 "sender": sender,
+                "was_turned_on": False,
                 "end_flag": end_flag
             }
             objThread =\
@@ -180,12 +187,13 @@ def thread_creator(dict_tokens):
         def thread_post_comments_monitoring(subject_name, subject_data):
             u"""Создание потока проверки комментов под постами."""
             end_flag = threading.Event()
-            res_filename = "post_comments_monitor_settings"
+            res_filename = "wall_post_comments_monitor"
             operation_name = "post comment monitoring"
             sender = subject_name + "'s " + operation_name
             thread_data = {
                 "res_filename": res_filename,
                 "sender": sender,
+                "was_turned_on": False,
                 "end_flag": end_flag
             }
             objThread =\

@@ -23,7 +23,7 @@ def before_end_operations(sender):
 def read_res_files(subject_data, res_filename):
     u"""Читает ресурсные файлы проверяльщика и возвращает словарь с ними,"""
     PATH = data_manager.read_path()
-    subject_path = PATH + subject_data["path"]
+    subject_path = PATH + subject_data["path"] + "/"
     monitor_data = data_manager.read_json(subject_path, res_filename)
     return monitor_data
 
@@ -36,15 +36,15 @@ def run_wall_posts_monitor(subject_name, subject_data, thread_data):
     monitor_data = read_res_files(subject_data, res_filename)
     if monitor_data["need_monitoring"] != 1:
         return
+    thread_data["was_turned_on"] = True
+    before_start_operations(sender)
     while True:
-        before_start_operations(sender)
         if end_flag.isSet():
             before_end_operations(sender)
             return
-        #### НАБРОСОК
         monitoring_algorithms.wall_posts_monitor(
             sender, res_filename, subject_data, monitor_data)
-        #### НАБРОСОК
+        monitor_data = read_res_files(subject_data, res_filename)
         interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)
@@ -61,14 +61,15 @@ def run_album_photos_monitor(subject_name, subject_data, thread_data):
     monitor_data = read_res_files(subject_data, res_filename)
     if monitor_data["need_monitoring"] != 1:
         return
+    thread_data["was_turned_on"] = True
+    before_start_operations(sender)
     while True:
-        before_start_operations(sender)
         if end_flag.isSet():
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.album_photos_monitor(
-            sender, res_filename, subject_data, monitor_data)
+        # monitoring_algorithms.album_photos_monitor(
+        #     sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
@@ -86,14 +87,15 @@ def run_videos_monitor(subject_name, subject_data, thread_data):
     monitor_data = read_res_files(subject_data, res_filename)
     if monitor_data["need_monitoring"] != 1:
         return
+    thread_data["was_turned_on"] = True
+    before_start_operations(sender)
     while True:
-        before_start_operations(sender)
         if end_flag.isSet():
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.videos_monitor(
-            sender, res_filename, subject_data, monitor_data)
+        # monitoring_algorithms.videos_monitor(
+        #     sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
@@ -111,14 +113,15 @@ def run_photo_comments_monitor(subject_name, subject_data, thread_data):
     monitor_data = read_res_files(subject_data, res_filename)
     if monitor_data["need_monitoring"] != 1:
         return
+    thread_data["was_turned_on"] = True
+    before_start_operations(sender)
     while True:
-        before_start_operations(sender)
         if end_flag.isSet():
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.photo_comments_monitor(
-            sender, res_filename, subject_data, monitor_data)
+        # monitoring_algorithms.photo_comments_monitor(
+        #     sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
@@ -136,14 +139,15 @@ def run_video_comments_monitor(subject_name, subject_data, thread_data):
     monitor_data = read_res_files(subject_data, res_filename)
     if monitor_data["need_monitoring"] != 1:
         return
+    thread_data["was_turned_on"] = True
+    before_start_operations(sender)
     while True:
-        before_start_operations(sender)
         if end_flag.isSet():
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.video_comments_monitor(
-            sender, res_filename, subject_data, monitor_data)
+        # monitoring_algorithms.video_comments_monitor(
+        #     sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
@@ -161,14 +165,15 @@ def run_topic_comments_monitor(subject_name, subject_data, thread_data):
     monitor_data = read_res_files(subject_data, res_filename)
     if monitor_data["need_monitoring"] != 1:
         return
+    thread_data["was_turned_on"] = True
+    before_start_operations(sender)
     while True:
-        before_start_operations(sender)
         if end_flag.isSet():
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.topic_comments_monitor(
-            sender, res_filename, subject_data, monitor_data)
+        # monitoring_algorithms.topic_comments_monitor(
+        #     sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
@@ -186,14 +191,15 @@ def run_wall_post_comments_monitor(subject_name, subject_data, thread_data):
     monitor_data = read_res_files(subject_data, res_filename)
     if monitor_data["need_monitoring"] != 1:
         return
+    thread_data["was_turned_on"] = True
+    before_start_operations(sender)
     while True:
-        before_start_operations(sender)
         if end_flag.isSet():
             before_end_operations(sender)
             return
         #### НАБРОСОК
-        monitoring_algorithms.wall_post_comments_monitor(
-            sender, res_filename, subject_data, monitor_data)
+        # monitoring_algorithms.wall_post_comments_monitor(
+        #     sender, res_filename, subject_data, monitor_data)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):

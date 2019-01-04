@@ -14,7 +14,7 @@ def handling(sender, var_except, timeout):
         timeout_errors = [
             "captcha needed", "failed to establish a new connection",
             "connection aborted", "internal server error", "response code 504",
-            "response code 502"
+            "response code 502", "many requests per second"
         ]
         for text_error in timeout_errors:
             if str(var_except).lower().find(text_error) != -1:

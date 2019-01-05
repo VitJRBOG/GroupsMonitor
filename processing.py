@@ -4,6 +4,7 @@ u"""Модуль обработки данных."""
 
 import os
 import time
+import initialization
 import vkapi
 import data_manager
 import input_data
@@ -13,6 +14,12 @@ import thread_starter
 
 def run_processing():
     u"""Запуск функций обработки."""
+    sender = "Starting"
+    need_presetting = initialization.check_res_files()
+    if need_presetting:
+        message = "Data base is not full. Need presetting. Quit..."
+        output_data.output_text_row(sender, message)
+    else:
     dict_tokens = check_access_tokens()
     data_threads = thread_starter.run_thread_starter(dict_tokens)
     user_answer_checker(data_threads)

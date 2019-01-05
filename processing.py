@@ -6,6 +6,7 @@ import os
 import time
 import initialization
 import vkapi
+import exception_handler
 import data_manager
 import input_data
 import output_data
@@ -20,9 +21,9 @@ def run_processing():
         message = "Data base is not full. Need presetting. Quit..."
         output_data.output_text_row(sender, message)
     else:
-    dict_tokens = check_access_tokens()
-    data_threads = thread_starter.run_thread_starter(dict_tokens)
-    user_answer_checker(data_threads)
+        dict_tokens = check_access_tokens()
+        data_threads = thread_starter.run_thread_starter(dict_tokens)
+        user_answer_checker(data_threads)
 
 
 def check_access_tokens():
@@ -32,26 +33,35 @@ def check_access_tokens():
         u"""Проверяет валидность токена."""
         sender = "Check " + token_owner + "'s access token for " + token_purpose
 
-        # КОСТЫЛЬ
+        # КОСТЫЛЬ. 22822305 - id паблика команды ВК
         values = {
-            "group_id": 135892032,
+            "group_id": 22822305,
             "v": 5.92
         }
         result = vkapi.method("groups.getOnlineStatus", values, access_token)
+        # КОСТЫЛЬ. Проверка валидности токена с помощью определения статуса другого паблика.
 
         if "response" in result:
             return access_token
         else:
             message_error = result["error"]["error_msg"]
-            if str(message_error).lower().find("invalid access_token") > -1 or\
-               str(message_error).lower().find("access_token was given to another ip address") > -1:
-                message = token_owner + "'s access token for " + \
-                    token_purpose.replace("_", " ") + " is invalid. Need another..."
-                output_data.output_text_row(sender, message)
-                access_token = request_new_access_token(
-                    token_owner, token_purpose)
-                update_access_token(token_owner, token_purpose, access_token)
-                return check_token(token_owner, token_purpose, access_token)
+            invalid_token_errors = [
+                "invalid access_token",
+                "access_token was given to another ip address",
+                "access_token has expired"
+            ]
+            for i, text_error in enumerate(invalid_token_errors):
+                if str(message_error).lower().find(text_error) > -1:
+                    message = token_owner + "'s access token for " + \
+                        token_purpose.replace("_", " ") + " is invalid. Need another..."
+                    output_data.output_text_row(sender, message)
+                    access_token = request_new_access_token(
+                        token_owner, token_purpose)
+                    update_access_token(token_owner, token_purpose, access_token)
+                    return check_token(token_owner, token_purpose, access_token)
+                else:
+                    if i == len(invalid_token_errors) - 1:
+                        exception_handler.handling(sender, message_error, 0)
 
     def request_new_access_token(token_owner, token_purpose):
         u"""Запрос нового токена доступа."""

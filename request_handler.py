@@ -62,8 +62,47 @@ def request_wall_posts(sender, subject_data, monitor_data):
     return wall_posts_data
 
 
-# def request_album_photos():
-#     u"""Запрос фотографий в альбомах."""
+def request_album_photos(sender, subject_data, monitor_data):
+    u"""Запрос фотографий в альбомах."""
+    def make_data_for_request(subject_data, monitor_data):
+        u"""Подготовка данных для отправки запроса."""
+        values = {
+            "access_token": subject_data["access_tokens"]["admin"],
+            "method": "photos.getAll",
+            "values": {
+                "owner_id": subject_data["owner_id"],
+                "count": monitor_data["photo_count"],
+                "no_service_albums": 1,
+                "v": 5.92
+            }
+        }
+        return values
+    
+    def select_data_from_response(response):
+        u"""Извлекает данные из словаря с результатами запроса."""
+        album_photos_data = []
+        items = response["items"]
+        for item in items:
+            values = {
+                "id": item["id"],
+                "album_id": item["album_id"],
+                "owner_id": item["owner_id"],
+                "date": item["date"],
+                "text": item["text"]
+            }
+            if "user_id" in item:
+                values.update({"user_id": item["user_id"]})
+            album_photos_data.append(values)
+        return album_photos_data
+
+    sender += " -> Get album photos"
+
+    data_for_request = make_data_for_request(subject_data, monitor_data)
+    response = send_request(sender, data_for_request)
+    album_photos_data = select_data_from_response(response)
+    return album_photos_data
+
+
 # def request_videos():
 #     u"""Запрос видеороликов."""
 # def request_photo_comments():
@@ -140,6 +179,39 @@ def request_group_info(sender, subject_data, data_for_request):
     response = send_request(sender, data_for_request)
     groups_info = select_data_from_response(response)
     return groups_info
+
+
+def request_album_info(sender, subject_data, data_for_request):
+    u"""Запрос информации об альбоме."""
+    def make_data_for_request(subject_data, data_for_request):
+        u"""Подготовка данных для отправки запроса."""
+        values = {
+            "access_token": subject_data["access_tokens"]["admin"],
+            "method": "photos.getAlbums",
+            "values": {
+                "owner_id": data_for_request["owner_id"],
+                "album_ids": data_for_request["album_ids"],
+                "v": 5.92
+            }
+        }
+        return values
+    
+    def select_data_from_response(response):
+        u"""Извлекает данные из словаря с результатами запроса."""
+        albums_info = []
+        items = response["items"]
+        for item in items:
+            values = {
+                "id": item["id"],
+                "title": item["title"]
+            }
+            albums_info.append(values)
+        return albums_info
+
+    data_for_request = make_data_for_request(subject_data, data_for_request)
+    response = send_request(sender, data_for_request)
+    albums_info = select_data_from_response(response)
+    return albums_info
 
 
 def send_request(sender, data_for_request):

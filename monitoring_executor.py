@@ -95,6 +95,7 @@ def run_videos_monitor(subject_name, subject_data, thread_data):
         #### НАБРОСОК
         # monitoring_algorithms.videos_monitor(
         #     sender, res_filename, subject_data, monitor_data)
+        # monitor_data = read_res_files(subject_data, res_filename)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
@@ -121,6 +122,7 @@ def run_photo_comments_monitor(subject_name, subject_data, thread_data):
         #### НАБРОСОК
         # monitoring_algorithms.photo_comments_monitor(
         #     sender, res_filename, subject_data, monitor_data)
+        # monitor_data = read_res_files(subject_data, res_filename)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
@@ -147,6 +149,7 @@ def run_video_comments_monitor(subject_name, subject_data, thread_data):
         #### НАБРОСОК
         # monitoring_algorithms.video_comments_monitor(
         #     sender, res_filename, subject_data, monitor_data)
+        # monitor_data = read_res_files(subject_data, res_filename)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
@@ -173,6 +176,7 @@ def run_topic_comments_monitor(subject_name, subject_data, thread_data):
         #### НАБРОСОК
         # monitoring_algorithms.topic_comments_monitor(
         #     sender, res_filename, subject_data, monitor_data)
+        # monitor_data = read_res_files(subject_data, res_filename)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):
@@ -199,6 +203,7 @@ def run_wall_post_comments_monitor(subject_name, subject_data, thread_data):
         #### НАБРОСОК
         # monitoring_algorithms.wall_post_comments_monitor(
         #     sender, res_filename, subject_data, monitor_data)
+        # monitor_data = read_res_files(subject_data, res_filename)
         #### НАБРОСОК
         interval = monitor_data["interval"]
         for i in range(interval):

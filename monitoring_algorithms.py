@@ -129,17 +129,17 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
         sender, subject_data, monitor_data)
 
     if len(wall_posts_data) > 0:
-        wall_posts = sort_items(wall_posts_data)
-
         last_date = int(monitor_data["last_date"])
 
         new_posts = []
 
-        for item in reversed(wall_posts):
+        for item in reversed(wall_posts_data):
             if item["date"] > last_date:
                 new_posts.append(item)
 
         if len(new_posts) > 0:
+            wall_posts = sort_items(new_posts)
+
             PATH = data_manager.read_path()
             path_to_res_file = PATH + subject_data["path"] + "/"
             access_token = subject_data["access_tokens"][res_filename]
@@ -152,7 +152,7 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
                 "access_token": access_token
             }
             
-            for item in new_posts:
+            for item in reversed(wall_posts):
                 found_new_post(sender, values, subject_data, item)
     
 
@@ -281,17 +281,17 @@ def album_photos_monitor(sender, res_filename, subject_data, monitor_data):
         sender, subject_data, monitor_data)
 
     if len(album_photos_data) > 0:
-        album_photos = sort_items(album_photos_data)
-
         last_date = int(monitor_data["last_date"])
 
         new_photos = []
 
-        for item in reversed(album_photos):
+        for item in reversed(album_photos_data):
             if item["date"] > last_date:
                 new_photos.append(item)
 
         if len(new_photos) > 0:
+            album_photos = sort_items(new_photos)
+
             PATH = data_manager.read_path()
             path_to_res_file = PATH + subject_data["path"] + "/"
             access_token = subject_data["access_tokens"][res_filename]
@@ -304,7 +304,7 @@ def album_photos_monitor(sender, res_filename, subject_data, monitor_data):
                 "access_token": access_token
             }
 
-            for item in new_photos:
+            for item in reversed(album_photos):
                 found_new_photo(sender, values, subject_data, item)
 
 
@@ -416,17 +416,17 @@ def videos_monitor(sender, res_filename, subject_data, monitor_data):
         sender, subject_data, monitor_data)
 
     if len(videos_data) > 0:
-        videos = sort_items(videos_data)
-
         last_date = int(monitor_data["last_date"])
 
         new_videos = []
 
-        for item in reversed(videos):
+        for item in reversed(videos_data):
             if item["date"] > last_date:
                 new_videos.append(item)
 
         if len(new_videos) > 0:
+            videos = sort_items(new_videos)
+
             PATH = data_manager.read_path()
             path_to_res_file = PATH + subject_data["path"] + "/"
             access_token = subject_data["access_tokens"][res_filename]
@@ -439,7 +439,7 @@ def videos_monitor(sender, res_filename, subject_data, monitor_data):
                 "access_token": access_token
             }
 
-            for item in new_videos:
+            for item in reversed(videos):
                 found_new_video(sender, values, subject_data, item)
 
 
@@ -565,17 +565,17 @@ def photo_comments_monitor(sender, res_filename, subject_data, monitor_data):
         sender, subject_data, monitor_data)
     
     if len(photo_comments_data) > 0:
-        photo_comments = sort_items(photo_comments_data)
-
         last_date = int(monitor_data["last_date"])
 
         new_photo_comments = []
 
-        for item in reversed(photo_comments):
+        for item in reversed(photo_comments_data):
             if item["date"] > last_date:
                 new_photo_comments.append(item)
 
         if len(new_photo_comments) > 0:
+            photo_comments = sort_items(new_photo_comments)
+
             PATH = data_manager.read_path()
             path_to_res_file = PATH + subject_data["path"] + "/"
             access_token = subject_data["access_tokens"][res_filename]
@@ -588,7 +588,7 @@ def photo_comments_monitor(sender, res_filename, subject_data, monitor_data):
                 "access_token": access_token
             }
 
-            for item in new_photo_comments:
+            for item in reversed(photo_comments):
                 found_new_photo_comment(sender, values, subject_data, item)
 
 
@@ -726,17 +726,17 @@ def video_comments_monitor(sender, res_filename, subject_data, monitor_data):
                     video_comments_data[i].update({"owner_id": video["owner_id"]})
                 videos_comments_data.extend(video_comments_data)
 
-        videos_comments = sort_items(videos_comments_data)
-
         last_date = int(monitor_data["last_date"])
 
         new_videos_comments = []
 
-        for item in reversed(videos_comments):
+        for item in reversed(videos_comments_data):
             if item["date"] > last_date:
                 new_videos_comments.append(item)
 
         if len(new_videos_comments) > 0:
+            videos_comments = sort_items(new_videos_comments)
+
             PATH = data_manager.read_path()
             path_to_res_file = PATH + subject_data["path"] + "/"
             access_token = subject_data["access_tokens"][res_filename]
@@ -749,7 +749,7 @@ def video_comments_monitor(sender, res_filename, subject_data, monitor_data):
                 "access_token": access_token
             }
 
-            for item in new_videos_comments:
+            for item in reversed(videos_comments):
                 found_new_video_comment(sender, values, subject_data, item)
 
 

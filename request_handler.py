@@ -267,8 +267,66 @@ def request_video_comments(sender, subject_data, monitor_data, video):
     return video_comments_data
 
 
-# def request_topic_comments():
-#     u"""Запрос комментариев в обсуждениях."""
+def request_topic_comments(sender, subject_data, monitor_data, topic):
+    u"""Запрос комментариев в обсуждениях."""
+    def make_data_for_request(subject_data, monitor_data, topic):
+        u"""Подготовка данных для отправки запроса."""
+        values = {
+            "access_token": subject_data["access_tokens"]["admin"],
+            "method": "board.getComments",
+            "values": {
+                "group_id": topic["owner_id"],
+                "topic_id": topic["id"],
+                "sort": "desc",
+                "count": monitor_data["post_count"],
+                "v": 5.92
+            }
+        }
+        return values
+    
+    def select_data_from_response(response):
+        u"""Извлекает данные из словаря с результатами запроса."""
+        topic_comments_data = []
+        items = response["items"]
+        for item in items:
+            values = {
+                "id": item["id"],
+                "from_id": item["from_id"],
+                "date": item["date"],
+                "text": item["text"]
+            }
+            if "attachments" in item:
+                attachments = []
+                for attachment in item["attachments"]:
+                    type_attachment = attachment["type"]
+                    if type_attachment == "photo" or\
+                       type_attachment == "video" or\
+                       type_attachment == "audio" or\
+                       type_attachment == "doc" or\
+                       type_attachment == "poll":
+                        values_attachments = {
+                            "owner_id": attachment[type_attachment]["owner_id"],
+                            "id": attachment[type_attachment]["id"],
+                            "type": type_attachment
+                        }
+                        if "access_key" in attachment[type_attachment]:
+                            values_attachments.update(
+                                {"access_key": attachment[type_attachment]["access_key"]})
+                        attachments.append(values_attachments)
+                if len(attachments) > 0:
+                    values.update({"attachments": attachments})
+            topic_comments_data.append(values)
+        return topic_comments_data
+    
+    sender += " -> Get topic comments"
+
+    data_for_request = make_data_for_request(subject_data, monitor_data, topic)
+    response = send_request(sender, data_for_request)
+    topic_comments_data = select_data_from_response(response)
+
+    return topic_comments_data
+
+
 # def request_wall_post_comments():
 #     u"""Запрос комментариев под постами на стене."""
 
@@ -370,6 +428,43 @@ def request_photo_album_info(sender, subject_data, data_for_request):
     response = send_request(sender, data_for_request)
     albums_info = select_data_from_response(response)
     return albums_info
+
+
+def request_topics_info(sender, subject_data, monitor_data):
+    u"""Запрос информации о топиках обсуждений."""
+    def make_data_for_request(subject_data, monitor_data):
+        u"""Подготовка данных для отправки запроса."""
+        values = {
+            "access_token": subject_data["access_tokens"]["admin"],
+            "method": "board.getTopics",
+            "values": {
+                "group_id": int(str(subject_data["owner_id"])[1:]),
+                "count": monitor_data["topics_count"],
+                "v": 5.92
+            }
+        }
+        return values
+
+    def select_data_from_response(response, subject_data):
+        u"""Извлекает данные из словаря с результатами запроса."""
+        topics_data = []
+        items = response["items"]
+        for item in items:
+            values = {
+                "id": item["id"],
+                "owner_id": int(str(subject_data["owner_id"])[1:]),
+                "title": item["title"]
+            }
+            topics_data.append(values)
+        return topics_data
+
+    sender += " -> Get topics info"
+
+    data_for_request = make_data_for_request(subject_data, monitor_data)
+    response = send_request(sender, data_for_request)
+    topics_data = select_data_from_response(response, subject_data)
+
+    return topics_data
 
 
 def send_request(sender, data_for_request):

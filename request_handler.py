@@ -147,8 +147,65 @@ def request_videos(sender, subject_data, monitor_data):
     return videos_data
 
 
-# def request_photo_comments():
-#     u"""Запрос комментариев под фотографиями."""
+def request_photo_comments(sender, subject_data, monitor_data):
+    u"""Запрос комментариев под фотографиями."""
+    def make_data_for_request(subject_data, monitor_data):
+        u"""Подготовка данных для отправки запроса."""
+        values = {
+            "access_token": subject_data["access_tokens"]["admin"],
+            "method": "photos.getAllComments",
+            "values": {
+                "owner_id": subject_data["owner_id"],
+                "count": monitor_data["comment_count"],
+                "v": 5.92
+            }
+        }
+        return values
+
+    def select_data_from_response(response):
+        u"""Извлекает данные из словаря с результатами запроса."""
+        photo_comments_data = []
+        items = response["items"]
+        for item in items:
+            values = {
+                "id": item["id"],
+                "from_id": item["from_id"],
+                "pid": item["pid"],
+                "date": item["date"],
+                "text": item["text"]
+            }
+            if "attachments" in item:
+                attachments = []
+                for attachment in item["attachments"]:
+                    type_attachment = attachment["type"]
+                    if type_attachment == "photo" or\
+                       type_attachment == "video" or\
+                       type_attachment == "audio" or\
+                       type_attachment == "doc" or\
+                       type_attachment == "poll":
+                        values_attachments = {
+                            "owner_id": attachment[type_attachment]["owner_id"],
+                            "id": attachment[type_attachment]["id"],
+                            "type": type_attachment
+                        }
+                        if "access_key" in attachment[type_attachment]:
+                            values_attachments.update(
+                                {"access_key": attachment[type_attachment]["access_key"]})
+                        attachments.append(values_attachments)
+                if len(attachments) > 0:
+                    values.update({"attachments": attachments})
+            photo_comments_data.append(values)
+        return photo_comments_data
+
+    sender += " -> Get photo comments"
+
+    data_for_request = make_data_for_request(subject_data, monitor_data)
+    response = send_request(sender, data_for_request)
+    photo_comments_data = select_data_from_response(response)
+
+    return photo_comments_data
+
+
 # def request_video_comments():
 #     u"""Запрос комментариев под видеороликами."""
 # def request_topic_comments():

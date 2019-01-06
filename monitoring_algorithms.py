@@ -170,7 +170,7 @@ def album_photos_monitor(sender, res_filename, subject_data, monitor_data):
                 return album_name
 
             def select_owner_signature(sender, subject_data, photo):
-                u"""Выбирает из словаря данные и формирует гиперссылку на владельца поста."""
+                u"""Выбирает из словаря данные и формирует гиперссылку на владельца фото."""
                 owner_signature = ""
                 owner_id = photo["owner_id"]
                 if str(owner_id)[0] == "-":
@@ -212,13 +212,13 @@ def album_photos_monitor(sender, res_filename, subject_data, monitor_data):
                 return media_items
             
             def select_photo_url(photo):
-                u"""Выбирает из словаря данные и формирует URL на пост."""
+                u"""Выбирает из словаря данные и формирует URL на фото."""
                 photo_url = "https://vk.com/photo"
                 photo_url += str(photo["owner_id"]) + "_" + str(photo["id"])
                 return photo_url
 
             def select_date(photo):
-                u"""Выбирает из словаря данные и определяет дату поста."""
+                u"""Выбирает из словаря данные и определяет дату фото."""
                 ts_date = photo["date"]
                 str_date = ts_date_to_str(ts_date, "%d.%m.%Y %H:%M:%S")
                 return str_date

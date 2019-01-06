@@ -142,11 +142,9 @@ def run_video_comments_monitor(subject_name, subject_data, thread_data):
         if end_flag.isSet():
             before_end_operations(sender)
             return
-        #### НАБРОСОК
-        # monitoring_algorithms.video_comments_monitor(
-        #     sender, res_filename, subject_data, monitor_data)
-        # monitor_data = read_res_files(subject_data, res_filename)
-        #### НАБРОСОК
+        monitoring_algorithms.video_comments_monitor(
+            sender, res_filename, subject_data, monitor_data)
+        monitor_data = read_res_files(subject_data, res_filename)
         interval = monitor_data["interval"]
         for i in range(interval):
             time.sleep(1)

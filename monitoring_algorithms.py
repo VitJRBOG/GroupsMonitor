@@ -100,6 +100,7 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
 
             if "attachments" in post:
                 media_items = select_attachments(post)
+                if len(media_items) > 0:
                 data_for_message.update({"attachment": media_items})
 
             request_handler.send_message(sender, data_for_message, access_token)

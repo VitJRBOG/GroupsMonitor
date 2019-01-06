@@ -127,6 +127,8 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
 
     wall_posts_data = request_handler.request_wall_posts(
         sender, subject_data, monitor_data)
+
+    if len(wall_posts_data) > 0:
     wall_posts = sort_items(wall_posts_data)
 
     last_date = int(monitor_data["last_date"])
@@ -277,6 +279,8 @@ def album_photos_monitor(sender, res_filename, subject_data, monitor_data):
 
     album_photos_data = request_handler.request_album_photos(
         sender, subject_data, monitor_data)
+
+    if len(album_photos_data) > 0:
     album_photos = sort_items(album_photos_data)
 
     last_date = int(monitor_data["last_date"])
@@ -410,6 +414,8 @@ def videos_monitor(sender, res_filename, subject_data, monitor_data):
 
     videos_data = request_handler.request_videos(
         sender, subject_data, monitor_data)
+
+    if len(videos_data) > 0:
     videos = sort_items(videos_data)
 
     last_date = int(monitor_data["last_date"])
@@ -557,6 +563,8 @@ def photo_comments_monitor(sender, res_filename, subject_data, monitor_data):
 
     photo_comments_data = request_handler.request_photo_comments(
         sender, subject_data, monitor_data)
+    
+    if len(photo_comments_data) > 0:
     photo_comments = sort_items(photo_comments_data)
 
     last_date = int(monitor_data["last_date"])

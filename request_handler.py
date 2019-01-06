@@ -181,8 +181,8 @@ def request_group_info(sender, subject_data, data_for_request):
     return groups_info
 
 
-def request_album_info(sender, subject_data, data_for_request):
-    u"""Запрос информации об альбоме."""
+def request_photo_album_info(sender, subject_data, data_for_request):
+    u"""Запрос информации об альбоме с фотографиями."""
     def make_data_for_request(subject_data, data_for_request):
         u"""Подготовка данных для отправки запроса."""
         values = {

@@ -164,7 +164,7 @@ def album_photos_monitor(sender, res_filename, subject_data, monitor_data):
                     "owner_id": photo["owner_id"],
                     "album_ids": photo["album_id"]
                 }
-                albums_info = request_handler.request_album_info(
+                albums_info = request_handler.request_photo_album_info(
                     sender, subject_data, data_for_request)
                 album_name = albums_info[0]["title"]
                 return album_name

@@ -307,7 +307,7 @@ def videos_monitor(sender, res_filename, subject_data, monitor_data):
         u"""Алгоритмы обработки целевого видео."""
         def send_video(sender, values, subject_data, video):
             u"""Отправка данных из целевого видео."""
-            def select_owner_signature(sender, subject_data, video):
+            def select_owner_signature(sender, subject_data):
                 u"""Выбирает из словаря данные и формирует гиперссылку на владельца видео."""
                 owner_signature = ""
                 owner_id = subject_data["owner_id"]
@@ -358,8 +358,7 @@ def videos_monitor(sender, res_filename, subject_data, monitor_data):
 
             data_for_message = {}
 
-            owner_signature = select_owner_signature(
-                sender, subject_data, video)
+            owner_signature = select_owner_signature(sender, subject_data)
             author_signature = select_author_signature(
                 sender, subject_data, video)
             post_url = select_video_url(video)

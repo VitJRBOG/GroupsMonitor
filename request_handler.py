@@ -46,17 +46,17 @@ def request_wall_posts(sender, subject_data, monitor_data):
                        type_attachment == "audio" or\
                        type_attachment == "doc" or\
                        type_attachment == "poll":
-                    values_attachments = {
-                        "owner_id": attachment[type_attachment]["owner_id"],
-                        "id": attachment[type_attachment]["id"],
-                        "type": type_attachment
-                    }
-                    if "access_key" in attachment[type_attachment]:
-                        values_attachments.update(
-                            {"access_key": attachment[type_attachment]["access_key"]})
-                    attachments.append(values_attachments)
+                        values_attachments = {
+                            "owner_id": attachment[type_attachment]["owner_id"],
+                            "id": attachment[type_attachment]["id"],
+                            "type": type_attachment
+                        }
+                        if "access_key" in attachment[type_attachment]:
+                            values_attachments.update(
+                                {"access_key": attachment[type_attachment]["access_key"]})
+                        attachments.append(values_attachments)
                 if len(attachments) > 0:
-                values.update({"attachments": attachments})
+                    values.update({"attachments": attachments})
             wall_posts_data.append(values)
         return wall_posts_data
 
@@ -109,8 +109,44 @@ def request_album_photos(sender, subject_data, monitor_data):
     return album_photos_data
 
 
-# def request_videos():
-#     u"""Запрос видеороликов."""
+def request_videos(sender, subject_data, monitor_data):
+    u"""Запрос видеороликов."""
+    def make_data_for_request(subject_data, monitor_data):
+        u"""Подготовка данных для отправки запроса."""
+        values = {
+            "access_token": subject_data["access_tokens"]["admin"],
+            "method": "video.get",
+            "values": {
+                "owner_id": subject_data["owner_id"],
+                "count": monitor_data["video_count"],
+                "v": 5.92
+            }
+        }
+        return values
+
+    def select_data_from_response(response):
+        u"""Извлекает данные из словаря с результатами запроса."""
+        videos_data = []
+        items = response["items"]
+        for item in items:
+            values = {
+                "id": item["id"],
+                "owner_id": item["owner_id"],
+                "date": item["date"],
+                "description": item["description"]
+            }
+            videos_data.append(values)
+        return videos_data
+    
+    sender += " -> Get videos"
+
+    data_for_request = make_data_for_request(subject_data, monitor_data)
+    response = send_request(sender, data_for_request)
+    videos_data = select_data_from_response(response)
+
+    return videos_data
+
+
 # def request_photo_comments():
 #     u"""Запрос комментариев под фотографиями."""
 # def request_video_comments():

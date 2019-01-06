@@ -174,11 +174,9 @@ def album_photos_monitor(sender, res_filename, subject_data, monitor_data):
                 owner_signature = ""
                 owner_id = photo["owner_id"]
                 if str(owner_id)[0] == "-":
-                    owner_id = photo["owner_id"]
                     owner_signature = make_group_signature(
                         sender, subject_data, owner_signature, owner_id)
                 else:
-                    owner_id = photo["owner_id"]
                     owner_signature = make_user_signature(
                         sender, subject_data, owner_signature, owner_id)
                 return owner_signature

@@ -31,7 +31,7 @@ def handling(sender, var_except, timeout):
         fatal_errors = [
             "invalid access_token",
             "access_token was given to another ip address",
-            "access_token has expired"
+            "access_token has expired", "access denied"
         ]
         for text_error in fatal_errors:
             if str(var_except).lower().find(text_error) != -1:

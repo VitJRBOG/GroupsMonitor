@@ -324,7 +324,13 @@ def send_request(sender, data_for_request):
         if "response" in result:
             return result["response"]
         else:
+            access_errors = [
+                "comments for this video are closed"
+            ]
             message_error = result["error"]["error_msg"]
+            for access_error in access_errors:
+                if message_error.lower().find(access_error) != -1:
+                    return "access error"
             if error_repeats < 5:
                 error_repeats += 1
             timeout = error_repeats * 2

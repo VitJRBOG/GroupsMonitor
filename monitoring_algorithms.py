@@ -137,6 +137,7 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
         if item["date"] > last_date:
             new_posts.append(item)
 
+    if len(new_posts) > 0:
     PATH = data_manager.read_path()
     path_to_res_file = PATH + subject_data["path"] + "/"
     access_token = subject_data["access_tokens"][res_filename]
@@ -286,6 +287,7 @@ def album_photos_monitor(sender, res_filename, subject_data, monitor_data):
         if item["date"] > last_date:
             new_photos.append(item)
 
+    if len(new_photos) > 0:
     PATH = data_manager.read_path()
     path_to_res_file = PATH + subject_data["path"] + "/"
     access_token = subject_data["access_tokens"][res_filename]
@@ -418,6 +420,7 @@ def videos_monitor(sender, res_filename, subject_data, monitor_data):
         if item["date"] > last_date:
             new_videos.append(item)
 
+    if len(new_videos) > 0:
     PATH = data_manager.read_path()
     path_to_res_file = PATH + subject_data["path"] + "/"
     access_token = subject_data["access_tokens"][res_filename]
@@ -564,6 +567,7 @@ def photo_comments_monitor(sender, res_filename, subject_data, monitor_data):
         if item["date"] > last_date:
             new_photo_comments.append(item)
 
+    if len(new_photo_comments) > 0:
     PATH = data_manager.read_path()
     path_to_res_file = PATH + subject_data["path"] + "/"
     access_token = subject_data["access_tokens"][res_filename]

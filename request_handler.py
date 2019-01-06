@@ -41,6 +41,11 @@ def request_wall_posts(sender, subject_data, monitor_data):
                 attachments = []
                 for attachment in item["attachments"]:
                     type_attachment = attachment["type"]
+                    if type_attachment == "photo" or\
+                       type_attachment == "video" or\
+                       type_attachment == "audio" or\
+                       type_attachment == "doc" or\
+                       type_attachment == "poll":
                     values_attachments = {
                         "owner_id": attachment[type_attachment]["owner_id"],
                         "id": attachment[type_attachment]["id"],
@@ -50,6 +55,7 @@ def request_wall_posts(sender, subject_data, monitor_data):
                         values_attachments.update(
                             {"access_key": attachment[type_attachment]["access_key"]})
                     attachments.append(values_attachments)
+                if len(attachments) > 0:
                 values.update({"attachments": attachments})
             wall_posts_data.append(values)
         return wall_posts_data

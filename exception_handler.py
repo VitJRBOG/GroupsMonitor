@@ -18,10 +18,12 @@ def handling(sender, var_except, timeout):
         ]
         for text_error in timeout_errors:
             if str(var_except).lower().find(text_error) != -1:
-                message = "Error, " +\
-                    str(var_except) + ". " +\
-                    "Timeout: " + str(timeout) + " sec."
-                output_data.output_text_row(sender, message)
+                if text_error != "many requests per second":
+                    # потому что они вываливаются непрерывно, пачками, из каждого потока в одну консоль
+                    message = "Error, " +\
+                        str(var_except) + ". " +\
+                        "Timeout: " + str(timeout) + " sec."
+                    output_data.output_text_row(sender, message)
                 time.sleep(timeout)
 
                 return True

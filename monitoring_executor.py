@@ -14,12 +14,6 @@ def before_start_operations(sender):
     output_data.output_text_row(sender, message)
 
 
-def before_end_operations(sender):
-    u"""Операции перед окончанием проверки."""
-    message = "Stopped..."
-    output_data.output_text_row(sender, message)
-
-
 def read_res_files(subject_data, res_filename):
     u"""Читает ресурсные файлы проверяльщика и возвращает словарь с ними,"""
     PATH = data_manager.read_path()
@@ -40,7 +34,6 @@ def run_wall_posts_monitor(subject_name, subject_data, thread_data):
     before_start_operations(sender)
     while True:
         if end_flag.isSet():
-            before_end_operations(sender)
             return
         monitoring_algorithms.wall_posts_monitor(
             sender, res_filename, subject_data, monitor_data)
@@ -49,7 +42,6 @@ def run_wall_posts_monitor(subject_name, subject_data, thread_data):
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
-                before_end_operations(sender)
                 return
 
 
@@ -65,7 +57,6 @@ def run_album_photos_monitor(subject_name, subject_data, thread_data):
     before_start_operations(sender)
     while True:
         if end_flag.isSet():
-            before_end_operations(sender)
             return
         monitoring_algorithms.album_photos_monitor(
             sender, res_filename, subject_data, monitor_data)
@@ -74,7 +65,6 @@ def run_album_photos_monitor(subject_name, subject_data, thread_data):
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
-                before_end_operations(sender)
                 return
 
 
@@ -90,7 +80,6 @@ def run_videos_monitor(subject_name, subject_data, thread_data):
     before_start_operations(sender)
     while True:
         if end_flag.isSet():
-            before_end_operations(sender)
             return
         monitoring_algorithms.videos_monitor(
             sender, res_filename, subject_data, monitor_data)
@@ -99,7 +88,6 @@ def run_videos_monitor(subject_name, subject_data, thread_data):
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
-                before_end_operations(sender)
                 return
 
 
@@ -115,7 +103,6 @@ def run_photo_comments_monitor(subject_name, subject_data, thread_data):
     before_start_operations(sender)
     while True:
         if end_flag.isSet():
-            before_end_operations(sender)
             return
         monitoring_algorithms.photo_comments_monitor(
             sender, res_filename, subject_data, monitor_data)
@@ -124,7 +111,6 @@ def run_photo_comments_monitor(subject_name, subject_data, thread_data):
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
-                before_end_operations(sender)
                 return
 
 
@@ -140,7 +126,6 @@ def run_video_comments_monitor(subject_name, subject_data, thread_data):
     before_start_operations(sender)
     while True:
         if end_flag.isSet():
-            before_end_operations(sender)
             return
         monitoring_algorithms.video_comments_monitor(
             sender, res_filename, subject_data, monitor_data)
@@ -149,7 +134,6 @@ def run_video_comments_monitor(subject_name, subject_data, thread_data):
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
-                before_end_operations(sender)
                 return
 
 
@@ -167,7 +151,6 @@ def run_topic_comments_monitor(subject_name, subject_data, thread_data):
     before_start_operations(sender)
     while True:
         if end_flag.isSet():
-            before_end_operations(sender)
             return
         monitoring_algorithms.topic_comments_monitor(
             sender, res_filename, subject_data, monitor_data)
@@ -176,7 +159,6 @@ def run_topic_comments_monitor(subject_name, subject_data, thread_data):
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
-                before_end_operations(sender)
                 return
 
 
@@ -192,7 +174,6 @@ def run_wall_post_comments_monitor(subject_name, subject_data, thread_data):
     before_start_operations(sender)
     while True:
         if end_flag.isSet():
-            before_end_operations(sender)
             return
         monitoring_algorithms.wall_post_comments_monitor(
             sender, res_filename, subject_data, monitor_data)
@@ -201,5 +182,4 @@ def run_wall_post_comments_monitor(subject_name, subject_data, thread_data):
         for i in range(interval):
             time.sleep(1)
             if end_flag.isSet():
-                before_end_operations(sender)
                 return

@@ -116,31 +116,53 @@ def create_example_subject(sender, path):
                 "last_date": "0"
             },
             "topic_comments_monitor": {
+                "topics_count": 5,
+                "need_monitoring": 1,
                 "post_count": 5,
-                "topics": [],
                 "interval": 5,
                 "send_to": [
                     123
                 ],
-                "need_monitoring": 1
+                "last_date": "0"
             },
             "wall_post_comments_monitor": {
-                "check_by_charchange": 1,
-                "check_by_attachments": 1,
-                "check_by_communities": 1,
+                "check_by_profile_data": {
+                    "check": 0,
+                    "names": [],
+                    "ids": []
+                },
+                "check_by_attachments": {
+                    "check": 0
+                },
+                "check_all": {
+                    "check": 0,
+                    "check_exclude": 0
+                },
                 "need_monitoring": 1,
+                "check_by_exclude": {
+                    "check": 0,
+                    "authors": []
+                },
                 "interval": 5,
                 "send_to": [
                     123
                 ],
-                "chars_cyr_to_lat": {},
+                "thread_items_count": 5,
                 "filter": "all",
-                "chars_lat_to_cyr": {},
-                "comment_count": 10,
-                "keywords": [],
+                "comment_count": 5,
+                "check_by_communities": {
+                    "check": 1
+                },
                 "last_date": "0",
-                "posts_count": 1,
-                "check_by_keywords": 1
+                "posts_count": 5,
+                "check_by_keywords": {
+                    "check_charchange": 0,
+                    "chars_cyr_to_lat": {},
+                    "chars_lat_to_cyr": {},
+                    "small_messages": [],
+                    "keywords": [],
+                    "check": 0
+                }
             }
         }
         return data_dicts

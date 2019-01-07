@@ -85,10 +85,12 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
             text += "Location: " + owner_signature.encode("utf8") + "\n"
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
-            text += post["text"].encode("utf8") + "\n\n"
+            if len(post["text"].encode("utf8")) > 1000:
+                text += post["text"].encode("utf8")[0:1000] + "\n"
+                text += "<..>\n[long text]\n\n"
+            else:
+                text += post["text"].encode("utf8") + "\n\n"
             text += post_url
-
-            # БАГ: максимальная длина сообщения - 4096 знаков
 
             send_to = values["send_to"]
             access_token = values["access_token"]
@@ -241,7 +243,11 @@ def album_photos_monitor(sender, res_filename, subject_data, monitor_data):
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
             if len(photo["text"]) > 0:
-                text += photo["text"].encode("utf8") + "\n\n"
+                if len(photo["text"].encode("utf8")) > 1000:
+                    text += photo["text"].encode("utf8")[0:1000] + "\n"
+                    text += "<..>\n[long text]\n\n"
+                else:
+                    text += photo["text"].encode("utf8") + "\n\n"
             text += post_url.encode("utf8")
 
             send_to = values["send_to"]
@@ -377,7 +383,11 @@ def videos_monitor(sender, res_filename, subject_data, monitor_data):
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
             if len(video["description"]) > 0:
-                text += video["description"].encode("utf8") + "\n\n"
+                if len(video["description"].encode("utf8")) > 1000:
+                    text += video["description"].encode("utf8")[0:1000] + "\n"
+                    text += "<..>\n[long text]\n\n"
+                else:
+                    text += video["description"].encode("utf8") + "\n\n"
             text += post_url.encode("utf8")
 
             send_to = values["send_to"]
@@ -522,7 +532,11 @@ def photo_comments_monitor(sender, res_filename, subject_data, monitor_data):
             text += "Location: " + owner_signature.encode("utf8") + "\n"
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
-            text += photo_comment["text"].encode("utf8") + "\n\n"
+            if len(photo_comment["text"].encode("utf8")) > 1000:
+                text += photo_comment["text"].encode("utf8")[0:1000] + "\n"
+                text += "<..>\n[long text]\n\n"
+            else:
+                text += photo_comment["text"].encode("utf8") + "\n\n"
             text += photo_url
 
             send_to = values["send_to"]
@@ -671,7 +685,11 @@ def video_comments_monitor(sender, res_filename, subject_data, monitor_data):
             text += "Location: " + owner_signature.encode("utf8") + "\n"
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
-            text += video_comment["text"].encode("utf8") + "\n\n"
+            if len(video_comment["text"].encode("utf8")) > 1000:
+                text += video_comment["text"].encode("utf8")[0:1000] + "\n"
+                text += "<..>\n[long text]\n\n"
+            else:
+                text += video_comment["text"].encode("utf8") + "\n\n"
             text += video_url
 
             send_to = values["send_to"]
@@ -834,7 +852,11 @@ def topic_comments_monitor(sender, res_filename, subject_data, monitor_data):
             text += "Location: " + owner_signature.encode("utf8") + "\n"
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
-            text += topic_comment["text"].encode("utf8") + "\n\n"
+            if len(topic_comment["text"].encode("utf8")) > 1000:
+                text += topic_comment["text"].encode("utf8")[0:1000] + "\n"
+                text += "<..>\n[long text]\n\n"
+            else:
+                text += topic_comment["text"].encode("utf8") + "\n\n"
             text += topic_url
 
             send_to = values["send_to"]
@@ -1000,7 +1022,11 @@ def wall_post_comments_monitor(sender, res_filename, subject_data, monitor_data)
             text += "Location: " + owner_signature.encode("utf8") + "\n"
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
-            text += wall_post_comment["text"].encode("utf8") + "\n\n"
+            if len(wall_post_comment["text"].encode("utf8")) > 1000:
+                text += wall_post_comment["text"].encode("utf8")[0:1000] + "\n"
+                text += "<..>\n[long text]\n\n"
+            else:
+                text += wall_post_comment["text"].encode("utf8") + "\n\n"
             text += wall_post_comment_url
 
             send_to = values["send_to"]

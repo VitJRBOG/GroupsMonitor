@@ -861,7 +861,7 @@ def topic_comments_monitor(sender, res_filename, subject_data, monitor_data):
             dict_json["last_date"] = str(item["date"])
             data_manager.write_json(path_to_res_file, res_filename, dict_json)
 
-        def show_message_about_new_video_comment(sender, topic_comment):
+        def show_message_about_new_topic_comment(sender, topic_comment):
             u"""Алгоритмы отображения сообщения о новом комментарии."""
             str_date = ts_date_to_str(
                 topic_comment["date"], "%d.%m.%Y %H:%M:%S")
@@ -870,7 +870,7 @@ def topic_comments_monitor(sender, res_filename, subject_data, monitor_data):
 
         send_topic_comment(sender, values, subject_data, topic_comment)
         update_last_date(values)
-        show_message_about_new_video_comment(sender, topic_comment)
+        show_message_about_new_topic_comment(sender, topic_comment)
 
     sender += " -> Topic comments monitor"
 

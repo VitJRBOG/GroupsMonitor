@@ -20,13 +20,14 @@ def run_thread_starter(dict_tokens):
         def thread_checker_algorithm(data_threads):
             u"""Алгоритм проверки статуса потоков."""
             while True:
-                for data_thread in data_threads:
+                for i, data_thread in enumerate(data_threads):
                     if data_thread["was_turned_on"] and\
                        not data_thread["thread"].isAlive() and\
                        not data_thread["end_flag"].isSet():
                         sender = data_thread["sender"]
                         message = "WARNING! Monitoring is stopped..."
                         output_data.output_text_row(sender, message)
+                        data_threads.pop(i)
                 time.sleep(30)
         objThread = threading.Thread(target=thread_checker_algorithm, args=(data_threads,))
         objThread.daemon = True

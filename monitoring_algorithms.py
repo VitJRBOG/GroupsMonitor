@@ -38,7 +38,12 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
                         author_signature = make_user_signature(
                             sender, subject_data, author_signature, author_id)
                     else:
-                        author_signature += "[no data]"
+                        if post["post_type"] == "suggest":
+                            author_id = post["from_id"]
+                            author_signature = make_user_signature(
+                                sender, subject_data, author_signature, author_id)
+                        else:
+                            author_signature += "[no data]"
                 else:
                     author_id = post["owner_id"]
                     author_signature += make_user_signature(
@@ -58,7 +63,7 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
                         media_items += str(attachment["owner_id"])
                         media_items += "_" + str(attachment["id"])
                         if "access_key" in attachment:
-                            media_items += "?access_key=" + attachment["access_key"]
+                            media_items += "_" + attachment["access_key"]
                         if len(attachments) > 1 and i < len(attachments) - 1:
                             media_items += ","
                 return media_items
@@ -514,7 +519,7 @@ def photo_comments_monitor(sender, res_filename, subject_data, monitor_data):
                         media_items += str(attachment["owner_id"])
                         media_items += "_" + str(attachment["id"])
                         if "access_key" in attachment:
-                            media_items += "?access_key=" + \
+                            media_items += "_" + \
                                 attachment["access_key"]
                         if len(attachments) > 1 and i < len(attachments) - 1:
                             media_items += ","
@@ -667,7 +672,7 @@ def video_comments_monitor(sender, res_filename, subject_data, monitor_data):
                         media_items += str(attachment["owner_id"])
                         media_items += "_" + str(attachment["id"])
                         if "access_key" in attachment:
-                            media_items += "?access_key=" + \
+                            media_items += "_" + \
                                 attachment["access_key"]
                         if len(attachments) > 1 and i < len(attachments) - 1:
                             media_items += ","
@@ -831,7 +836,7 @@ def topic_comments_monitor(sender, res_filename, subject_data, monitor_data):
                         media_items += str(attachment["owner_id"])
                         media_items += "_" + str(attachment["id"])
                         if "access_key" in attachment:
-                            media_items += "?access_key=" + \
+                            media_items += "_" + \
                                 attachment["access_key"]
                         if len(attachments) > 1 and i < len(attachments) - 1:
                             media_items += ","
@@ -1001,7 +1006,7 @@ def wall_post_comments_monitor(sender, res_filename, subject_data, monitor_data)
                         media_items += str(attachment["owner_id"])
                         media_items += "_" + str(attachment["id"])
                         if "access_key" in attachment:
-                            media_items += "?access_key=" + \
+                            media_items += "_" + \
                                 attachment["access_key"]
                         if len(attachments) > 1 and i < len(attachments) - 1:
                             media_items += ","

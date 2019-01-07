@@ -356,19 +356,24 @@ def request_wall_post_comments(sender, subject_data, monitor_data, wall_post):
         wall_post_comments_data = []
         items = response["items"]
         for item in items:
-            values = {
-                "id": item["id"],
-                "owner_id": item["owner_id"],
-                "date": item["date"],
-                "from_id": item["from_id"],
-                "post_id": item["post_id"],
-                "text": item["text"]
-            }
-            if "attachments" in item:
-                attachments_data = select_attachments(item["attachments"])
-                if len(attachments_data) > 0:
-                    values.update({"attachments": attachments_data})
-            wall_post_comments_data.append(values)
+            skip = False
+            if "deleted" in item:
+                if item["deleted"] == True:
+                    skip = True
+            if not skip:
+                values = {
+                    "id": item["id"],
+                    "owner_id": item["owner_id"],
+                    "date": item["date"],
+                    "from_id": item["from_id"],
+                    "post_id": item["post_id"],
+                    "text": item["text"]
+                }
+                if "attachments" in item:
+                    attachments_data = select_attachments(item["attachments"])
+                    if len(attachments_data) > 0:
+                        values.update({"attachments": attachments_data})
+                wall_post_comments_data.append(values)
 
             if len(item["thread"]["items"]) > 0:
                 thread_items = []

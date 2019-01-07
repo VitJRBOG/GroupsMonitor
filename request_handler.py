@@ -327,8 +327,71 @@ def request_topic_comments(sender, subject_data, monitor_data, topic):
     return topic_comments_data
 
 
-# def request_wall_post_comments():
-#     u"""Запрос комментариев под постами на стене."""
+def request_wall_post_comments(sender, subject_data, monitor_data, wall_post):
+    u"""Запрос комментариев под постами на стене."""
+    def make_data_for_request(subject_data, monitor_data, wall_post):
+        u"""Подготовка данных для отправки запроса."""
+        values = {
+            "access_token": subject_data["access_tokens"]["admin"],
+            "method": "wall.getComments",
+            "values": {
+                "owner_id": wall_post["owner_id"],
+                "post_id": wall_post["id"],
+                "sort": "desc",
+                "count": monitor_data["comment_count"],
+                "thread_items_count": monitor_data["thread_items_count"],
+                "v": 5.92
+            }
+        }
+        return values
+    
+    def select_data_from_response(response):
+        u"""Извлекает данные из словаря с результатами запроса."""
+        wall_post_comments_data = []
+        items = response["items"]
+        for item in items:
+            values = {
+                "id": item["id"],
+                "owner_id": item["owner_id"],
+                "date": item["date"],
+                "from_id": item["from_id"],
+                "post_id": item["post_id"],
+                "text": item["text"]
+            }
+            if "attachments" in item:
+                attachments_data = select_attachments(item["attachments"])
+                if len(attachments_data) > 0:
+                    values.update({"attachments": attachments_data})
+            wall_post_comments_data.append(values)
+
+            if len(item["thread"]["items"]) > 0:
+                thread_items = []
+                for thread_item in item["thread"]["items"]:
+                    values = {
+                        "id": thread_item["id"],
+                        "owner_id": thread_item["owner_id"],
+                        "parents_stack": thread_item["parents_stack"],
+                        "date": thread_item["date"],
+                        "from_id": thread_item["from_id"],
+                        "post_id": thread_item["post_id"],
+                        "text": thread_item["text"]
+                    }
+                    if "attachments" in thread_item:
+                        thread_attachments_data = select_attachments(
+                            thread_item["attachments"])
+                        if len(thread_attachments_data) > 0:
+                            values.update({"attachments": thread_attachments_data})
+                    thread_items.append(values)
+                wall_post_comments_data.extend(thread_items)
+        return wall_post_comments_data
+
+    sender += " -> Get wall post comments"
+
+    data_for_request = make_data_for_request(subject_data, monitor_data, wall_post)
+    response = send_request(sender, data_for_request)
+    wall_post_comments_data = select_data_from_response(response)
+
+    return wall_post_comments_data
 
 
 def request_user_info(sender, subject_data, data_for_request):
@@ -465,6 +528,29 @@ def request_topics_info(sender, subject_data, monitor_data):
     topics_data = select_data_from_response(response, subject_data)
 
     return topics_data
+
+
+def select_attachments(attachments):
+    u"""Извлекает медиаконтент из элемента."""
+    attachments_data = []
+    for attachment in attachments:
+        type_attachment = attachment["type"]
+        if type_attachment == "photo" or\
+            type_attachment == "video" or\
+            type_attachment == "audio" or\
+            type_attachment == "doc" or\
+            type_attachment == "poll":
+            values = {
+                "owner_id": attachment[type_attachment]["owner_id"],
+                "id": attachment[type_attachment]["id"],
+                "type": type_attachment
+            }
+            if "access_key" in attachment[type_attachment]:
+                values.update(
+                    {"access_key": attachment[type_attachment]["access_key"]})
+            attachments_data.append(values)
+    return attachments_data
+
 
 
 def send_request(sender, data_for_request):

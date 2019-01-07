@@ -161,6 +161,8 @@ def run_topic_comments_monitor(subject_name, subject_data, thread_data):
     monitor_data = read_res_files(subject_data, res_filename)
     if monitor_data["need_monitoring"] != 1:
         return
+    if str(subject_data["owner_id"])[0] != "-":
+        return
     thread_data["was_turned_on"] = True
     before_start_operations(sender)
     while True:

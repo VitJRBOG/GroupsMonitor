@@ -874,7 +874,6 @@ def topic_comments_monitor(sender, res_filename, subject_data, monitor_data):
 
     sender += " -> Topic comments monitor"
 
-    if str(subject_data["owner_id"])[0] == "-":
         topics_data = request_handler.request_topics_info(
             sender, subject_data, monitor_data)
 

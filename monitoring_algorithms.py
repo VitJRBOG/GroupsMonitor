@@ -806,7 +806,7 @@ def topic_comments_monitor(sender, res_filename, subject_data, monitor_data):
                 return media_items
 
             def select_topic_url(topic_comment, subject_data):
-                u"""Выбирает из словаря данные и формирует URL на видео."""
+                u"""Выбирает из словаря данные и формирует URL на комментарий."""
                 post_url = "https://vk.com/topic"
                 post_url += str(topic_comment["owner_id"]) + \
                     "_" + str(topic_comment["tid"]) + "?post=" + \

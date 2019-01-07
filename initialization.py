@@ -107,7 +107,7 @@ def create_example_subject(sender, path):
             },
             "video_comments_monitor": {
                 "need_monitoring": 1,
-                "videos_count": 5,
+                "video_count": 5,
                 "interval": 5,
                 "comment_count": 1,
                 "send_to": [

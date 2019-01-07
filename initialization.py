@@ -126,6 +126,14 @@ def create_example_subject(sender, path):
                 "last_date": "0"
             },
             "wall_post_comments_monitor": {
+                "check_by_card_number": {
+                    "check": 0,
+                    "digits_count": []
+                },
+                "check_by_phone_number": {
+                    "check": 0,
+                    "digits_count": []
+                },
                 "check_by_profile_data": {
                     "check": 0,
                     "names": [],

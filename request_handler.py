@@ -35,6 +35,12 @@ def request_wall_posts(sender, subject_data, monitor_data):
                 "post_type": item["post_type"],
                 "text": item["text"]
             }
+            if "copy_history" in item:
+                copy_history = {
+                    "owner_id": item["copy_history"][0]["owner_id"],
+                    "id": item["copy_history"][0]["id"]
+                }
+                values.update({"copy_history": copy_history})
             if "signer_id" in item:
                 values.update({"signer_id": item["signer_id"]})
             if "attachments" in item:

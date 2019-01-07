@@ -62,6 +62,12 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
                         if len(attachments) > 1 and i < len(attachments) - 1:
                             media_items += ","
                 return media_items
+            def select_copy_history(post):
+                u"""Выбирает из словаря данные о репосте."""
+                copy_history = post["copy_history"]
+                media_items = "wall" + \
+                    str(copy_history["owner_id"]) + "_" + str(copy_history["id"])
+                return media_items
             def select_post_url(post):
                 u"""Выбирает из словаря данные и формирует URL на пост."""
                 post_url = "https://vk.com/wall"
@@ -104,6 +110,14 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
                 media_items = select_attachments(post)
                 if len(media_items) > 0:
                     data_for_message.update({"attachment": media_items})
+
+            if "copy_history" in post:
+                copy_history = select_copy_history(post)
+                if len(copy_history) > 0:
+                    if "attachment" in data_for_message:
+                        data_for_message["attachment"] += "," + copy_history
+                    else:
+                        data_for_message.update({"attachment": copy_history})
 
             request_handler.send_message(sender, data_for_message, access_token)
 

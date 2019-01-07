@@ -3,6 +3,7 @@ u"""Модуль алгоритмов проверки."""
 
 
 import datetime
+import re
 import data_manager
 import request_handler
 import output_data
@@ -1141,6 +1142,62 @@ def wall_post_comments_monitor(sender, res_filename, subject_data, monitor_data)
                 suspicious = True
             return suspicious
 
+        def check_by_phone_number(suspicious, item):
+            u"""Проверка по наличию номера телефона в тексте."""
+            res_filename = values["res_filename"]
+            path_to_res_file = values["path_to_res_file"]
+            monitor_data = data_manager.read_json(
+                path_to_res_file, res_filename)
+            need_repeats = monitor_data["check_by_phone_number"]["digits_count"]
+            symbs_from_text = item["text"]
+            repeats = 0
+            interrupts = 0
+            for i, sym in enumerate(symbs_from_text):
+                if len(re.findall(r"[0123456789]", sym)) > 0:
+                    repeats += 1
+                    interrupts = 0
+                elif len(re.findall(r"[()\- ]", sym)) > 0:
+                    if interrupts == 0:
+                        interrupts += 1
+                    else:
+                        interrupts = 0
+                        repeats = 0
+                else:
+                    repeats = 0
+                    interrupts = 0
+            for need_repeat in need_repeats:
+                if repeats == need_repeat:
+                    suspicious = True
+                    return suspicious
+
+        def check_by_card_number(suspicious, item):
+            u"""Проверка по наличию номера карты в тексте."""
+            res_filename = values["res_filename"]
+            path_to_res_file = values["path_to_res_file"]
+            monitor_data = data_manager.read_json(
+                path_to_res_file, res_filename)
+            need_repeats = monitor_data["check_by_card_number"]["digits_count"]
+            symbs_from_text = item["text"]
+            repeats = 0
+            interrupts = 0
+            for sym in symbs_from_text:
+                if len(re.findall(r"[0123456789]", sym)) > 0:
+                    repeats += 1
+                    interrupts = 0
+                elif len(re.findall(r"[ ]", sym)) > 0:
+                    if interrupts == 0:
+                        interrupts += 1
+                    else:
+                        interrupts = 0
+                        repeats = 0
+                else:
+                    repeats = 0
+                    interrupts = 0
+            for need_repeat in need_repeats:
+                if repeats == need_repeat:
+                    suspicious = True
+                    return suspicious
+
         def check_by_keywords(suspicious, item):
             u"""Проверка по наличию ключевых фраз."""
             def charchange(text, chan_symbs_dict):
@@ -1235,6 +1292,16 @@ def wall_post_comments_monitor(sender, res_filename, subject_data, monitor_data)
 
         if monitor_data["check_by_attachments"]["check"] == 1:
             suspicious = check_by_attachments(suspicious, item)
+            if suspicious:
+                return suspicious
+
+        if monitor_data["check_by_phone_number"]["check"] == 1:
+            suspicious = check_by_phone_number(suspicious, item)
+            if suspicious:
+                return suspicious
+
+        if monitor_data["check_by_card_number"]["check"] == 1:
+            suspicious = check_by_card_number(suspicious, item)
             if suspicious:
                 return suspicious
 

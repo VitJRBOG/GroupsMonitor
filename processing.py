@@ -79,6 +79,10 @@ def check_access_tokens():
                     access_token
         data_manager.write_json(PATH, "data", dict_data)
 
+    sender = "Checking access tokens"
+    message = "Please stand by..."
+    output_data.output_text_row(sender, message)
+
     PATH = data_manager.read_path()
     dict_data = data_manager.read_json(PATH, "data")
     subjects = dict_data["subjects"]

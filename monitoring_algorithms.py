@@ -126,15 +126,7 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
                         data_for_message.update({"attachment": copy_history})
 
             request_handler.send_message(sender, data_for_message, access_token)
-
-        def update_last_date(values, post):
-            u"""Обновление даты последнего проверенного поста."""
-            res_filename = values["res_filename"]
-            path_to_res_file = values["path_to_res_file"]
-            dict_json = data_manager.read_json(path_to_res_file, res_filename)
-            dict_json["last_date"] = str(item["date"])
-            data_manager.write_json(path_to_res_file, res_filename, dict_json)
-
+        
         def show_message_about_new_post(sender, post):
             u"""Алгоритмы отображения сообщения о новом посте."""
             str_date = ts_date_to_str(post["date"], "%d.%m.%Y %H:%M:%S")
@@ -142,8 +134,40 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
             output_data.output_text_row(sender, message)
 
         send_post(sender, values, subject_data, post)
-        update_last_date(values, post)
         show_message_about_new_post(sender, post)
+
+    def update_last_date(values, post):
+        u"""Обновление даты последнего проверенного поста."""
+        res_filename = values["res_filename"]
+        path_to_res_file = values["path_to_res_file"]
+        dict_json = data_manager.read_json(path_to_res_file, res_filename)
+        dict_json["last_date"] = str(item["date"])
+        data_manager.write_json(path_to_res_file, res_filename, dict_json)
+
+    def check_by_ignore_users(item):
+        u"""Проверка автора по списку игнорируемых."""
+        ignore = False
+        res_filename = values["res_filename"]
+        path_to_res_file = values["path_to_res_file"]
+        monitor_data = data_manager.read_json(path_to_res_file, res_filename)
+        ignore_users = monitor_data["ignore_users"]
+        if len(ignore_users) > 0:
+            author_id = ""
+            if "from_id" in item:
+                if str(item["owner_id"])[0] == "-" and \
+                str(item["from_id"])[0] != "-":
+                    author_id = item["from_id"]
+            elif "signer_id" in item:
+                author_id = item["signer_id"]
+            else:
+                ignore = False
+                return ignore
+
+            for ignore_user in ignore_users:
+                if ignore_user == author_id:
+                    ignore = True
+                    return ignore
+        return ignore
 
     sender += " -> Wall posts monitor"
 
@@ -175,7 +199,11 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
             }
             
             for item in reversed(wall_posts):
-                found_new_post(sender, values, subject_data, item)
+                ignore = check_by_ignore_users(item)
+                if not ignore:
+                    found_new_post(sender, values, subject_data, item)
+                update_last_date(values, item)
+                
     
 
 def album_photos_monitor(sender, res_filename, subject_data, monitor_data):

@@ -69,6 +69,7 @@ def create_example_subject(sender, path):
                 "owner_id": -123
             },
             "wall_posts_monitor": {
+                "ignore_users": [],
                 "need_monitoring": 1,
                 "interval": 5,
                 "send_to": [

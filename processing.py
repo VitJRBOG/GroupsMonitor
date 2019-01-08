@@ -52,8 +52,7 @@ def check_access_tokens():
             ]
             for i, text_error in enumerate(invalid_token_errors):
                 if str(message_error).lower().find(text_error) > -1:
-                    message = token_owner + "'s access token for " + \
-                        token_purpose.replace("_", " ") + " is invalid. Need another..."
+                    message = "Access token is invalid. Need another..."
                     output_data.output_text_row(sender, message)
                     access_token = request_new_access_token(
                         token_owner, token_purpose)

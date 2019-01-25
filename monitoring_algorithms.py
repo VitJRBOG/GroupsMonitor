@@ -144,30 +144,82 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
         dict_json["last_date"] = str(item["date"])
         data_manager.write_json(path_to_res_file, res_filename, dict_json)
 
-    def check_by_ignore_users(item):
-        u"""Проверка автора по списку игнорируемых."""
-        ignore = False
-        res_filename = values["res_filename"]
-        path_to_res_file = values["path_to_res_file"]
-        monitor_data = data_manager.read_json(path_to_res_file, res_filename)
-        ignore_users = monitor_data["ignore_users"]
-        if len(ignore_users) > 0:
-            author_id = ""
-            if "from_id" in item:
-                if str(item["owner_id"])[0] == "-" and \
-                str(item["from_id"])[0] != "-":
-                    author_id = item["from_id"]
-            elif "signer_id" in item:
-                author_id = item["signer_id"]
-            else:
-                ignore = False
-                return ignore
+    def target_check(sender, values, subject_data, item):
+        u"""Проверка целевого поста."""
+        def check_by_keywords(target, item):
+            u"""Проверка по наличию ключевых фраз."""
+            def check_keywords_algorithm(target, text, keywords):
+                u"""Алгоритм проверки слов."""
+                if len(keywords) > 0:
+                    for keyword in keywords:
+                        if text.lower().find(keyword) > -1:
+                            target = True
+                            return target
+                return target
 
-            for ignore_user in ignore_users:
-                if ignore_user == author_id:
-                    ignore = True
+            text = item["text"]
+
+            res_filename = values["res_filename"]
+            path_to_res_file = values["path_to_res_file"]
+            monitor_data = data_manager.read_json(path_to_res_file, res_filename)
+
+            keywords = monitor_data["check_by_keywords"]["keywords"]
+            target = check_keywords_algorithm(target, text, keywords)
+            if target:
+                return target
+
+            return target
+
+        def check_by_exclude(item):
+            u"""Проверка автора по списку игнорируемых."""
+            ignore = False
+            res_filename = values["res_filename"]
+            path_to_res_file = values["path_to_res_file"]
+            monitor_data = data_manager.read_json(path_to_res_file, res_filename)
+            ignore_users = monitor_data["check_by_exclude"]["authors"]
+            if len(ignore_users) > 0:
+                author_id = ""
+                if "from_id" in item:
+                    if str(item["owner_id"])[0] == "-" and \
+                    str(item["from_id"])[0] != "-":
+                        author_id = item["from_id"]
+                elif "signer_id" in item:
+                    author_id = item["signer_id"]
+                else:
+                    ignore = False
                     return ignore
-        return ignore
+
+                for ignore_user in ignore_users:
+                    if ignore_user == author_id:
+                        ignore = True
+                        return ignore
+            return ignore
+
+        target = False
+
+        if monitor_data["check_all"]["check"] == 1:
+            if monitor_data["check_all"]["check_exclude"] == 0:
+                is_exclude = check_by_exclude(item)
+                if is_exclude:
+                    target = False
+                else:
+                    target = True
+            else:
+                target = True
+            return target
+
+        if monitor_data["check_by_exclude"]["check"] == 1:
+            is_exclude = check_by_exclude(item)
+            if is_exclude:
+                target = False
+                return target
+
+        if len(item["text"]) > 0:
+            if monitor_data["check_by_keywords"]["check"] == 1:
+                target = check_by_keywords(target, item)
+                if target:
+                    return target
+        return target
 
     sender += " -> Wall posts monitor"
 
@@ -199,12 +251,12 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
             }
             
             for item in reversed(wall_posts):
-                ignore = check_by_ignore_users(item)
-                if not ignore:
+                target = target_check(sender, values, subject_data, item)
+                if target:
                     found_new_post(sender, values, subject_data, item)
                 update_last_date(values, item)
-                
-    
+
+
 
 def album_photos_monitor(sender, res_filename, subject_data, monitor_data):
     u"""Проверяет фотографии в альбомах."""

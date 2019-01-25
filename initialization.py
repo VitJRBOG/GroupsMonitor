@@ -69,7 +69,18 @@ def create_example_subject(sender, path):
                 "owner_id": -123
             },
             "wall_posts_monitor": {
-                "ignore_users": [],
+                "check_by_keywords": {
+                    "keywords": [],
+                    "check": 0
+                },
+                "check_by_exclude": {
+                    "check": 0,
+                    "authors": []
+                },
+                "check_all": {
+                    "check": 1,
+                    "check_exclude": 0
+                },
                 "need_monitoring": 1,
                 "interval": 5,
                 "send_to": [

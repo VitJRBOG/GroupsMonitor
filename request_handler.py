@@ -44,9 +44,11 @@ def request_wall_posts(sender, subject_data, monitor_data):
             if "signer_id" in item:
                 values.update({"signer_id": item["signer_id"]})
             if "attachments" in item:
-                attachments_data = select_attachments(item["attachments"])
+                attachments_data, link = select_attachments(item["attachments"])
                 if len(attachments_data) > 0:
                     values.update({"attachments": attachments_data})
+                if len(link) > 0:
+                    values["text"] += "\n" + link
             wall_posts_data.append(values)
         return wall_posts_data
 
@@ -165,9 +167,12 @@ def request_photo_comments(sender, subject_data, monitor_data):
                 "text": item["text"]
             }
             if "attachments" in item:
-                attachments_data = select_attachments(item["attachments"])
+                attachments_data, link = select_attachments(
+                    item["attachments"])
                 if len(attachments_data) > 0:
                     values.update({"attachments": attachments_data})
+                if len(link) > 0:
+                    values["text"] += "\n" + link
             photo_comments_data.append(values)
         return photo_comments_data
 
@@ -208,9 +213,12 @@ def request_video_comments(sender, subject_data, monitor_data, video):
                 "text": item["text"]
             }
             if "attachments" in item:
-                attachments_data = select_attachments(item["attachments"])
+                attachments_data, link = select_attachments(
+                    item["attachments"])
                 if len(attachments_data) > 0:
                     values.update({"attachments": attachments_data})
+                if len(link) > 0:
+                    values["text"] += "\n" + link
             video_comments_data.append(values)
         return video_comments_data
 
@@ -254,9 +262,12 @@ def request_topic_comments(sender, subject_data, monitor_data, topic):
                 "text": item["text"]
             }
             if "attachments" in item:
-                attachments_data = select_attachments(item["attachments"])
+                attachments_data, link = select_attachments(
+                    item["attachments"])
                 if len(attachments_data) > 0:
                     values.update({"attachments": attachments_data})
+                if len(link) > 0:
+                    values["text"] += "\n" + link
             topic_comments_data.append(values)
         return topic_comments_data
     
@@ -306,9 +317,12 @@ def request_wall_post_comments(sender, subject_data, monitor_data, wall_post):
                     "text": item["text"]
                 }
                 if "attachments" in item:
-                    attachments_data = select_attachments(item["attachments"])
+                    attachments_data, link = select_attachments(
+                        item["attachments"])
                     if len(attachments_data) > 0:
                         values.update({"attachments": attachments_data})
+                    if len(link) > 0:
+                        values["text"] += "\n" + link
                 wall_post_comments_data.append(values)
 
             if len(item["thread"]["items"]) > 0:
@@ -324,10 +338,12 @@ def request_wall_post_comments(sender, subject_data, monitor_data, wall_post):
                         "text": thread_item["text"]
                     }
                     if "attachments" in thread_item:
-                        thread_attachments_data = select_attachments(
+                        thread_attachments_data, link = select_attachments(
                             thread_item["attachments"])
                         if len(thread_attachments_data) > 0:
                             values.update({"attachments": thread_attachments_data})
+                        if len(link) > 0:
+                            values["text"] += "\n" + link
                     thread_items.append(values)
                 wall_post_comments_data.extend(thread_items)
         return wall_post_comments_data
@@ -480,6 +496,7 @@ def request_topics_info(sender, subject_data, monitor_data):
 def select_attachments(attachments):
     u"""Извлекает медиаконтент из элемента."""
     attachments_data = []
+    link = ""
     for attachment in attachments:
         type_attachment = attachment["type"]
         if type_attachment == "photo" or\
@@ -496,7 +513,10 @@ def select_attachments(attachments):
                 values.update(
                     {"access_key": attachment[type_attachment]["access_key"]})
             attachments_data.append(values)
-    return attachments_data
+        else:
+            if type_attachment == "link":
+                link += attachment["link"]["url"]
+    return attachments_data, link
 
 
 

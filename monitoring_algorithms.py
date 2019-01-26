@@ -146,6 +146,22 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
 
     def target_check(sender, values, subject_data, item):
         u"""Проверка целевого поста."""
+        def check_by_attachments(target, values, item):
+            u"""Проверка по наличию медиаконтента."""
+            if "attachments" in item:
+                res_filename = values["res_filename"]
+                path_to_res_file = values["path_to_res_file"]
+                monitor_data = data_manager.read_json(
+                    path_to_res_file, res_filename)
+                attachments_types = monitor_data["check_by_attachments"]["types"]
+                if len(attachments_types) > 0:
+                    for attachment in item["attachments"]:
+                        for attachment_type in attachments_types:
+                            if attachment_type == attachment["type"]:
+                                target = True
+                                return target
+            return target
+
         def check_by_keywords(target, item):
             u"""Проверка по наличию ключевых фраз."""
             def check_keywords_algorithm(target, text, keywords):
@@ -212,6 +228,11 @@ def wall_posts_monitor(sender, res_filename, subject_data, monitor_data):
             is_exclude = check_by_exclude(item)
             if is_exclude:
                 target = False
+                return target
+        
+        if monitor_data["check_by_attachments"]["check"] == 1:
+            target = check_by_attachments(target, values, item)
+            if target:
                 return target
 
         if len(item["text"]) > 0:

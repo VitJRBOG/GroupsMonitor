@@ -69,6 +69,16 @@ def create_example_subject(sender, path):
                 "owner_id": -123
             },
             "wall_posts_monitor": {
+                "check_by_attachments": {
+                    "check": 0,
+                    "types": [
+                        "photo",
+                        "video",
+                        "audio",
+                        "doc",
+                        "poll"
+                    ]
+                },
                 "check_by_keywords": {
                     "keywords": [],
                     "check": 0

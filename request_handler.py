@@ -44,25 +44,9 @@ def request_wall_posts(sender, subject_data, monitor_data):
             if "signer_id" in item:
                 values.update({"signer_id": item["signer_id"]})
             if "attachments" in item:
-                attachments = []
-                for attachment in item["attachments"]:
-                    type_attachment = attachment["type"]
-                    if type_attachment == "photo" or\
-                       type_attachment == "video" or\
-                       type_attachment == "audio" or\
-                       type_attachment == "doc" or\
-                       type_attachment == "poll":
-                        values_attachments = {
-                            "owner_id": attachment[type_attachment]["owner_id"],
-                            "id": attachment[type_attachment]["id"],
-                            "type": type_attachment
-                        }
-                        if "access_key" in attachment[type_attachment]:
-                            values_attachments.update(
-                                {"access_key": attachment[type_attachment]["access_key"]})
-                        attachments.append(values_attachments)
-                if len(attachments) > 0:
-                    values.update({"attachments": attachments})
+                attachments_data = select_attachments(item["attachments"])
+                if len(attachments_data) > 0:
+                    values.update({"attachments": attachments_data})
             wall_posts_data.append(values)
         return wall_posts_data
 
@@ -181,25 +165,9 @@ def request_photo_comments(sender, subject_data, monitor_data):
                 "text": item["text"]
             }
             if "attachments" in item:
-                attachments = []
-                for attachment in item["attachments"]:
-                    type_attachment = attachment["type"]
-                    if type_attachment == "photo" or\
-                       type_attachment == "video" or\
-                       type_attachment == "audio" or\
-                       type_attachment == "doc" or\
-                       type_attachment == "poll":
-                        values_attachments = {
-                            "owner_id": attachment[type_attachment]["owner_id"],
-                            "id": attachment[type_attachment]["id"],
-                            "type": type_attachment
-                        }
-                        if "access_key" in attachment[type_attachment]:
-                            values_attachments.update(
-                                {"access_key": attachment[type_attachment]["access_key"]})
-                        attachments.append(values_attachments)
-                if len(attachments) > 0:
-                    values.update({"attachments": attachments})
+                attachments_data = select_attachments(item["attachments"])
+                if len(attachments_data) > 0:
+                    values.update({"attachments": attachments_data})
             photo_comments_data.append(values)
         return photo_comments_data
 
@@ -240,25 +208,9 @@ def request_video_comments(sender, subject_data, monitor_data, video):
                 "text": item["text"]
             }
             if "attachments" in item:
-                attachments = []
-                for attachment in item["attachments"]:
-                    type_attachment = attachment["type"]
-                    if type_attachment == "photo" or\
-                       type_attachment == "video" or\
-                       type_attachment == "audio" or\
-                       type_attachment == "doc" or\
-                       type_attachment == "poll":
-                        values_attachments = {
-                            "owner_id": attachment[type_attachment]["owner_id"],
-                            "id": attachment[type_attachment]["id"],
-                            "type": type_attachment
-                        }
-                        if "access_key" in attachment[type_attachment]:
-                            values_attachments.update(
-                                {"access_key": attachment[type_attachment]["access_key"]})
-                        attachments.append(values_attachments)
-                if len(attachments) > 0:
-                    values.update({"attachments": attachments})
+                attachments_data = select_attachments(item["attachments"])
+                if len(attachments_data) > 0:
+                    values.update({"attachments": attachments_data})
             video_comments_data.append(values)
         return video_comments_data
 
@@ -302,25 +254,9 @@ def request_topic_comments(sender, subject_data, monitor_data, topic):
                 "text": item["text"]
             }
             if "attachments" in item:
-                attachments = []
-                for attachment in item["attachments"]:
-                    type_attachment = attachment["type"]
-                    if type_attachment == "photo" or\
-                       type_attachment == "video" or\
-                       type_attachment == "audio" or\
-                       type_attachment == "doc" or\
-                       type_attachment == "poll":
-                        values_attachments = {
-                            "owner_id": attachment[type_attachment]["owner_id"],
-                            "id": attachment[type_attachment]["id"],
-                            "type": type_attachment
-                        }
-                        if "access_key" in attachment[type_attachment]:
-                            values_attachments.update(
-                                {"access_key": attachment[type_attachment]["access_key"]})
-                        attachments.append(values_attachments)
-                if len(attachments) > 0:
-                    values.update({"attachments": attachments})
+                attachments_data = select_attachments(item["attachments"])
+                if len(attachments_data) > 0:
+                    values.update({"attachments": attachments_data})
             topic_comments_data.append(values)
         return topic_comments_data
     

@@ -1218,10 +1218,20 @@ def wall_post_comments_monitor(sender, res_filename, subject_data, monitor_data)
                             return suspicious
             return suspicious
 
-        def check_by_attachments(suspicious, item):
+        def check_by_attachments(suspicious, values, item):
             u"""Проверка по наличию медиаконтента."""
             if "attachments" in item:
-                suspicious = True
+                res_filename = values["res_filename"]
+                path_to_res_file = values["path_to_res_file"]
+                monitor_data = data_manager.read_json(
+                    path_to_res_file, res_filename)
+                attachments_types = monitor_data["check_by_attachments"]["types"]
+                if len(attachments_types) > 0:
+                    for attachment in item["attachments"]:
+                        for attachment_type in attachments_types:
+                            if attachment_type == attachment["type"]:
+                                suspicious = True
+                                return suspicious
             return suspicious
 
         def check_by_phone_number(suspicious, item):
@@ -1373,7 +1383,7 @@ def wall_post_comments_monitor(sender, res_filename, subject_data, monitor_data)
                 return suspicious
 
         if monitor_data["check_by_attachments"]["check"] == 1:
-            suspicious = check_by_attachments(suspicious, item)
+            suspicious = check_by_attachments(suspicious, values, item)
             if suspicious:
                 return suspicious
 

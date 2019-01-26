@@ -152,7 +152,14 @@ def create_example_subject(sender, path):
                     "ids": []
                 },
                 "check_by_attachments": {
-                    "check": 0
+                    "check": 0,
+                    "types": [
+                        "photo",
+                        "video",
+                        "audio",
+                        "doc",
+                        "poll"
+                    ]
                 },
                 "check_all": {
                     "check": 0,

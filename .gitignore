@@ -1,7 +1,7 @@
+.vscode/
 junk/
+.DS_Store
 path.txt
-.idea/
-.ropeproject/
 todo.txt
 src/json/
 *.pyc

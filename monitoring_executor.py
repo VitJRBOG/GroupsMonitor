@@ -3,9 +3,15 @@ u"""Модуль запуска алгоритмов проверки."""
 
 
 import time
-import monitoring_algorithms
 import data_manager
 import output_data
+import monitoring_algorithms.wall_posts_monitor
+import monitoring_algorithms.album_photos_monitor
+import monitoring_algorithms.videos_monitor
+import monitoring_algorithms.photo_comments_monitor
+import monitoring_algorithms.video_comments_monitor
+import monitoring_algorithms.topic_comments_monitor
+import monitoring_algorithms.wall_post_comments_monitor
 
 
 def before_start_operations(sender):
@@ -35,7 +41,7 @@ def run_wall_posts_monitor(subject_name, subject_data, thread_data):
     while True:
         if end_flag.isSet():
             return
-        monitoring_algorithms.wall_posts_monitor(
+        monitoring_algorithms.wall_posts_monitor.run_monitoring_wall_posts(
             sender, res_filename, subject_data, monitor_data)
         monitor_data = read_res_files(subject_data, res_filename)
         interval = monitor_data["interval"]
@@ -58,7 +64,7 @@ def run_album_photos_monitor(subject_name, subject_data, thread_data):
     while True:
         if end_flag.isSet():
             return
-        monitoring_algorithms.album_photos_monitor(
+        monitoring_algorithms.album_photos_monitor.run_monitoring_album_photos(
             sender, res_filename, subject_data, monitor_data)
         monitor_data = read_res_files(subject_data, res_filename)
         interval = monitor_data["interval"]
@@ -81,7 +87,7 @@ def run_videos_monitor(subject_name, subject_data, thread_data):
     while True:
         if end_flag.isSet():
             return
-        monitoring_algorithms.videos_monitor(
+        monitoring_algorithms.videos_monitor.run_monitoring_videos(
             sender, res_filename, subject_data, monitor_data)
         monitor_data = read_res_files(subject_data, res_filename)
         interval = monitor_data["interval"]
@@ -104,7 +110,7 @@ def run_photo_comments_monitor(subject_name, subject_data, thread_data):
     while True:
         if end_flag.isSet():
             return
-        monitoring_algorithms.photo_comments_monitor(
+        monitoring_algorithms.photo_comments_monitor.run_monitoring_photo_comments(
             sender, res_filename, subject_data, monitor_data)
         monitor_data = read_res_files(subject_data, res_filename)
         interval = monitor_data["interval"]
@@ -127,7 +133,7 @@ def run_video_comments_monitor(subject_name, subject_data, thread_data):
     while True:
         if end_flag.isSet():
             return
-        monitoring_algorithms.video_comments_monitor(
+        monitoring_algorithms.video_comments_monitor.run_monitoring_video_comments(
             sender, res_filename, subject_data, monitor_data)
         monitor_data = read_res_files(subject_data, res_filename)
         interval = monitor_data["interval"]
@@ -152,7 +158,7 @@ def run_topic_comments_monitor(subject_name, subject_data, thread_data):
     while True:
         if end_flag.isSet():
             return
-        monitoring_algorithms.topic_comments_monitor(
+        monitoring_algorithms.topic_comments_monitor.run_monitoring_topic_comments(
             sender, res_filename, subject_data, monitor_data)
         monitor_data = read_res_files(subject_data, res_filename)
         interval = monitor_data["interval"]
@@ -175,7 +181,7 @@ def run_wall_post_comments_monitor(subject_name, subject_data, thread_data):
     while True:
         if end_flag.isSet():
             return
-        monitoring_algorithms.wall_post_comments_monitor(
+        monitoring_algorithms.wall_post_comments_monitor.run_monitoring_wall_post_comments(
             sender, res_filename, subject_data, monitor_data)
         monitor_data = read_res_files(subject_data, res_filename)
         interval = monitor_data["interval"]

@@ -191,9 +191,12 @@ def run_monitoring_wall_post_comments(sender, res_filename, subject_data, monito
 
         def check_by_empty_comment(suspicious, item):
             u"""Проверка по пустому комментарию."""
-            if len(item["text"]) < 1 and "attachments" not in item:
-                suspicious = True
-                return suspicious
+            if len(item["text"]) < 1:
+                if "attachments" in item:
+                    return suspicious
+                else:
+                    suspicious = True
+                    return suspicious
             return suspicious
 
         def check_by_attachments(suspicious, values, item):

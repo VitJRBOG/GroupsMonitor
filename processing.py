@@ -33,13 +33,15 @@ def check_access_tokens():
         u"""Проверяет валидность токена."""
         sender = "Check " + token_owner + "'s access token for " + token_purpose
 
-        # КОСТЫЛЬ. 22822305 - id паблика команды ВК
+        # КОСТЫЛЬ. 1 - id странички Павла Дурова
         values = {
-            "group_id": 22822305,
+            "user_ids": 1,
             "v": 5.92
         }
-        result = vkapi.method("groups.getOnlineStatus", values, access_token)
-        # КОСТЫЛЬ. Проверка валидности токена с помощью определения статуса другого паблика.
+        result = vkapi.method("users.get", values, access_token)
+        # КОСТЫЛЬ. Проверка валидности токена с помощью запроса информации со странички Павла Дурова.
+        # Метод users.get можно вызвать всеми видами токенов (пользовательский, сервисный и сообщества).
+        # Страница Павла Дурова вряд ли изменится.
 
         if "response" in result:
             return access_token

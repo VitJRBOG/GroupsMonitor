@@ -189,16 +189,6 @@ def run_monitoring_wall_post_comments(sender, res_filename, subject_data, monito
                             return suspicious
             return suspicious
 
-        def check_by_empty_comment(suspicious, item):
-            u"""Проверка по пустому комментарию."""
-            if len(item["text"]) < 1:
-                if "attachments" in item:
-                    return suspicious
-                else:
-                    suspicious = True
-                    return suspicious
-            return suspicious
-
         def check_by_attachments(suspicious, values, item):
             u"""Проверка по наличию медиаконтента."""
             if "attachments" in item:
@@ -372,11 +362,6 @@ def run_monitoring_wall_post_comments(sender, res_filename, subject_data, monito
 
         if monitor_data["check_by_profile_data"]["check"] == 1:
             suspicious = check_by_profile_data(suspicious, item, subject_data)
-            if suspicious:
-                return suspicious
-
-        if monitor_data["check_by_empty_comment"]["check"] == 1:
-            suspicious = check_by_empty_comment(suspicious, item)
             if suspicious:
                 return suspicious
 

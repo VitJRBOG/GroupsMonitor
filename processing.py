@@ -11,6 +11,7 @@ import data_manager
 import input_data
 import output_data
 import thread_starter
+import backup
 
 
 def run_processing():
@@ -21,9 +22,9 @@ def run_processing():
         message = "Data base is not full. Need presetting. Quit..."
         output_data.output_text_row(sender, message)
     else:
-        dict_tokens = check_access_tokens()
+        dict_tokens, data_for_backup = check_access_tokens()
         data_threads = thread_starter.run_thread_starter(dict_tokens)
-        user_answer_checker(data_threads)
+        user_answer_checker(data_for_backup, data_threads)
 
 
 def check_access_tokens():
@@ -88,9 +89,12 @@ def check_access_tokens():
     PATH = data_manager.read_path()
     dict_data = data_manager.read_json(PATH, "data")
     subjects = dict_data["subjects"]
+    data_for_backup = []
     dict_tokens = {}
     for subject in subjects:
         if subject["monitor_subject"] == 1:
+            data_for_backup.append(
+                {"path": subject["path"], "name": subject["name"]})
             token_purposes = subject["access_tokens"].keys()
             values = {}
             for token_purpose in token_purposes:
@@ -110,14 +114,24 @@ def check_access_tokens():
                     values.update({token_purpose: access_token})
             dict_tokens.update({subject["name"]: values})
 
-    return dict_tokens
+    return dict_tokens, data_for_backup
 
 
-def user_answer_checker(data_threads):
+def user_answer_checker(data_for_backup, data_threads):
     u"""Проверка команд пользователя."""
     while True:
         sender = "Main menu"
         user_asnwer = raw_input()
+        if user_asnwer == "backup":
+            access_token = input_data.get_vk_user_token("Admin", "backup")
+            message = "Backing up..."
+            for subject in data_for_backup:
+                backup.save_backup(access_token, subject)
+        if user_asnwer == "restore":
+            access_token = input_data.get_vk_user_token("Admin", "restore")
+            message = "Restore from backup..."
+            for subject in data_for_backup:
+                backup.load_backup(access_token, subject)
         if user_asnwer == "quit":
             message = "Force quit..."
             output_data.output_text_row(sender, message)

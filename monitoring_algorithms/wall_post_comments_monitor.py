@@ -226,7 +226,7 @@ def run_monitoring_wall_post_comments(sender, res_filename, subject_data, monito
             repeats = 0
             interrupts = 0
             for i, sym in enumerate(symbs_from_text):
-                if len(re.findall(r"[0123456789]", sym)) > 0:
+                if len(re.findall(r"[0-9]", sym)) > 0:
                     repeats += 1
                     interrupts = 0
                 elif len(re.findall(r"[()\- ]", sym)) > 0:
@@ -238,10 +238,15 @@ def run_monitoring_wall_post_comments(sender, res_filename, subject_data, monito
                 else:
                     repeats = 0
                     interrupts = 0
-            for need_repeat in need_repeats:
-                if repeats == need_repeat:
-                    suspicious = True
-                    return suspicious
+                for need_repeat in need_repeats:
+                    if repeats == need_repeat:
+                        if i < len(symbs_from_text) - 1:
+                            if len(re.findall(r"[0-9]", symbs_from_text[i + 1])) == 0:
+                                suspicious = True
+                                return suspicious
+                        else:
+                            suspicious = True
+                            return suspicious
 
         def check_by_card_number(suspicious, item):
             u"""Проверка по наличию номера карты в тексте."""

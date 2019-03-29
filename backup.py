@@ -21,7 +21,9 @@ def read_wiki(access_token, wiki_full_id):
         "v": 5.92
     }
 
-    result = vkapi.method("pages.get", values, access_token)
+    # result = vkapi.method("pages.get", values, access_token)
+    # придется работать так, пока не решится проблема с ограничением длины запроса к VK API
+    result = vkapi.through_vk_api("pages.get", values, access_token)
 
     text = result["response"]["html"][8:]
     data_json = json.loads(text)
@@ -42,7 +44,9 @@ def save_wiki(access_token, wiki_full_id, data_json):
         "v": 5.92
     }
 
-    response = vkapi.method("pages.save", values, access_token)
+    # response = vkapi.method("pages.save", values, access_token)
+    # придется работать так, пока не решится проблема с ограничением длины запроса к VK API
+    response = vkapi.through_vk_api("pages.save", values, access_token)
 
 
 def make_json_text(path_to_subject_json):

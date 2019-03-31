@@ -21,17 +21,3 @@ def method(method_name, values, access_token):
     result = json.loads(str_result)
 
     return result
-
-
-def through_vk_api(method_name, values, access_token):
-    u"""Отравка запроса к VK API через стороннюю библиотеку."""
-    def get_session(access_token):
-        vk_session = vk_api.VkApi(token=access_token)
-        vk_session._auth_token()
-
-        return vk_session
-
-    vk_session = get_session(access_token)
-    result = vk_session.method(method_name, values)
-
-    return result

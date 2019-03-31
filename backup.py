@@ -7,6 +7,7 @@ import os
 import vkapi
 import data_manager
 import output_data
+import exception_handler
 
 
 def read_wiki(access_token, wiki_full_id):
@@ -21,7 +22,7 @@ def read_wiki(access_token, wiki_full_id):
         "v": 5.92
     }
 
-    result = vkapi.method("pages.get", values, access_token)
+    result = send_request("Read wiki", "pages.get", values, access_token)
 
     text = result["response"]["html"][8:]
     data_json = json.loads(text)
@@ -42,7 +43,23 @@ def save_wiki(access_token, wiki_full_id, data_json):
         "v": 5.92
     }
 
-    response = vkapi.method("pages.save", values, access_token)
+    result = send_request("Save wiki", "pages.save", values, access_token)
+
+
+def send_request(sender, method_name, values, access_token):
+    error_repeats = 0
+    result = vkapi.method(method_name, values, access_token)
+    if "response" in result:
+        return result["response"]
+    else:
+        message_error = result["error"]["error_msg"]
+        if error_repeats < 5:
+            error_repeats += 1
+        timeout = error_repeats * 2
+        exception_handler.handling(sender, message_error, timeout)
+        return send_request(sender, method_name, values, access_token)
+
+    return result
 
 
 def make_json_text(path_to_subject_json):

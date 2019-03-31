@@ -14,11 +14,7 @@ def method(method_name, values, access_token):
     request += method_name
     request += "?access_token=" + access_token
 
-    keys_values = values.keys()
-    for key in keys_values:
-        request += "&" + key + "=" + str(values[key])
-
-    server_answer = requests.post(request)
+    server_answer = requests.post(request, values)
 
     str_result = server_answer.text
 

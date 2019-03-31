@@ -1,7 +1,6 @@
 # coding: utf8
 u"""Модуль обработки запросов к VK API."""
 
-import urllib2
 import vkapi
 import exception_handler
 
@@ -554,9 +553,8 @@ def send_message(sender, data_for_message, access_token):
     u"""Алгоритмы отправки сообщения в ВК."""
     def make_message(data_for_message):
         u"""Сборка сообщения перед отправкой."""
-        text = urllib2.quote(data_for_message["text"])
         values = {
-            "message": text,
+            "message": data_for_message["text"],
             "v": 5.68
         }
         if "attachment" in data_for_message:

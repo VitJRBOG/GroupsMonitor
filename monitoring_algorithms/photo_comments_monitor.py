@@ -87,8 +87,8 @@ def run_monitoring_photo_comments(sender, res_filename, subject_data, monitor_da
             text += "Location: " + owner_signature.encode("utf8") + "\n"
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
-            if len(photo_comment["text"].encode("utf8")) > 1000:
-                text += photo_comment["text"].encode("utf8")[0:1000] + "\n"
+            if len(photo_comment["text"].encode("utf8")) > 3500:
+                text += photo_comment["text"].encode("utf8")[0:3500] + "\n"
                 text += "<..>\n[long text]\n\n"
             else:
                 text += photo_comment["text"].encode("utf8") + "\n\n"

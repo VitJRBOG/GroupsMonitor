@@ -93,8 +93,8 @@ def run_monitoring_wall_post_comments(sender, res_filename, subject_data, monito
             text += "Location: " + owner_signature.encode("utf8") + "\n"
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
-            if len(wall_post_comment["text"].encode("utf8")) > 1000:
-                text += wall_post_comment["text"].encode("utf8")[0:1000] + "\n"
+            if len(wall_post_comment["text"].encode("utf8")) > 3500:
+                text += wall_post_comment["text"].encode("utf8")[0:3500] + "\n"
                 text += "<..>\n[long text]\n\n"
             else:
                 text += wall_post_comment["text"].encode("utf8") + "\n\n"

@@ -89,10 +89,8 @@ def run_monitoring_topic_comments(sender, res_filename, subject_data, monitor_da
             text += "Location: " + owner_signature.encode("utf8") + "\n"
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
-            # BUG: длинный запрос. Поставлен костыль на ограничение количества символов.
-            # SOLUTION: проверка длины всего URI и обрезание текстовой части сообщения.
-            if len(topic_comment["text"].encode("utf8")) > 800:
-                text += topic_comment["text"].encode("utf8")[0:800] + "\n"
+            if len(topic_comment["text"].encode("utf8")) > 3500:
+                text += topic_comment["text"].encode("utf8")[0:3500] + "\n"
                 text += "<..>\n[long text]\n\n"
             else:
                 text += topic_comment["text"].encode("utf8") + "\n\n"

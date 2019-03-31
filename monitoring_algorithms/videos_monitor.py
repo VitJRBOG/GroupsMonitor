@@ -77,8 +77,8 @@ def run_monitoring_videos(sender, res_filename, subject_data, monitor_data):
             text += "Author: " + author_signature.encode("utf8") + "\n"
             text += "Created: " + str(publication_date).encode("utf8") + "\n\n"
             if len(video["description"]) > 0:
-                if len(video["description"].encode("utf8")) > 1000:
-                    text += video["description"].encode("utf8")[0:1000] + "\n"
+                if len(video["description"].encode("utf8")) > 3500:
+                    text += video["description"].encode("utf8")[0:3500] + "\n"
                     text += "<..>\n[long text]\n\n"
                 else:
                     text += video["description"].encode("utf8") + "\n\n"

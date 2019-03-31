@@ -4,7 +4,6 @@ u"""Модуль формирования запросов к VK API."""
 
 import json
 import requests
-import vk_api
 
 
 def method(method_name, values, access_token):

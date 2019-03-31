@@ -33,7 +33,7 @@ def save_wiki(access_token, wiki_full_id, data_json):
     wiki_owner_id = int(wiki_full_id[1:wiki_full_id.rfind('_')])
     wiki_id = int(wiki_full_id[wiki_full_id.rfind('_') + 1:])
 
-    text = json.dumps(data_json)
+    text = json.dumps(data_json, indent=4, ensure_ascii=False)
 
     values = {
         "group_id": wiki_owner_id,

@@ -1,4 +1,4 @@
-package tools
+package main
 
 import (
 	"encoding/json"
@@ -6,9 +6,9 @@ import (
 	"net/http"
 )
 
-// Method отправляет post-запрос к VK API
+// SendVKAPIQuery отправляет post-запрос к VK API
 // возвращает ответ сервера и ошибку
-func Method(methodName string, valuesBytes []byte, accessToken string) ([]byte, error) {
+func SendVKAPIQuery(methodName string, valuesBytes []byte, accessToken string) ([]byte, error) {
 	url := "https://api.vk.com/method/"
 	url += methodName
 	url += "?access_token=" + accessToken

@@ -9,6 +9,8 @@ import (
 // CheckAccessTokens проверяет валидность токенов доступа из базы данных
 func CheckAccessTokens() error {
 	// получаем слайс со структурами AccessToken
+	sender := "Access token checker"
+	message := "Please stand by..."
 	accessTokens, err := SelectDBAccessTokens()
 	if err != nil {
 		return err
@@ -26,6 +28,8 @@ func CheckAccessTokens() error {
 			if err != nil {
 				return err
 			}
+			message = fmt.Sprintf("Access token for %v has been successfuly updated!", accessToken.Name)
+			OutputMessage(sender, message)
 		}
 	}
 	return nil
@@ -80,6 +84,7 @@ func checkAccessToken(accessToken *AccessToken, updated bool) (bool, error) {
 			"invalid access_token",
 			"access_token was given to another ip address",
 			"access_token has expired",
+			"no access_token passed",
 		}
 		// проверяем ошибку по списку
 		// если хоть одна совпадает, то запрашиваем у пользователя новый токен
@@ -111,8 +116,7 @@ func getNewAccessToken(nameAccessToken string, errorCause string) (string, error
 	OutputMessage(sender, message)
 
 	// запрашиваем новый токен
-	message = "New access token for " + nameAccessToken
-	userAnswer, err := InputData(sender, message)
+	userAnswer, err := InputAccessToken(nameAccessToken)
 	if err != nil {
 		return "", err
 	}

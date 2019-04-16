@@ -9,8 +9,14 @@ import (
 
 // openDB читает и возвращает базу данных
 func openDB() (*sql.DB, error) {
+	// определяем путь к файлу базы данных
+	path, err := ReadPathFile()
+	if err != nil {
+		return nil, err
+	}
+	pathToDB := path + "groupsmonitor_db.db"
 	// читаем db sqlite
-	db, err := sql.Open("sqlite3", "db/groupsmonitor_db.db")
+	db, err := sql.Open("sqlite3", pathToDB)
 	if err != nil {
 		return nil, err
 	}

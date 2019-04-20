@@ -1,13 +1,12 @@
 package main
 
-import "log"
+import (
+	"log"
+)
 
 func main() {
-	// запускаем функцию проверки токенов доступа
-	err := CheckAccessTokens()
-	if err != nil {
-		log.Fatalln(err)
+	threads := MakeThreads()
+	if err := ListenUserCommands(threads); err != nil {
+		log.Fatal(err)
 	}
-	// запускаем функцию старта модулей мониторинга
-	// ...
 }

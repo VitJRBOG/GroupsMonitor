@@ -135,7 +135,7 @@ func UpdateDBAccessToken(accessToken AccessToken) error {
 // Subject - структура для полей из таблицы subject
 type Subject struct {
 	ID             int    `json:"id"`
-	GroupID        int    `json:"group_id"`
+	SubjectID      int    `json:"subject_id"`
 	Name           string `json:"name"`
 	BackupWikipage string `json:"backup_wikipage"`
 	LastBackup     int    `json:"last_backup"`
@@ -161,7 +161,7 @@ func SelectDBSubjects() ([]Subject, error) {
 	var subjects []Subject
 	for rows.Next() {
 		var subject Subject
-		err = rows.Scan(&subject.ID, &subject.GroupID, &subject.Name,
+		err = rows.Scan(&subject.ID, &subject.SubjectID, &subject.Name,
 			&subject.BackupWikipage, &subject.LastBackup)
 		if err != nil {
 			return nil, err

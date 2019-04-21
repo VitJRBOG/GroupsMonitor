@@ -64,6 +64,11 @@ func updateAccessToken() error {
 
 func stopThreads(threads []*Thread) {
 
+	// сообщаем пользователю о начале операции по остановке потоков
+	sender := "Core"
+	message := "Stopping threads..."
+	OutputMessage(sender, message)
+
 	// пробегаем по всем потокам и выставляем флаги на остановку
 	for _, thread := range threads {
 		thread.StopFlag = 1

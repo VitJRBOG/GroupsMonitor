@@ -3,7 +3,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
+
+// UnixTimeStampToDate преобразовывает дату из unix time stamp в читабельный вид
+func UnixTimeStampToDate(timestampDate int) string {
+	// timestampDate += 18000 // прибавляем 5 часов, т.к. часовой пояс другой
+	tm := time.Unix(int64(timestampDate), 0)
+	timeFormat := "02.01.2006 15:04:05"
+	readableTime := tm.Format(timeFormat)
+	return readableTime
+}
 
 // MakeJSON формирует json-словарь
 func MakeJSON(jsonDump string) ([]byte, error) {

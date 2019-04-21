@@ -47,15 +47,25 @@ func GetAccessToken(methodName string, subject Subject) (AccessToken, error) {
 // GetNewAccessToken запрашивает у пользователя новый токен из консоли и обновляет значение в БД
 func GetNewAccessToken(sender string, nameAccessToken string) error {
 
-	// сообщаем пользователю о запуске алгоритма обновления токена
-	message := fmt.Sprintf("Request new access token for %v.", nameAccessToken)
-	OutputMessage(sender, message)
-
 	// запрашиваем все данные по указанному токену
 	accessToken, err := SelectDBAccessTokenByName(nameAccessToken)
 	if err != nil {
 		return err
 	}
+
+	if accessToken.ID == 0 {
+		if accessToken.Name == "" {
+			if accessToken.Value == "" {
+				message := fmt.Sprintf(`Error: access token with name "%v" is not exist.`, nameAccessToken)
+				OutputMessage(sender, message)
+				return nil
+			}
+		}
+	}
+
+	// сообщаем пользователю о запуске алгоритма обновления токена
+	message := fmt.Sprintf("Request new access token for %v.", nameAccessToken)
+	OutputMessage(sender, message)
 
 	// запрашиваем у пользователя новый токен
 	accessToken.Value, err = InputAccessToken(nameAccessToken)

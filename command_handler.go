@@ -39,6 +39,7 @@ func ListenUserCommands(threads []*Thread) error {
 }
 
 func updateAccessToken() error {
+	sender := "Update access token"
 
 	// запрашиваем у пользователя имя обновляемого токена
 	nameAccessToken, err := InputNameAccessToken()
@@ -46,12 +47,15 @@ func updateAccessToken() error {
 		return err
 	}
 
-	//
-	// тут нужна проверка существования токена с этим именем
-	//
+	// проверяем ввод на команду отмены
+	if nameAccessToken == "cancel" {
+		message := "Abort."
+		OutputMessage(sender, message)
+		return nil
+	}
 
 	// вызываем функцию получения нового токена
-	if err = GetNewAccessToken("Update access token", nameAccessToken); err != nil {
+	if err = GetNewAccessToken(sender, nameAccessToken); err != nil {
 		return err
 	}
 

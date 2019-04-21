@@ -20,7 +20,7 @@ func ListenUserCommands(threads []*Thread) error {
 		switch userAnswer {
 
 		// команда на обновление токена доступа
-		case "update":
+		case "upd_at":
 			if err := updateAccessToken(); err != nil {
 				return err
 			}

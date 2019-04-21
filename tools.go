@@ -63,6 +63,7 @@ func GetNewAccessToken(sender string, nameAccessToken string) error {
 		return err
 	}
 
+	// проверяем существование токена с таким именем в БД
 	if accessToken.ID == 0 {
 		if accessToken.Name == "" {
 			if accessToken.Value == "" {

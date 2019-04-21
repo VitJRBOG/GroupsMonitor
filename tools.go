@@ -8,7 +8,6 @@ import (
 
 // UnixTimeStampToDate преобразовывает дату из unix time stamp в читабельный вид
 func UnixTimeStampToDate(timestampDate int) string {
-	// timestampDate += 18000 // прибавляем 5 часов, т.к. часовой пояс другой
 	tm := time.Unix(int64(timestampDate), 0)
 	timeFormat := "02.01.2006 15:04:05"
 	readableTime := tm.Format(timeFormat)
@@ -21,7 +20,7 @@ func MakeJSON(jsonDump string) ([]byte, error) {
 	// сначала собираем карту из полученной json-строки
 	var values interface{}
 	valuesBytes := []byte(jsonDump)
-	err := json.Unmarshal(valuesBytes, values)
+	err := json.Unmarshal(valuesBytes, &values)
 	if err != nil {
 		return nil, err
 	}

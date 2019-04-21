@@ -14,33 +14,57 @@ type Thread struct {
 }
 
 // MakeThreads создает и запускает потоки
-func MakeThreads() []*Thread {
-	var thread Thread
-	thread.Name = "Testing"
-	thread.Status = "alive"
-	go testThreadint(&thread)
+func MakeThreads() ([]*Thread, error) {
 	var threads []*Thread
-	threads = append(threads, &thread)
+
+	subjects, err := SelectDBSubjects()
+	if err != nil {
+		return threads, err
+	}
+
+	for _, subject := range subjects {
+		wallPostMonitorParam, err := SelectDBWallPostMonitorParam(subject.ID)
+		if err != nil {
+			return threads, err
+		}
+		if wallPostMonitorParam.NeedMonitoring == 1 {
+			var thread Thread
+			thread.Name = fmt.Sprintf("%v's wall post monitoring", subject.Name)
+			thread.Status = "alive"
+			go wallPostMonitoring(&thread, subject, wallPostMonitorParam)
+			threads = append(threads, &thread)
+		}
+		// album_photo_monitor
+		// video_monitor
+		// photo_comment_monitor
+		// video_comment_monitor
+		// topic_monitor
+		// wall_post_comment_monitor
+	}
 
 	//
 	// тут нужен поток с функцией проверки жизни остальных потоков
 	//
 
-	return threads
+	return threads, nil
 }
 
-func testThreadint(threadData *Thread) {
-	fmt.Println("Okay, let's do this!")
+func wallPostMonitoring(threadData *Thread, subject Subject, wallPostMonitorParam WallPostMonitorParam) {
+	sender := threadData.Name
+	message := "Started..."
+	OutputMessage(sender, message)
+	interval := wallPostMonitorParam.Interval
 	for true {
-		interval := 10
+		if err := WallPostMonitor(subject); err != nil {
+			ErrorHandler(err)
+		}
+		OutputMessage(sender, "OLOLO!")
 		for i := 0; i < interval; i++ {
 			time.Sleep(1 * time.Second)
 			if threadData.StopFlag == 1 {
 				threadData.Status = "stopped"
-				fmt.Println("I'll be back...")
 				runtime.Goexit()
 			}
 		}
-		fmt.Println("Hmm... I'm stil alive...")
 	}
 }

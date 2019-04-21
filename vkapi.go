@@ -62,7 +62,7 @@ func SendVKAPIQuery(sender string, methodName string,
 	}
 	response := f.(map[string]interface{})
 
-	if exist := response["response"]; exist == true {
+	if _, exist := response["response"]; exist == true {
 		return response, nil
 	}
 
@@ -149,6 +149,240 @@ func VkAPIErrorHandler(responseError interface{}) (string, string) {
 	return "unknown error", ""
 }
 
+// SendMessage посылает запрос к vk api на отправку сообщения
+func SendMessage(sender string, jsonDump string, subject Subject) error {
+	// преобразуем строку с данными для карты в массив байт из этой карты
+	values, err := MakeJSON(jsonDump)
+	if err != nil {
+		return err
+	}
+
+	// отправляем к vk api запрос на отправку сообщения с этими данными
+	_, err = SendVKAPIQuery(sender, "messages.send", values, subject)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Attachment - структура для данных о прикрепленном контенте
+type Attachment struct {
+	Type      string `json:"type"`
+	OwnerID   int    `json:"owner_id"`
+	ID        int    `json:"id"`
+	AccessKey string `json:"access_key"`
+	URL       string `json:"url"`
+}
+
+// ParseAttachments извлекает данные о прикреплениях из карты vk api
+func ParseAttachments(mediaContent []interface{}) []Attachment {
+	var attachments []Attachment
+
+	// перебираем элементы с данными о прикреплениях
+	for _, mediaItem := range mediaContent {
+		var attachment Attachment
+
+		// получаем тип прикрепления
+		typeMediaItem := mediaItem.(map[string]interface{})["type"].(string)
+
+		// проверяем тип прикрепления на соответствие обрабатываемым типам
+		match := false
+		switch typeMediaItem {
+		case "photo":
+			match = true
+		case "video":
+			match = true
+		case "audio":
+			match = true
+		case "doc":
+			match = true
+		case "poll":
+			match = true
+		case "link":
+			attachment.URL = mediaItem.(map[string]interface{})["link"].(map[string]interface{})["url"].(string)
+		}
+
+		// если соответствует, то парсим данные в структуру
+		if match {
+			attachment.Type = typeMediaItem
+			attachment.OwnerID = int(mediaItem.(map[string]interface{})[typeMediaItem].(map[string]interface{})["owner_id"].(float64))
+			attachment.ID = int(mediaItem.(map[string]interface{})[typeMediaItem].(map[string]interface{})["id"].(float64))
+			if accessKey, exist := mediaItem.(map[string]interface{})[typeMediaItem].(map[string]interface{})["access_key"]; exist {
+				attachment.AccessKey = accessKey.(string)
+			}
+			attachments = append(attachments, attachment)
+		}
+	}
+	return attachments
+}
+
+// WallPost хранит данные о посте со стены
+type WallPost struct {
+	ID          int          `json:"id"`
+	OwnerID     int          `json:"owner_id"`
+	FromID      int          `json:"from_id"`
+	Date        int          `json:"date"`
+	PostType    string       `json:"post_type"`
+	Text        string       `json:"text"`
+	Attachments []Attachment `json:"attachments"`
+}
+
+// GetWallPosts формирует запрос на получение постов со стены и посылает его к vk api
+func GetWallPosts(sender string, subject Subject, wallPostMonitorParam WallPostMonitorParam) ([]WallPost, error) {
+	var wallPosts []WallPost
+
+	// формируем карту с параметрами запроса
+	jsonDump := fmt.Sprintf(`{
+			"owner_id": "%d",
+			"count": "%d",
+			"filter": "%v",
+			"v": "5.95"
+		}`, subject.SubjectID, wallPostMonitorParam.PostsCount, wallPostMonitorParam.Filter)
+	values, err := MakeJSON(jsonDump)
+	if err != nil {
+		return wallPosts, err
+	}
+
+	// отправляем запрос, получаем ответ
+	response, err := SendVKAPIQuery(sender, "wall.get", values, subject)
+	if err != nil {
+		return wallPosts, err
+	}
+
+	// парсим полученные данные о постах
+	wallPosts = ParseWallPostsVkAPIMap(response["response"].(map[string]interface{}))
+
+	return wallPosts, nil
+}
+
+func parseCopyHistory(copyHistory []map[string]interface{}) Attachment {
+	var attachment Attachment
+
+	// извлекаем данные об одном единственном репосте из карты vk api
+	attachment.Type = copyHistory[0]["post_type"].(string)
+	attachment.OwnerID = copyHistory[0]["owner_id"].(int)
+	attachment.ID = copyHistory[0]["id"].(int)
+	if accessKey, exist := copyHistory[0]["access_key"]; exist {
+		attachment.AccessKey = accessKey.(string)
+	}
+	return attachment
+}
+
+// ParseWallPostsVkAPIMap извлекает данные о постах из полученной карты vk api
+func ParseWallPostsVkAPIMap(resp map[string]interface{}) []WallPost {
+	var wallPosts []WallPost
+
+	// перебираем элементы с данными о постах
+	items := resp["items"].([]interface{})
+	for _, item := range items {
+
+		// парсим данные из элемента в структуру
+		var wallPost WallPost
+		wallPost.ID = int(item.(map[string]interface{})["id"].(float64))
+		wallPost.OwnerID = int(item.(map[string]interface{})["owner_id"].(float64))
+		if _, exist := item.(map[string]interface{})["signer_id"]; exist == true {
+			wallPost.FromID = int(item.(map[string]interface{})["signer_id"].(float64))
+		} else {
+			wallPost.FromID = int(item.(map[string]interface{})["from_id"].(float64))
+		}
+		wallPost.Date = int(item.(map[string]interface{})["date"].(float64))
+		wallPost.PostType = item.(map[string]interface{})["post_type"].(string)
+		wallPost.Text = item.(map[string]interface{})["text"].(string)
+
+		// если есть прикрепления, то вызываем парсер прикреплений
+		if mediaContent, exist := item.(map[string]interface{})["attachments"]; exist == true {
+			wallPost.Attachments = ParseAttachments(mediaContent.([]interface{}))
+		}
+
+		// если есть репосты, то вызываем парсер репостов
+		if copyHistory, exist := item.(map[string]interface{})["copy_history"]; exist == true {
+			wallPost.Attachments = append(wallPost.Attachments, parseCopyHistory(
+				copyHistory.([]map[string]interface{})))
+		}
+		wallPosts = append(wallPosts, wallPost)
+	}
+	return wallPosts
+}
+
+// MakeMessageWallPost собирает сообщение с данными о посте
+func MakeMessageWallPost(sender string, subject Subject,
+	wallPostMonitorParam WallPostMonitorParam, wallPost WallPost) (string, error) {
+
+	// собираем сигнатуру сообщения:
+	// тип поста
+	text := fmt.Sprintf("New %v\n", wallPost.PostType)
+
+	// где он был обнаружен
+	if string(string(wallPost.OwnerID)[0]) == "-" {
+		locationHyperlink, err := GetCommunityInfo(sender, subject, wallPost.OwnerID)
+		if err != nil {
+			return "", err
+		}
+		text += fmt.Sprintf("Location: %v\n", locationHyperlink)
+	} else {
+		locationHyperlink, err := GetUserInfo(sender, subject, wallPost.OwnerID)
+		if err != nil {
+			return "", err
+		}
+		text += fmt.Sprintf("Location: %v\n", locationHyperlink)
+	}
+
+	// кто автор, если это пользователь
+	if string(string(wallPost.OwnerID)[0]) == "-" {
+		authorHyperlink := "[no_data]"
+		text += fmt.Sprintf("Author: %v\n", authorHyperlink)
+	} else {
+		authorHyperlink, err := GetUserInfo(sender, subject, wallPost.FromID)
+		if err != nil {
+			return "", err
+		}
+		text += fmt.Sprintf("Author: %v\n", authorHyperlink)
+	}
+
+	// и когда был создан
+	var creationDate string
+	creationDate = UnixTimeStampToDate(wallPost.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	text += fmt.Sprintf("Created: %v\n\n", creationDate)
+
+	// добавляем текст поста, если он есть
+	if len(wallPost.Text) > 0 {
+		text += fmt.Sprintf("%v\n", wallPost.Text)
+	}
+
+	// формируем строку с прикреплениями
+	var attachments string
+	if len(wallPost.Attachments) > 0 {
+		for _, attachment := range wallPost.Attachments {
+			if attachment.Type == "link" {
+				text += fmt.Sprintf("%v\n", attachment.URL)
+			} else {
+				attachments = fmt.Sprintf("%v%d_%d", wallPost.PostType, wallPost.OwnerID, wallPost.ID)
+				if len(attachment.AccessKey) > 0 {
+					attachments += fmt.Sprintf("_%v", attachment.AccessKey)
+				}
+				attachments += ","
+			}
+		}
+		if string(attachments[len(attachments)-1]) == "," {
+			attachments = string(attachments[0 : len(attachments)-2])
+		}
+	}
+
+	// добавляем в текст сообщения ссылку на пост
+	text += fmt.Sprintf("\n%v%d_%d", wallPost.PostType, wallPost.OwnerID, wallPost.ID)
+
+	// формируем строку с данными для карты
+	jsonDump := fmt.Sprintf(`{
+		"peer_id": %v,
+		"text": "%v",
+		"attachment": "%v",
+		"v": "5.68"
+	}`, string(wallPostMonitorParam.SendTo), text, attachments)
+
+	return jsonDump, nil
+}
+
 // VKCommunity - структура данных о сообществе VK
 type VKCommunity struct {
 	ID         int    `json:"id"`
@@ -161,7 +395,7 @@ func GetCommunityInfo(sender string, subject Subject, groupID int) (VKCommunity,
 	var vkCommunity VKCommunity
 	// формируем json запроса к vk api
 	jsonDump := fmt.Sprintf(`{
-		"group_ids": "%d",
+		"group_ids": %v,
 		"v": "5.95"
 	}`, groupID)
 	values, err := MakeJSON(jsonDump)
@@ -176,12 +410,12 @@ func GetCommunityInfo(sender string, subject Subject, groupID int) (VKCommunity,
 	}
 
 	// заранее извлекаем из общей карты карту с данными о сообществе
-	groupInfo := response["response"].([]map[string]interface{})[0]
+	groupInfo := response["response"].([]interface{})[0]
 
 	// собираем данные о сообществе из ответа сервера
-	vkCommunity.ID = groupInfo["id"].(int)
-	vkCommunity.Name = groupInfo["name"].(string)
-	vkCommunity.ScreenName = groupInfo["screen_name"].(string)
+	vkCommunity.ID = groupInfo.(map[string]interface{})["id"].(int)
+	vkCommunity.Name = groupInfo.(map[string]interface{})["name"].(string)
+	vkCommunity.ScreenName = groupInfo.(map[string]interface{})["screen_name"].(string)
 
 	return vkCommunity, nil
 }
@@ -199,9 +433,10 @@ func GetUserInfo(sender string, subject Subject, userID int) (VKUser, error) {
 
 	// формируем json запроса к vk api
 	jsonDump := fmt.Sprintf(`{
-		"user_ids": "%d",
+		"user_ids": %v,
 		"v": "5.95"
 	}`, userID)
+	fmt.Println(string(userID))
 	values, err := MakeJSON(jsonDump)
 	if err != nil {
 		return vkUser, err
@@ -214,12 +449,12 @@ func GetUserInfo(sender string, subject Subject, userID int) (VKUser, error) {
 	}
 
 	// заранее извлекаем из общей карты карту с данными о сообществе
-	userInfo := response["response"].([]map[string]interface{})[0]
+	userInfo := response["response"].([]interface{})[0]
 
 	// собираем данные о сообществе из ответа сервера
-	vkUser.ID = userInfo["id"].(int)
-	vkUser.FirstName = userInfo["first_name"].(string)
-	vkUser.LastName = userInfo["last_name"].(string)
+	vkUser.ID = userInfo.(map[string]interface{})["id"].(int)
+	vkUser.FirstName = userInfo.(map[string]interface{})["first_name"].(string)
+	vkUser.LastName = userInfo.(map[string]interface{})["last_name"].(string)
 
 	return vkUser, nil
 }

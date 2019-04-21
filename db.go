@@ -254,3 +254,23 @@ func SelectDBWallPostMonitorParam(subjectID int) (WallPostMonitorParam, error) {
 
 	return wallPostMonitorParam, nil
 }
+
+// UpdateDBWallPostMonitorLastDate обновляет значение в поле таблицы wall_post_monitor
+func UpdateDBWallPostMonitorLastDate(subjectID int, newLastDate int,
+	wallPostMonitorParam WallPostMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE wall_post_monitor SET last_date=%d WHERE subject_id=%d`, newLastDate, subjectID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

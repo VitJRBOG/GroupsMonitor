@@ -36,7 +36,7 @@ func WallPostMonitor(subject Subject) error {
 		for j := 0; j < len(targetWallPosts); j++ {
 			f := 0
 			for i := 0; i < len(targetWallPosts)-1-j; i++ {
-				if targetWallPosts[i].Date < targetWallPosts[i+1].Date {
+				if targetWallPosts[i].Date > targetWallPosts[i+1].Date {
 					x := targetWallPosts[i]
 					y := targetWallPosts[i+1]
 					targetWallPosts[i+1] = x

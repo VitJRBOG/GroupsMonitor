@@ -274,3 +274,66 @@ func UpdateDBWallPostMonitorLastDate(subjectID int, newLastDate int,
 
 	return nil
 }
+
+// AlbumPhotoMonitorParam - структура для полей из таблицы album_photo_monitor
+type AlbumPhotoMonitorParam struct {
+	ID             int `json:"id"`
+	SubjectID      int `json:"subject_id"`
+	NeedMonitoring int `json:"need_monitoring"`
+	SendTo         int `json:"send_to"`
+	Interval       int `json:"interval"`
+	LastDate       int `json:"last_date"`
+	PhotosCount    int `json:"photos_count"`
+}
+
+// SelectDBAlbumPhotoMonitorParam извлекает поля из таблицы album_photo_monitor
+func SelectDBAlbumPhotoMonitorParam(subjectID int) (AlbumPhotoMonitorParam, error) {
+	var albumPhotoMonitorParam AlbumPhotoMonitorParam
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return albumPhotoMonitorParam, err
+	}
+
+	// читаем данные из БД
+	query := fmt.Sprintf("SELECT * FROM album_photo_monitor WHERE subject_id=%d", subjectID)
+	rows, err := db.Query(query)
+	defer rows.Close()
+	if err != nil {
+		return albumPhotoMonitorParam, err
+	}
+
+	// считываем данные из rows
+	for rows.Next() {
+		err = rows.Scan(&albumPhotoMonitorParam.ID, &albumPhotoMonitorParam.SubjectID,
+			&albumPhotoMonitorParam.NeedMonitoring, &albumPhotoMonitorParam.SendTo,
+			&albumPhotoMonitorParam.Interval, &albumPhotoMonitorParam.LastDate,
+			&albumPhotoMonitorParam.PhotosCount)
+		if err != nil {
+			return albumPhotoMonitorParam, err
+		}
+	}
+
+	return albumPhotoMonitorParam, nil
+}
+
+// UpdateDBAlbumPhotoMonitorLastDate обновляет значение в поле таблицы album_photo_monitor
+func UpdateDBAlbumPhotoMonitorLastDate(subjectID int, newLastDate int,
+	albumPhotoMonitorParam AlbumPhotoMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE album_photo_monitor SET last_date=%d WHERE subject_id=%d`, newLastDate, subjectID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

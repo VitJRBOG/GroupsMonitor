@@ -34,7 +34,18 @@ func MakeThreads() ([]*Thread, error) {
 			go wallPostMonitoring(&thread, subject, wallPostMonitorParam)
 			threads = append(threads, &thread)
 		}
-		// album_photo_monitor
+
+		albumPhotoMonitorParam, err := SelectDBAlbumPhotoMonitorParam(subject.ID)
+		if err != nil {
+			return threads, err
+		}
+		if albumPhotoMonitorParam.NeedMonitoring == 1 {
+			var thread Thread
+			thread.Name = fmt.Sprintf("%v's album photo monitoring", subject.Name)
+			thread.Status = "alive"
+			go albumPhotoMonitoring(&thread, subject, albumPhotoMonitorParam)
+			threads = append(threads, &thread)
+		}
 		// video_monitor
 		// photo_comment_monitor
 		// video_comment_monitor
@@ -56,6 +67,25 @@ func wallPostMonitoring(threadData *Thread, subject Subject, wallPostMonitorPara
 	interval := wallPostMonitorParam.Interval
 	for true {
 		if err := WallPostMonitor(subject); err != nil {
+			ErrorHandler(err)
+		}
+		for i := 0; i < interval; i++ {
+			time.Sleep(1 * time.Second)
+			if threadData.StopFlag == 1 {
+				threadData.Status = "stopped"
+				runtime.Goexit()
+			}
+		}
+	}
+}
+
+func albumPhotoMonitoring(threadData *Thread, subject Subject, albumPhotoMonitorParam AlbumPhotoMonitorParam) {
+	sender := threadData.Name
+	message := "Started..."
+	OutputMessage(sender, message)
+	interval := albumPhotoMonitorParam.Interval
+	for true {
+		if err := AlbumPhotoMonitor(subject); err != nil {
 			ErrorHandler(err)
 		}
 		for i := 0; i < interval; i++ {

@@ -53,16 +53,25 @@ func WallPostMonitor(subject Subject) error {
 		// перебираем отсортированный список
 		for _, wallPost := range targetWallPosts {
 
-			// формируем строку с данными для карты для отправки сообщения
-			messageParameters, err := makeMessageWallPost(sender, subject, wallPostMonitorParam, wallPost)
+			// проверяем пост на соответствие критериям
+			match, err := checkTargetWallPost(wallPostMonitorParam, wallPost)
 			if err != nil {
 				return err
 			}
 
-			// отправляем сообщение с полученными данными
-			if err := SendMessage(sender, messageParameters, subject); err != nil {
-				return err
-			}
+			// если соответствует, то отправляем пост
+			if match {
+
+				// формируем строку с данными для карты для отправки сообщения
+				messageParameters, err := makeMessageWallPost(sender, subject, wallPostMonitorParam, wallPost)
+				if err != nil {
+					return err
+				}
+
+				// отправляем сообщение с полученными данными
+				if err := SendMessage(sender, messageParameters, subject); err != nil {
+					return err
+				}
 
 			// обновляем дату последнего проверенного поста в БД
 			if err := UpdateDBWallPostMonitorLastDate(subject.ID, wallPost.Date, wallPostMonitorParam); err != nil {
@@ -74,6 +83,26 @@ func WallPostMonitor(subject Subject) error {
 	return nil
 }
 
+// checkTargetWallPost проверяет пост на соответствие критериям
+func checkTargetWallPost(wallPostMonitorParam WallPostMonitorParam, wallPost WallPost) (bool, error) {
+	var match bool
+	keywords, err := MakeParamList(wallPostMonitorParam.KeywordsForMonitoring)
+	if err != nil {
+		return match, err
+	}
+	if len(keywords.List) > 0 {
+		for _, keyword := range keywords.List {
+			match = strings.Contains(wallPost.Text, keyword)
+			if match {
+				return match, nil
+			}
+		}
+	} else {
+		match = true
+	}
+
+	return match, nil
+}
 // WallPost хранит данные о посте со стены
 type WallPost struct {
 	ID          int          `json:"id"`

@@ -34,6 +34,25 @@ func MakeJSON(jsonDump string) ([]byte, error) {
 	return valuesBytes, nil
 }
 
+// ListFromDB - структура для списка из параметра модуля мониторинга
+type ListFromDB struct {
+	List []string `json:"list"`
+}
+
+// MakeParamList формирует список из массива в json
+func MakeParamList(jsonDump string) (ListFromDB, error) {
+	var values ListFromDB
+
+	// собираем структуру из полученной json-строки
+	valuesBytes := []byte(jsonDump)
+	err := json.Unmarshal(valuesBytes, &values)
+	if err != nil {
+		return values, err
+	}
+
+	return values, nil
+}
+
 // GetAccessToken получает токен доступа из БД по названию метода и id субъекта
 func GetAccessToken(methodName string, subject Subject) (AccessToken, error) {
 	var accessToken AccessToken

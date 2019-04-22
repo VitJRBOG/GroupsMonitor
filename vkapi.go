@@ -77,9 +77,11 @@ func SendVKAPIQuery(sender string, methodName string,
 
 		// задержка, если слишком часто отправляются запросы
 		case "timeout error":
-			interval := 2
+			interval := 1
+			if causeError != "many requests per second" { // такие ошибки бывают часто, поэтому сообщение пропускаем
 				message := fmt.Sprintf("Error: %v. Timeout for %d seconds...", causeError, interval)
 				OutputMessage(sender, message)
+			}
 			time.Sleep(time.Duration(interval) * time.Second)
 			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
 

@@ -58,7 +58,6 @@ func wallPostMonitoring(threadData *Thread, subject Subject, wallPostMonitorPara
 		if err := WallPostMonitor(subject); err != nil {
 			ErrorHandler(err)
 		}
-		OutputMessage(sender, "OLOLO!")
 		for i := 0; i < interval; i++ {
 			time.Sleep(1 * time.Second)
 			if threadData.StopFlag == 1 {

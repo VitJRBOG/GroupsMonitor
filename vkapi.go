@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"runtime"
 	"strings"
 	"time"
@@ -19,9 +20,9 @@ func SendVKAPIQuery(sender string, methodName string,
 	accessToken, err := GetAccessToken(methodName, subject)
 
 	// формируем url для запроса к vk api
-	url := "https://api.vk.com/method/"
-	url += methodName
-	url += "?access_token=" + accessToken.Value
+	query := "https://api.vk.com/method/"
+	query += methodName
+	query += "?access_token=" + accessToken.Value
 
 	// преобразуем массив байт в словарь
 	var f interface{}
@@ -39,11 +40,11 @@ func SendVKAPIQuery(sender string, methodName string,
 
 	// собираем url запроса из ключей и значений
 	for _, key := range keys {
-		url += "&" + key + "=" + values[key].(string)
+		query += "&" + key + "=" + url.QueryEscape(values[key].(string))
 	}
 
 	// отправляем запрос
-	requestResult, err := http.Post(url, "", nil)
+	requestResult, err := http.Post(query, "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +78,8 @@ func SendVKAPIQuery(sender string, methodName string,
 		// задержка, если слишком часто отправляются запросы
 		case "timeout error":
 			interval := 2
-			message := fmt.Sprintf("Error: %v. Timeout for %d seconds...", causeError, interval)
-			OutputMessage(sender, message)
+				message := fmt.Sprintf("Error: %v. Timeout for %d seconds...", causeError, interval)
+				OutputMessage(sender, message)
 			time.Sleep(time.Duration(interval) * time.Second)
 			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
 
@@ -200,16 +201,20 @@ func ParseAttachments(mediaContent []interface{}) []Attachment {
 		case "poll":
 			match = true
 		case "link":
-			attachment.URL = mediaItem.(map[string]interface{})["link"].(map[string]interface{})["url"].(string)
+			match = true
 		}
 
 		// если соответствует, то парсим данные в структуру
 		if match {
 			attachment.Type = typeMediaItem
-			attachment.OwnerID = int(mediaItem.(map[string]interface{})[typeMediaItem].(map[string]interface{})["owner_id"].(float64))
-			attachment.ID = int(mediaItem.(map[string]interface{})[typeMediaItem].(map[string]interface{})["id"].(float64))
-			if accessKey, exist := mediaItem.(map[string]interface{})[typeMediaItem].(map[string]interface{})["access_key"]; exist {
-				attachment.AccessKey = accessKey.(string)
+			if typeMediaItem == "link" {
+				attachment.URL = mediaItem.(map[string]interface{})["link"].(map[string]interface{})["url"].(string)
+			} else {
+				attachment.OwnerID = int(mediaItem.(map[string]interface{})[typeMediaItem].(map[string]interface{})["owner_id"].(float64))
+				attachment.ID = int(mediaItem.(map[string]interface{})[typeMediaItem].(map[string]interface{})["id"].(float64))
+				if accessKey, exist := mediaItem.(map[string]interface{})[typeMediaItem].(map[string]interface{})["access_key"]; exist {
+					attachment.AccessKey = accessKey.(string)
+				}
 			}
 			attachments = append(attachments, attachment)
 		}
@@ -309,76 +314,106 @@ func ParseWallPostsVkAPIMap(resp map[string]interface{}) []WallPost {
 func MakeMessageWallPost(sender string, subject Subject,
 	wallPostMonitorParam WallPostMonitorParam, wallPost WallPost) (string, error) {
 
-	// собираем сигнатуру сообщения:
+	// собираем данные для сигнатуры сообщения:
 	// тип поста
-	text := fmt.Sprintf("New %v\n", wallPost.PostType)
+	postType := fmt.Sprintf("%v", wallPost.PostType)
 
 	// где он был обнаружен
-	if string(string(wallPost.OwnerID)[0]) == "-" {
-		locationHyperlink, err := GetCommunityInfo(sender, subject, wallPost.OwnerID)
+	var locationHyperlink string
+	if wallPost.OwnerID < 0 {
+		vkCommunity, err := GetCommunityInfo(sender, subject, wallPost.OwnerID)
+		locationHyperlink = MakeCommunityHyperlink(vkCommunity)
 		if err != nil {
 			return "", err
 		}
-		text += fmt.Sprintf("Location: %v\n", locationHyperlink)
 	} else {
-		locationHyperlink, err := GetUserInfo(sender, subject, wallPost.OwnerID)
+		vkUser, err := GetUserInfo(sender, subject, wallPost.OwnerID)
+		locationHyperlink = MakeUserHyperlink(vkUser)
 		if err != nil {
 			return "", err
 		}
-		text += fmt.Sprintf("Location: %v\n", locationHyperlink)
 	}
 
 	// кто автор, если это пользователь
-	if string(string(wallPost.OwnerID)[0]) == "-" {
-		authorHyperlink := "[no_data]"
-		text += fmt.Sprintf("Author: %v\n", authorHyperlink)
+	var authorHyperlink string
+	if wallPost.FromID < 0 {
+		authorHyperlink = "[no_data]"
 	} else {
-		authorHyperlink, err := GetUserInfo(sender, subject, wallPost.FromID)
+		vkUser, err := GetUserInfo(sender, subject, wallPost.FromID)
+		authorHyperlink = MakeUserHyperlink(vkUser)
 		if err != nil {
 			return "", err
 		}
-		text += fmt.Sprintf("Author: %v\n", authorHyperlink)
 	}
 
 	// и когда был создан
 	var creationDate string
 	creationDate = UnixTimeStampToDate(wallPost.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
-	text += fmt.Sprintf("Created: %v\n\n", creationDate)
-
-	// добавляем текст поста, если он есть
-	if len(wallPost.Text) > 0 {
-		text += fmt.Sprintf("%v\n", wallPost.Text)
-	}
 
 	// формируем строку с прикреплениями
 	var attachments string
+	var link string
 	if len(wallPost.Attachments) > 0 {
 		for _, attachment := range wallPost.Attachments {
+			// отдельно проверим прикрепленную к посту ссылку
 			if attachment.Type == "link" {
-				text += fmt.Sprintf("%v\n", attachment.URL)
-			} else {
-				attachments = fmt.Sprintf("%v%d_%d", wallPost.PostType, wallPost.OwnerID, wallPost.ID)
+				link = attachment.URL
+			} else { // если не ссылка, значит - всё остальное
+				attachments = fmt.Sprintf("%v%d_%d", attachment.Type, attachment.OwnerID, attachment.ID)
 				if len(attachment.AccessKey) > 0 {
 					attachments += fmt.Sprintf("_%v", attachment.AccessKey)
 				}
+				// заранее добавляем запятую, чтобы следующее прикрепление не слилось к предыдущим
 				attachments += ","
 			}
 		}
-		if string(attachments[len(attachments)-1]) == "," {
-			attachments = string(attachments[0 : len(attachments)-2])
+
+		// если кроме ссылки в прикреплениях было что-то еще, то нужно удалить лишнюю запятую в конце строки
+		if len(attachments) > 0 {
+			if string(attachments[len(attachments)-1]) == "," {
+				attachments = string(attachments[0 : len(attachments)-1])
+			}
 		}
 	}
 
-	// добавляем в текст сообщения ссылку на пост
-	text += fmt.Sprintf("\n%v%d_%d", wallPost.PostType, wallPost.OwnerID, wallPost.ID)
+	// собираем ссылку на пост
+	postURL := fmt.Sprintf("https://vk.com/wall%d_%d", wallPost.OwnerID, wallPost.ID)
 
-	// формируем строку с данными для карты
+	// добавляем подготовленные фрагменты сообщения в общий текст
+	// сначала сигнатуру
+	text := fmt.Sprintf("New %v\\nLocation: %v\\nAuthor: %v\\nCreated: %v",
+		postType, locationHyperlink, authorHyperlink, creationDate)
+
+	// затем основной текст поста, если он есть
+	if len(wallPost.Text) > 0 {
+		text += fmt.Sprintf("\\n\\n%v", wallPost.Text)
+	}
+
+	// потом прикрепленную ссылку, если она есть
+	if len(link) > 0 {
+		if len(wallPost.Text) == 0 {
+			text += "\\n"
+		}
+		text += fmt.Sprintf("\\n%v", link)
+	}
+
+	// и ссылку на сам пост
+	text += fmt.Sprintf("\\n\\n%v", postURL)
+
+	// далее формируем строку с данными для карты
 	jsonDump := fmt.Sprintf(`{
-		"peer_id": %v,
-		"text": "%v",
-		"attachment": "%v",
+		"peer_id": "%d",
+		"message": "%v",
 		"v": "5.68"
-	}`, string(wallPostMonitorParam.SendTo), text, attachments)
+	`, wallPostMonitorParam.SendTo, text)
+
+	// если прикрепления были, то добавляем их в json-строку отдельно
+	if len(attachments) > 0 {
+		jsonDump += fmt.Sprintf(`, "attachment": "%v"`, attachments)
+	}
+
+	// закрываем карту
+	jsonDump += "}"
 
 	return jsonDump, nil
 }
@@ -393,11 +428,13 @@ type VKCommunity struct {
 // GetCommunityInfo получает название сообщества по его id
 func GetCommunityInfo(sender string, subject Subject, groupID int) (VKCommunity, error) {
 	var vkCommunity VKCommunity
+
 	// формируем json запроса к vk api
 	jsonDump := fmt.Sprintf(`{
-		"group_ids": %v,
-		"v": "5.95"
-	}`, groupID)
+		"group_ids": "%v",
+		"v": "%v"
+	}`, groupID*-1, // умножаем на -1, потому что id группы в этом методе должен быть без минуса
+		"5.95")
 	values, err := MakeJSON(jsonDump)
 	if err != nil {
 		return vkCommunity, err
@@ -413,7 +450,7 @@ func GetCommunityInfo(sender string, subject Subject, groupID int) (VKCommunity,
 	groupInfo := response["response"].([]interface{})[0]
 
 	// собираем данные о сообществе из ответа сервера
-	vkCommunity.ID = groupInfo.(map[string]interface{})["id"].(int)
+	vkCommunity.ID = int(groupInfo.(map[string]interface{})["id"].(float64))
 	vkCommunity.Name = groupInfo.(map[string]interface{})["name"].(string)
 	vkCommunity.ScreenName = groupInfo.(map[string]interface{})["screen_name"].(string)
 
@@ -433,10 +470,9 @@ func GetUserInfo(sender string, subject Subject, userID int) (VKUser, error) {
 
 	// формируем json запроса к vk api
 	jsonDump := fmt.Sprintf(`{
-		"user_ids": %v,
-		"v": "5.95"
-	}`, userID)
-	fmt.Println(string(userID))
+		"user_ids": "%v",
+		"v": "%v"
+	}`, userID, "5.95")
 	values, err := MakeJSON(jsonDump)
 	if err != nil {
 		return vkUser, err
@@ -452,7 +488,7 @@ func GetUserInfo(sender string, subject Subject, userID int) (VKUser, error) {
 	userInfo := response["response"].([]interface{})[0]
 
 	// собираем данные о сообществе из ответа сервера
-	vkUser.ID = userInfo.(map[string]interface{})["id"].(int)
+	vkUser.ID = int(userInfo.(map[string]interface{})["id"].(float64))
 	vkUser.FirstName = userInfo.(map[string]interface{})["first_name"].(string)
 	vkUser.LastName = userInfo.(map[string]interface{})["last_name"].(string)
 

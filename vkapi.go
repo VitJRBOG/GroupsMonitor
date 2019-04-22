@@ -388,6 +388,8 @@ func MakeMessageWallPost(sender string, subject Subject,
 
 	// затем основной текст поста, если он есть
 	if len(wallPost.Text) > 0 {
+		// но сначала экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
+		wallPost.Text = strings.Replace(wallPost.Text, "\n", "\\n", -1)
 		text += fmt.Sprintf("\\n\\n%v", wallPost.Text)
 	}
 

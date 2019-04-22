@@ -73,6 +73,10 @@ func WallPostMonitor(subject Subject) error {
 					return err
 				}
 
+				// выводим в консоль сообщение о новом посте
+				outputReportAboutNewWallPost(sender, wallPost)
+			}
+
 			// обновляем дату последнего проверенного поста в БД
 			if err := UpdateDBWallPostMonitorLastDate(subject.ID, wallPost.Date, wallPostMonitorParam); err != nil {
 				return err
@@ -103,6 +107,14 @@ func checkTargetWallPost(wallPostMonitorParam WallPostMonitorParam, wallPost Wal
 
 	return match, nil
 }
+
+// outputReportAboutNewWallPost выводит сообщение о новом посте
+func outputReportAboutNewWallPost(sender string, wallPost WallPost) {
+	creationDate := UnixTimeStampToDate(wallPost.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	message := fmt.Sprintf("New %v at %v.", wallPost.PostType, creationDate)
+	OutputMessage(sender, message)
+}
+
 // WallPost хранит данные о посте со стены
 type WallPost struct {
 	ID          int          `json:"id"`

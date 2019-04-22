@@ -115,7 +115,7 @@ func outputReportAboutNewWallPost(sender string, wallPost WallPost) {
 	OutputMessage(sender, message)
 }
 
-// WallPost хранит данные о посте со стены
+// WallPost - структура для данных о посте со стены
 type WallPost struct {
 	ID          int          `json:"id"`
 	OwnerID     int          `json:"owner_id"`
@@ -241,8 +241,7 @@ func makeMessageWallPost(sender string, subject Subject,
 	}
 
 	// и когда был создан
-	var creationDate string
-	creationDate = UnixTimeStampToDate(wallPost.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(wallPost.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
 
 	// формируем строку с прикреплениями
 	var attachments string

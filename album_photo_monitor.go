@@ -271,6 +271,9 @@ func makeMessageAlbumPhoto(sender string, subject Subject,
 	// и добавляем ссылку на саму фотку
 	text += fmt.Sprintf("\\n\\n%v", photoURL)
 
+	// экранируем все апострофы, чтобы не сломали нам json.Unmarshal
+	text = strings.Replace(text, `"`, `\"`, -1)
+
 	// далее формируем строку с данными для карты
 	jsonDump := fmt.Sprintf(`{
 		"peer_id": "%d",

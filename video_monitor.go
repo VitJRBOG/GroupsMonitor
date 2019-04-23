@@ -199,6 +199,9 @@ func makeMessageVideo(sender string, subject Subject,
 	// и добавляем ссылку на само видео
 	text += fmt.Sprintf("\\n\\n%v", videoURL)
 
+	// экранируем все апострофы, чтобы не сломали нам json.Unmarshal
+	text = strings.Replace(text, `"`, `\"`, -1)
+
 	// далее формируем строку с данными для карты
 	jsonDump := fmt.Sprintf(`{
 		"peer_id": "%d",

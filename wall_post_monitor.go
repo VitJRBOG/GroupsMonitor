@@ -295,6 +295,9 @@ func makeMessageWallPost(sender string, subject Subject,
 	// и ссылку на сам пост
 	text += fmt.Sprintf("\\n\\n%v", postURL)
 
+	// экранируем все апострофы, чтобы не сломали нам json.Unmarshal
+	text = strings.Replace(text, `"`, `\"`, -1)
+
 	// далее формируем строку с данными для карты
 	jsonDump := fmt.Sprintf(`{
 		"peer_id": "%d",

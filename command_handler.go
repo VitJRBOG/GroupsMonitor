@@ -71,25 +71,42 @@ func stopThreads(threads []*Thread) {
 
 	// пробегаем по всем потокам и выставляем флаги на остановку
 	for _, thread := range threads {
-		thread.StopFlag = 1
+		if thread != nil {
+			thread.StopFlag = 1
+		}
 	}
 
 	repeats := 60
 
-	// перебираем список с данными о потоках и определяем количество работающих потоков
-	var cantStop int
-	for _, thread := range threads {
-		if thread != nil {
-			cantStop++
-		}
-	}
-
 	// проверяем успешность остановки потоков
 	for i := 0; i < repeats; i++ {
 
+		// определяем количество живых потоков
+		var alive int
+		for _, thread := range threads {
+			if thread != nil {
+				alive++
+			}
+		}
+
+		// если цикл повторился, то проверяем успешность завершения работы потоков
+		if i > 0 {
+			// если остались работающие потоки, то вызываем задержку
+			if alive > 0 {
+				interval := 1
+				time.Sleep(time.Duration(interval) * time.Second)
+			} else {
+				// если работающих потоков не осталось, то сообщаем об этом пользователю и завершаем работу
+				sender := "Core"
+				message := "All threads is stopped. Quit..."
+				OutputMessage(sender, message)
+				os.Exit(0)
+			}
+		}
+
 		// если имеются работающие потоки, то проверяем результат их остановки
-		if cantStop > 0 {
-			for _, thread := range threads {
+		if alive > 0 {
+			for j, thread := range threads {
 
 				// если поток имеет статус stopped, то обнуляем ссылку на него и сообщаем пользователю об успехе
 				if thread != nil {
@@ -97,25 +114,10 @@ func stopThreads(threads []*Thread) {
 						sender := thread.Name
 						message := "OK! Monitoring is stopped!"
 						OutputMessage(sender, message)
-						thread = nil
-						cantStop--
+						threads[j] = nil
 					}
 				}
 			}
-		}
-
-		// если остались работающие потоки, то вызываем задержку
-		// если все потоки завершились, то сообщаем об этом пользователю и завершаем работу
-		if cantStop > 0 {
-			interval := 1
-			time.Sleep(time.Duration(interval) * time.Second)
-		} else {
-
-			// если работающих потоков не осталось, то сообщаем об этом пользователю и завершаем работу
-			sender := "Core"
-			message := "All threads is stopped. Quit..."
-			OutputMessage(sender, message)
-			os.Exit(0)
 		}
 	}
 

@@ -102,13 +102,13 @@ func MakeThreads() ([]*Thread, error) {
 func threadsStatusMonitoring(threads []*Thread) {
 
 	// перебираем структуры с данными о потоках
-	for _, thread := range threads {
+	for j, thread := range threads {
 
 		// если статус потока "error", то сообщаем об этом пользователю
 		if thread.Status == "error" {
 			message := "WARNING! Thread is stopped with error!"
 			OutputMessage(thread.Name, message)
-			thread = nil
+			threads[j] = nil
 		}
 	}
 
@@ -146,7 +146,6 @@ func wallPostMonitoring(threadData *Thread, subject Subject, wallPostMonitorPara
 
 			// периодически проверяем, был ли выставлен флаг остановки
 			if threadData.StopFlag == 1 {
-
 				// если был, то меняем статус потока на "stopped" и завершаем его работу
 				threadData.Status = "stopped"
 				runtime.Goexit()
@@ -185,7 +184,6 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject, albumPhotoMonitor
 
 			// периодически проверяем, был ли выставлен флаг остановки
 			if threadData.StopFlag == 1 {
-
 				// если был, то меняем статус потока на "stopped" и завершаем его работу
 				threadData.Status = "stopped"
 				runtime.Goexit()
@@ -224,7 +222,6 @@ func videoMonitoring(threadData *Thread, subject Subject, videoMonitorParam Vide
 
 			// периодически проверяем, был ли выставлен флаг остановки
 			if threadData.StopFlag == 1 {
-
 				// если был, то меняем статус потока на "stopped" и завершаем его работу
 				threadData.Status = "stopped"
 				runtime.Goexit()

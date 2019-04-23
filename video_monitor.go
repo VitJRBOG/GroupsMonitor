@@ -112,13 +112,13 @@ func getVideos(sender string, subject Subject, videoMonitorParam VideoMonitorPar
 		return videos, err
 	}
 
-	videos = parseVideoVkAPIMap(response["response"].(map[string]interface{}))
+	videos = ParseVideoVkAPIMap(response["response"].(map[string]interface{}))
 
 	return videos, nil
 }
 
-// parseVideoVkAPIMap извлекает данные о видео из полученной карты vk api
-func parseVideoVkAPIMap(resp map[string]interface{}) []Video {
+// ParseVideoVkAPIMap извлекает данные о видео из полученной карты vk api
+func ParseVideoVkAPIMap(resp map[string]interface{}) []Video {
 	var videos []Video
 
 	// перебираем элементы с данными о фотографиях

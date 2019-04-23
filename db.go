@@ -499,3 +499,67 @@ func UpdateDBPhotoCommentMonitorLastDate(subjectID int, newLastDate int) error {
 
 	return nil
 }
+
+// VideoCommentMonitorParam - структура для полей из таблицы video_comment_monitor
+type VideoCommentMonitorParam struct {
+	ID             int `json:"id"`
+	SubjectID      int `json:"subject_id"`
+	NeedMonitoring int `json:"need_monitoring"`
+	VideosCount    int `json:"videos_count"`
+	Interval       int `json:"interval"`
+	CommentsCount  int `json:"comments_count"`
+	SendTo         int `json:"send_to"`
+	LastDate       int `json:"last_date"`
+}
+
+// SelectDBVideoCommentMonitorParam извлекает поля из таблицы video_comment_monitor
+func SelectDBVideoCommentMonitorParam(subjectID int) (VideoCommentMonitorParam, error) {
+	var videoCommentMonitorParam VideoCommentMonitorParam
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return videoCommentMonitorParam, err
+	}
+
+	// читаем данные из БД
+	query := fmt.Sprintf("SELECT * FROM video_comment_monitor WHERE subject_id=%d", subjectID)
+	rows, err := db.Query(query)
+	defer rows.Close()
+	if err != nil {
+		return videoCommentMonitorParam, err
+	}
+
+	// считываем данные из rows
+	for rows.Next() {
+		err = rows.Scan(&videoCommentMonitorParam.ID, &videoCommentMonitorParam.SubjectID,
+			&videoCommentMonitorParam.NeedMonitoring, &videoCommentMonitorParam.VideosCount,
+			&videoCommentMonitorParam.Interval, &videoCommentMonitorParam.CommentsCount,
+			&videoCommentMonitorParam.SendTo, &videoCommentMonitorParam.LastDate)
+		if err != nil {
+			return videoCommentMonitorParam, err
+		}
+	}
+
+	return videoCommentMonitorParam, nil
+}
+
+// UpdateDBVideoCommentMonitorLastDate обновляет значение в поле таблицы video_comment_monitor
+func UpdateDBVideoCommentMonitorLastDate(subjectID int, newLastDate int) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE video_comment_monitor SET last_date=%d WHERE subject_id=%d`,
+		newLastDate, subjectID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

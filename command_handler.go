@@ -74,10 +74,9 @@ func stopThreads(threads []*Thread) {
 		thread.StopFlag = 1
 	}
 
-	// проверяем успешность остановки потоков
 	repeats := 60
 
-	cantStop := len(threads)
+	// перебираем список с данными о потоках и определяем количество работающих потоков
 	var cantStop int
 	for _, thread := range threads {
 		if thread != nil {
@@ -85,12 +84,14 @@ func stopThreads(threads []*Thread) {
 		}
 	}
 
+	// проверяем успешность остановки потоков
 	for i := 0; i < repeats; i++ {
 
+		// если имеются работающие потоки, то проверяем результат их остановки
 		if cantStop > 0 {
 			for _, thread := range threads {
 
-			// если поток имеет статус stopped, то обнуляем ссылку на него
+				// если поток имеет статус stopped, то обнуляем ссылку на него и сообщаем пользователю об успехе
 				if thread != nil {
 					if thread.Status == "stopped" {
 						sender := thread.Name
@@ -110,6 +111,7 @@ func stopThreads(threads []*Thread) {
 			time.Sleep(time.Duration(interval) * time.Second)
 		} else {
 
+			// если работающих потоков не осталось, то сообщаем об этом пользователю и завершаем работу
 			sender := "Core"
 			message := "All threads is stopped. Quit..."
 			OutputMessage(sender, message)

@@ -76,26 +76,40 @@ func stopThreads(threads []*Thread) {
 
 	// проверяем успешность остановки потоков
 	repeats := 60
+
 	cantStop := len(threads)
+	var cantStop int
+	for _, thread := range threads {
+		if thread != nil {
+			cantStop++
+		}
+	}
+
 	for i := 0; i < repeats; i++ {
-		for _, thread := range threads {
+
+		if cantStop > 0 {
+			for _, thread := range threads {
+
 			// если поток имеет статус stopped, то обнуляем ссылку на него
-			if thread != nil {
-				if thread.Status == "stopped" {
-					sender := thread.Name
-					message := "OK! Monitoring is stopped!"
-					OutputMessage(sender, message)
-					thread = nil
-					cantStop--
+				if thread != nil {
+					if thread.Status == "stopped" {
+						sender := thread.Name
+						message := "OK! Monitoring is stopped!"
+						OutputMessage(sender, message)
+						thread = nil
+						cantStop--
+					}
 				}
 			}
 		}
+
 		// если остались работающие потоки, то вызываем задержку
 		// если все потоки завершились, то сообщаем об этом пользователю и завершаем работу
 		if cantStop > 0 {
 			interval := 1
 			time.Sleep(time.Duration(interval) * time.Second)
 		} else {
+
 			sender := "Core"
 			message := "All threads is stopped. Quit..."
 			OutputMessage(sender, message)

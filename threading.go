@@ -53,21 +53,35 @@ func MakeThreads() ([]*Thread, error) {
 		// wall_post_comment_monitor
 	}
 
-	//
-	// тут нужен поток с функцией проверки жизни остальных потоков
-	//
+	if len(threads) > 0 {
+		go threadsStatusMonitoring(threads)
+	}
 
 	return threads, nil
 }
 
-func wallPostMonitoring(threadData *Thread, subject Subject, wallPostMonitorParam WallPostMonitorParam) {
+func threadsStatusMonitoring(threads []*Thread) {
+	for _, thread := range threads {
+		if thread.Status == "error" {
+			message := "WARNING! Thread is stopped with error!"
+			OutputMessage(thread.Name, message)
+			thread = nil
+		}
+	}
+	time.Sleep(10 * time.Second)
+}
+
+func wallPostMonitoring(threadData *Thread, subject Subject, wallPostMonitorParam WallPostMonitorParam) error {
 	sender := threadData.Name
 	message := "Started..."
 	OutputMessage(sender, message)
 	interval := wallPostMonitorParam.Interval
 	for true {
 		if err := WallPostMonitor(subject); err != nil {
-			ErrorHandler(err)
+			message := fmt.Sprintf("Error: %v", err)
+			OutputMessage(threadData.Name, message)
+			threadData.Status = "error"
+			return err
 		}
 		for i := 0; i < interval; i++ {
 			time.Sleep(1 * time.Second)
@@ -77,16 +91,20 @@ func wallPostMonitoring(threadData *Thread, subject Subject, wallPostMonitorPara
 			}
 		}
 	}
+	return nil
 }
 
-func albumPhotoMonitoring(threadData *Thread, subject Subject, albumPhotoMonitorParam AlbumPhotoMonitorParam) {
+func albumPhotoMonitoring(threadData *Thread, subject Subject, albumPhotoMonitorParam AlbumPhotoMonitorParam) error {
 	sender := threadData.Name
 	message := "Started..."
 	OutputMessage(sender, message)
 	interval := albumPhotoMonitorParam.Interval
 	for true {
 		if err := AlbumPhotoMonitor(subject); err != nil {
-			ErrorHandler(err)
+			message := fmt.Sprintf("Error: %v", err)
+			OutputMessage(threadData.Name, message)
+			threadData.Status = "error"
+			return err
 		}
 		for i := 0; i < interval; i++ {
 			time.Sleep(1 * time.Second)
@@ -96,4 +114,5 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject, albumPhotoMonitor
 			}
 		}
 	}
+	return nil
 }

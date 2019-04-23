@@ -437,3 +437,65 @@ func UpdateDBVideoMonitorLastDate(subjectID int, newLastDate int) error {
 
 	return nil
 }
+
+// PhotoCommentMonitorParam - структура для полей из таблицы photo_comment_monitor
+type PhotoCommentMonitorParam struct {
+	ID             int `json:"id"`
+	SubjectID      int `json:"subject_id"`
+	NeedMonitoring int `json:"need_monitoring"`
+	CommentsCount  int `json:"comments_count"`
+	LastDate       int `json:"last_date"`
+	Interval       int `json:"interval"`
+	SendTo         int `json:"send_to"`
+}
+
+// SelectDBPhotoCommentMonitorParam извлекает поля из таблицы photo_comment_monitor
+func SelectDBPhotoCommentMonitorParam(subjectID int) (PhotoCommentMonitorParam, error) {
+	var photoCommentMonitorParam PhotoCommentMonitorParam
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return photoCommentMonitorParam, err
+	}
+
+	// читаем данные из БД
+	query := fmt.Sprintf("SELECT * FROM photo_comment_monitor WHERE subject_id=%d", subjectID)
+	rows, err := db.Query(query)
+	defer rows.Close()
+	if err != nil {
+		return photoCommentMonitorParam, err
+	}
+
+	// считываем данные из rows
+	for rows.Next() {
+		err = rows.Scan(&photoCommentMonitorParam.ID, &photoCommentMonitorParam.SubjectID,
+			&photoCommentMonitorParam.NeedMonitoring, &photoCommentMonitorParam.CommentsCount,
+			&photoCommentMonitorParam.LastDate, &photoCommentMonitorParam.Interval,
+			&photoCommentMonitorParam.SendTo)
+		if err != nil {
+			return photoCommentMonitorParam, err
+		}
+	}
+
+	return photoCommentMonitorParam, nil
+}
+
+// UpdateDBPhotoCommentMonitorLastDate обновляет значение в поле таблицы photo_comment_monitor
+func UpdateDBPhotoCommentMonitorLastDate(subjectID int, newLastDate int) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE photo_comment_monitor SET last_date=%d WHERE subject_id=%d`, newLastDate, subjectID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

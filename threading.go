@@ -82,7 +82,25 @@ func MakeThreads() ([]*Thread, error) {
 			go videoMonitoring(&thread, subject, videoMonitorParam)
 			threads = append(threads, &thread)
 		}
-		// photo_comment_monitor
+
+		// получаем из БД параметры для модуля мониторинга комментариев под фотографиями
+		photoCommentMonitorParam, err := SelectDBPhotoCommentMonitorParam(subject.ID)
+		if err != nil {
+			return threads, err
+		}
+
+		// проверяем параметр и определяем, нужно ли запускать этот модуль
+		if photoCommentMonitorParam.NeedMonitoring == 1 {
+
+			// создаем структуру с данными о потоке и наполняем ее данными
+			var thread Thread
+			thread.Name = fmt.Sprintf("%v's photo comment monitoring", subject.Name)
+			thread.Status = "alive"
+
+			// запускаем поток
+			go photoCommentMonitoring(&thread, subject, photoCommentMonitorParam)
+			threads = append(threads, &thread)
+		}
 		// video_comment_monitor
 		// topic_monitor
 		// wall_post_comment_monitor
@@ -206,6 +224,45 @@ func videoMonitoring(threadData *Thread, subject Subject, videoMonitorParam Vide
 
 		// запускаем функцию мониторинга
 		if err := VideoMonitor(subject); err != nil {
+
+			// если функция вернула ошибку, то сообщаем об этом пользователю
+			message := fmt.Sprintf("Error: %v", err)
+			OutputMessage(threadData.Name, message)
+
+			// и меняем статус на "error"
+			threadData.Status = "error"
+			return err
+		}
+
+		// после успешного завершения работы функции мониторинга включаем режим ожидания
+		for i := 0; i < interval; i++ {
+			time.Sleep(1 * time.Second)
+
+			// периодически проверяем, был ли выставлен флаг остановки
+			if threadData.StopFlag == 1 {
+				// если был, то меняем статус потока на "stopped" и завершаем его работу
+				threadData.Status = "stopped"
+				runtime.Goexit()
+			}
+		}
+	}
+	return nil
+}
+
+func photoCommentMonitoring(threadData *Thread, subject Subject,
+	photoCommentMonitorParam PhotoCommentMonitorParam) error {
+
+	// сообщаем пользователю о запуске модуля
+	sender := threadData.Name
+	message := "Started..."
+	OutputMessage(sender, message)
+
+	// получаем значение интервала между итерациями и запускаем бесконечный цикл
+	interval := photoCommentMonitorParam.Interval
+	for true {
+
+		// запускаем функцию мониторинга
+		if err := PhotoCommentMonitor(subject); err != nil {
 
 			// если функция вернула ошибку, то сообщаем об этом пользователю
 			message := fmt.Sprintf("Error: %v", err)

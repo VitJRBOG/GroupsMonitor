@@ -563,3 +563,67 @@ func UpdateDBVideoCommentMonitorLastDate(subjectID int, newLastDate int) error {
 
 	return nil
 }
+
+// TopicMonitorParam - структура для полей из таблицы topic_monitor
+type TopicMonitorParam struct {
+	ID             int `json:"id"`
+	SubjectID      int `json:"subject_id"`
+	NeedMonitoring int `json:"need_monitoring"`
+	TopicsCount    int `json:"topics_count"`
+	CommentsCount  int `json:"comments_count"`
+	Interval       int `json:"interval"`
+	SendTo         int `json:"send_to"`
+	LastDate       int `json:"last_date"`
+}
+
+// SelectDBTopicMonitorParam извлекает поля из таблицы topic_monitor
+func SelectDBTopicMonitorParam(subjectID int) (TopicMonitorParam, error) {
+	var topicMonitorParam TopicMonitorParam
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return topicMonitorParam, err
+	}
+
+	// читаем данные из БД
+	query := fmt.Sprintf("SELECT * FROM topic_monitor WHERE subject_id=%d", subjectID)
+	rows, err := db.Query(query)
+	defer rows.Close()
+	if err != nil {
+		return topicMonitorParam, err
+	}
+
+	// считываем данные из rows
+	for rows.Next() {
+		err = rows.Scan(&topicMonitorParam.ID, &topicMonitorParam.SubjectID,
+			&topicMonitorParam.NeedMonitoring, &topicMonitorParam.TopicsCount,
+			&topicMonitorParam.CommentsCount, &topicMonitorParam.Interval,
+			&topicMonitorParam.SendTo, &topicMonitorParam.LastDate)
+		if err != nil {
+			return topicMonitorParam, err
+		}
+	}
+
+	return topicMonitorParam, nil
+}
+
+// UpdateDBTopicMonitorLastDate обновляет значение в поле таблицы topic_monitor
+func UpdateDBTopicMonitorLastDate(subjectID int, newLastDate int) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE topic_monitor SET last_date=%d WHERE subject_id=%d`,
+		newLastDate, subjectID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

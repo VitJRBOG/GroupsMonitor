@@ -120,7 +120,26 @@ func MakeThreads() ([]*Thread, error) {
 			go videoCommentMonitoring(&thread, subject, videoCommentMonitorParam)
 			threads = append(threads, &thread)
 		}
-		// topic_monitor
+
+		// получаем из БД параметры для модуля мониторинга комментариев в топиках обсуждений
+		topicMonitorParam, err := SelectDBTopicMonitorParam(subject.ID)
+		if err != nil {
+			return threads, err
+		}
+
+		// проверяем параметр и определяем, нужно ли запускать этот модуль
+		if topicMonitorParam.NeedMonitoring == 1 {
+
+			// создаем структуру с данными о потоке и наполняем ее данными
+			var thread Thread
+			thread.Name = fmt.Sprintf("%v's topic monitoring", subject.Name)
+			thread.Status = "alive"
+
+			// запускаем поток
+			go topicMonitoring(&thread, subject, topicMonitorParam)
+			threads = append(threads, &thread)
+		}
+
 		// wall_post_comment_monitor
 	}
 
@@ -320,6 +339,45 @@ func videoCommentMonitoring(threadData *Thread, subject Subject,
 
 		// запускаем функцию мониторинга
 		if err := VideoCommentMonitor(subject); err != nil {
+
+			// если функция вернула ошибку, то сообщаем об этом пользователю
+			message := fmt.Sprintf("Error: %v", err)
+			OutputMessage(threadData.Name, message)
+
+			// и меняем статус на "error"
+			threadData.Status = "error"
+			return err
+		}
+
+		// после успешного завершения работы функции мониторинга включаем режим ожидания
+		for i := 0; i < interval; i++ {
+			time.Sleep(1 * time.Second)
+
+			// периодически проверяем, был ли выставлен флаг остановки
+			if threadData.StopFlag == 1 {
+				// если был, то меняем статус потока на "stopped" и завершаем его работу
+				threadData.Status = "stopped"
+				runtime.Goexit()
+			}
+		}
+	}
+	return nil
+}
+
+func topicMonitoring(threadData *Thread, subject Subject,
+	topicMonitorParam TopicMonitorParam) error {
+
+	// сообщаем пользователю о запуске модуля
+	sender := threadData.Name
+	message := "Started..."
+	OutputMessage(sender, message)
+
+	// получаем значение интервала между итерациями и запускаем бесконечный цикл
+	interval := topicMonitorParam.Interval
+	for true {
+
+		// запускаем функцию мониторинга
+		if err := TopicMonitor(subject); err != nil {
 
 			// если функция вернула ошибку, то сообщаем об этом пользователю
 			message := fmt.Sprintf("Error: %v", err)

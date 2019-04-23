@@ -29,6 +29,9 @@ func SendVKAPIQuery(sender string, methodName string,
 
 	// получаем токен доступа для данного метода vk api, субъекта и модуля мониторинга
 	accessToken, err := GetAccessToken(methodName, subject, monitor.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	// формируем url для запроса к vk api
 	query := "https://api.vk.com/method/"

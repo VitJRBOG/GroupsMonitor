@@ -375,3 +375,65 @@ func UpdateDBAlbumPhotoMonitorLastDate(subjectID int, newLastDate int,
 
 	return nil
 }
+
+// VideoMonitorParam - структура для полей из таблицы video_monitor
+type VideoMonitorParam struct {
+	ID             int `json:"id"`
+	SubjectID      int `json:"subject_id"`
+	NeedMonitoring int `json:"need_monitoring"`
+	SendTo         int `json:"send_to"`
+	Interval       int `json:"interval"`
+	LastDate       int `json:"last_date"`
+	VideoCount     int `json:"video_count"`
+}
+
+// SelectDBVideoMonitorParam извлекает поля из таблицы video_monitor
+func SelectDBVideoMonitorParam(subjectID int) (VideoMonitorParam, error) {
+	var videoMonitorParam VideoMonitorParam
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return videoMonitorParam, err
+	}
+
+	// читаем данные из БД
+	query := fmt.Sprintf("SELECT * FROM video_monitor WHERE subject_id=%d", subjectID)
+	rows, err := db.Query(query)
+	defer rows.Close()
+	if err != nil {
+		return videoMonitorParam, err
+	}
+
+	// считываем данные из rows
+	for rows.Next() {
+		err = rows.Scan(&videoMonitorParam.ID, &videoMonitorParam.SubjectID,
+			&videoMonitorParam.NeedMonitoring, &videoMonitorParam.SendTo,
+			&videoMonitorParam.VideoCount, &videoMonitorParam.LastDate,
+			&videoMonitorParam.Interval)
+		if err != nil {
+			return videoMonitorParam, err
+		}
+	}
+
+	return videoMonitorParam, nil
+}
+
+// UpdateDBVideoMonitorLastDate обновляет значение в поле таблицы video_monitor
+func UpdateDBVideoMonitorLastDate(subjectID int, newLastDate int) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE video_monitor SET last_date=%d WHERE subject_id=%d`, newLastDate, subjectID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

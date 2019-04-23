@@ -214,14 +214,14 @@ func makeMessageWallPost(sender string, subject Subject,
 
 	// где он был обнаружен
 	var locationHyperlink string
-	if wallPost.OwnerID < 0 {
-		vkCommunity, err := GetCommunityInfo(sender, subject, wallPost.OwnerID)
+	if subject.SubjectID < 0 {
+		vkCommunity, err := GetCommunityInfo(sender, subject, subject.SubjectID)
 		locationHyperlink = MakeCommunityHyperlink(vkCommunity)
 		if err != nil {
 			return "", err
 		}
 	} else {
-		vkUser, err := GetUserInfo(sender, subject, wallPost.OwnerID)
+		vkUser, err := GetUserInfo(sender, subject, subject.SubjectID)
 		locationHyperlink = MakeUserHyperlink(vkUser)
 		if err != nil {
 			return "", err

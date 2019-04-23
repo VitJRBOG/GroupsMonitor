@@ -221,14 +221,14 @@ func makeMessageAlbumPhoto(sender string, subject Subject,
 
 	// где находится
 	var locationHyperlink string
-	if albumPhoto.OwnerID < 0 {
-		vkCommunity, err := GetCommunityInfo(sender, subject, albumPhoto.OwnerID)
+	if subject.SubjectID < 0 {
+		vkCommunity, err := GetCommunityInfo(sender, subject, subject.SubjectID)
 		locationHyperlink = MakeCommunityHyperlink(vkCommunity)
 		if err != nil {
 			return "", err
 		}
 	} else {
-		vkUser, err := GetUserInfo(sender, subject, albumPhoto.OwnerID)
+		vkUser, err := GetUserInfo(sender, subject, subject.SubjectID)
 		locationHyperlink = MakeUserHyperlink(vkUser)
 		if err != nil {
 			return "", err

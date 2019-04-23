@@ -1,19 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"time"
 )
 
 func main() {
 	threads, err := MakeThreads()
 	if err != nil {
-		ErrorHandler(err)
+		errorHandler(err)
 	}
 	if err := ListenUserCommands(threads); err != nil {
-		ErrorHandler(err)
+		errorHandler(err)
 	}
 }
 
-func ErrorHandler(err error) {
-	log.Fatal(err)
+// errorHandler обработчик ошибок
+func errorHandler(err error) {
+	date := UnixTimeStampToDate(int(time.Now().Unix()))
+	log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
 }

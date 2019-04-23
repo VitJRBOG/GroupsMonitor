@@ -9,7 +9,7 @@ import (
 func AlbumPhotoMonitor(subject Subject) error {
 	sender := fmt.Sprintf("%v's album photo monitoring", subject.Name)
 
-	// запрашиваем структуру с параметрами модуля мониторинга постов
+	// запрашиваем структуру с параметрами модуля мониторинга фотографий
 	albumPhotoMonitorParam, err := SelectDBAlbumPhotoMonitorParam(subject.ID)
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func AlbumPhotoMonitor(subject Subject) error {
 				return err
 			}
 
-			// выводим в консоль сообщение о новом посте
+			// выводим в консоль сообщение о новой фотографии
 			outputReportAboutNewAlbumPhoto(sender, albumPhoto)
 
 			// обновляем дату последнего проверенного поста в БД

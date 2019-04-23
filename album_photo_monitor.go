@@ -23,6 +23,9 @@ func AlbumPhotoMonitor(subject Subject) error {
 
 	// запрашиваем фотографии из этих альбомов
 	albumsPhotos, err := getAlbumsPhotos(sender, subject, albumPhotoMonitorParam, albums)
+	if err != nil {
+		return err
+	}
 
 	var targetAlbumsPhotos []AlbumPhoto
 

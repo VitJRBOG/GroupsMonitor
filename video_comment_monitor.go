@@ -23,6 +23,9 @@ func VideoCommentMonitor(subject Subject) error {
 
 	// запрашиваем комментарии из этих видео
 	videoComments, err := getVideoComments(sender, subject, videoCommentMonitorParam, videos)
+	if err != nil {
+		return err
+	}
 
 	var targetVideoComments []VideoComment
 

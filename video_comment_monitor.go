@@ -9,7 +9,7 @@ import (
 func VideoCommentMonitor(subject Subject) error {
 	sender := fmt.Sprintf("%v's video comment monitoring", subject.Name)
 
-	// запрашиваем структуру с параметрами модуля мониторинга фотографий
+	// запрашиваем структуру с параметрами модуля мониторинга комментариев под видео
 	videoCommentMonitorParam, err := SelectDBVideoCommentMonitorParam(subject.ID)
 	if err != nil {
 		return err
@@ -71,10 +71,10 @@ func VideoCommentMonitor(subject Subject) error {
 				return err
 			}
 
-			// выводим в консоль сообщение о новой фотографии
+			// выводим в консоль сообщение о новом комментарии
 			outputReportAboutNewVideoComment(sender, videoComment)
 
-			// обновляем дату последнего проверенного поста в БД
+			// обновляем дату последнего проверенного комментария в БД
 			if err := UpdateDBVideoCommentMonitorLastDate(subject.ID, videoComment.Date); err != nil {
 				return err
 			}
@@ -196,7 +196,7 @@ func parseVideoCommentVkAPIMap(resp map[string]interface{}, video Video) []Video
 	return videoComments
 }
 
-// makeMessageAlbumPhoto собирает сообщение с данными о комментарии
+// makeMessageVideoComment собирает сообщение с данными о комментарии
 func makeMessageVideoComment(sender string, subject Subject,
 	videoCommentMonitorParam VideoCommentMonitorParam, videoComment VideoComment) (string, error) {
 	// собираем данные для сигнатуры сообщения:

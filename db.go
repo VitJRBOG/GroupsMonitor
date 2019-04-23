@@ -171,16 +171,15 @@ func SelectDBSubjects() ([]Subject, error) {
 	return subjects, nil
 }
 
-// Method - структура для полей из таблицы method
-type Method struct {
-	ID            int
-	Name          string
-	SubjectID     int
-	AccessTokenID int
+// Monitor - структура для полей из таблицы monitor
+type Monitor struct {
+	ID        int
+	Name      string
+	SubjectID int
 }
 
-// SelectDBMethod извлекает из таблицы method поле с указанным name и subject_id
-func SelectDBMethod(methodName string, subjectID int) (*Method, error) {
+// SelectDBMonitor извлекает из таблицы monitor поле с указанными name и subject_id
+func SelectDBMonitor(monitorName string, subjectID int) (*Monitor, error) {
 	// получаем ссылку на db
 	db, err := openDB()
 	defer db.Close()
@@ -189,7 +188,45 @@ func SelectDBMethod(methodName string, subjectID int) (*Method, error) {
 	}
 
 	// читаем данные из БД
-	query := fmt.Sprintf("SELECT * FROM method WHERE name='%v' and subject_id=%d", methodName, subjectID)
+	query := fmt.Sprintf("SELECT * FROM monitor WHERE name='%v' and subject_id=%d", monitorName, subjectID)
+	rows, err := db.Query(query)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	// считываем данные из rows
+	var monitor Monitor
+	for rows.Next() {
+		err = rows.Scan(&monitor.ID, &monitor.Name, &monitor.SubjectID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &monitor, nil
+}
+
+// Method - структура для полей из таблицы method
+type Method struct {
+	ID            int
+	Name          string
+	SubjectID     int
+	AccessTokenID int
+	MonitorID     int
+}
+
+// SelectDBMethod извлекает из таблицы method поле с указанным name, subject_id и monitor_id
+func SelectDBMethod(methodName string, subjectID, monitorID int) (*Method, error) {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	// читаем данные из БД
+	query := fmt.Sprintf("SELECT * FROM method WHERE name='%v' and subject_id=%d and monitor_id=%d",
+		methodName, subjectID, monitorID)
 	rows, err := db.Query(query)
 	defer rows.Close()
 	if err != nil {
@@ -200,7 +237,8 @@ func SelectDBMethod(methodName string, subjectID int) (*Method, error) {
 	var method Method
 	for rows.Next() {
 		err = rows.Scan(&method.ID, &method.Name,
-			&method.SubjectID, &method.AccessTokenID)
+			&method.SubjectID, &method.AccessTokenID,
+			&method.MonitorID)
 		if err != nil {
 			return nil, err
 		}

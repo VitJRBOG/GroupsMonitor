@@ -54,11 +54,11 @@ func MakeParamList(jsonDump string) (ListFromDB, error) {
 }
 
 // GetAccessToken получает токен доступа из БД по названию метода и id субъекта
-func GetAccessToken(methodName string, subject Subject) (AccessToken, error) {
+func GetAccessToken(methodName string, subject Subject, monitorID int) (AccessToken, error) {
 	var accessToken AccessToken
 
 	// запрашиваем из БД данные по методу vk api
-	method, err := SelectDBMethod(methodName, subject.ID)
+	method, err := SelectDBMethod(methodName, subject.ID, monitorID)
 	if err != nil {
 		return accessToken, err
 	}

@@ -16,8 +16,19 @@ import (
 func SendVKAPIQuery(sender string, methodName string,
 	valuesBytes []byte, subject Subject) (map[string]interface{}, error) {
 
-	// получаем токен доступа для данного метода vk api и субъекта
-	accessToken, err := GetAccessToken(methodName, subject)
+	// получаем имя текущего модуля мониторинга для запроса в БД
+	monitorName := strings.Replace(sender, subject.Name+"'s ", "", 1)
+	monitorName = strings.Replace(monitorName, "monitoring", "monitor", 1)
+	monitorName = strings.Replace(monitorName, " ", "_", -1)
+
+	// получаем данные о текущем модуле мониторинга
+	monitor, err := SelectDBMonitor(monitorName, subject.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// получаем токен доступа для данного метода vk api, субъекта и модуля мониторинга
+	accessToken, err := GetAccessToken(methodName, subject, monitor.ID)
 
 	// формируем url для запроса к vk api
 	query := "https://api.vk.com/method/"

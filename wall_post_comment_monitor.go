@@ -68,7 +68,7 @@ func WallPostCommentMonitor(subject Subject) error {
 		for _, wallPostComment := range targetWallPostComments {
 
 			// проверяем комментарий на соответствие критериям
-			match, err := checkTargetWallPostComment(wallPostCommentMonitorParam, wallPostComment)
+			match, err := checkTargetWallPostComment(wallPostCommentMonitorParam, wallPostComment, subject)
 			if err != nil {
 				return err
 			}
@@ -104,14 +104,53 @@ func WallPostCommentMonitor(subject Subject) error {
 
 // checkTargetWallPostComment проверяет комментарий на соответствие критериям
 func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonitorParam,
-	wallPostComment WallPostComment) (bool, error) {
+	wallPostComment WallPostComment, subject Subject) (bool, error) {
 	var match bool
 
 	if wallPostCommentMonitorParam.MonitoringAll == 1 {
 		match = true
 		return match, nil
 	}
+	match, err = checkByUsersNames(wallPostCommentMonitorParam, wallPostComment, subject)
+	if err != nil {
+		return false, err
+	}
+	if match == true {
+		return match, nil
+	}
 	return match, nil
+}
+
+func checkByUsersNames(wallPostCommentMonitorParam WallPostCommentMonitorParam,
+	wallPostComment WallPostComment, subject Subject) (bool, error) {
+	sender := fmt.Sprintf("%v's wall post comment monitoring", subject.Name)
+	usersNames, err := MakeParamList(wallPostCommentMonitorParam.UsersNamesForMonitoring)
+	if err != nil {
+		return false, err
+	}
+	if len(usersNames.List) > 0 {
+		for _, userName := range usersNames.List {
+			var authorHyperlink string
+			if wallPostComment.FromID < 0 {
+				vkCommunity, err := GetCommunityInfo(sender, subject, wallPostComment.FromID)
+				authorHyperlink = MakeCommunityHyperlink(vkCommunity)
+				if err != nil {
+					return false, err
+				}
+			} else {
+				vkUser, err := GetUserInfo(sender, subject, wallPostComment.FromID)
+				authorHyperlink = MakeUserHyperlink(vkUser)
+				if err != nil {
+					return false, err
+				}
+			}
+			match := strings.Contains(authorHyperlink, userName)
+			if match {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 // outputReportAboutNewWallPostComment выводит сообщение о новом комментарии под постом
 func outputReportAboutNewWallPostComment(sender string, wallPostComment WallPostComment) {

@@ -120,7 +120,15 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 		return match, nil
 	}
 
-	match, err := checkByUsersIDs(wallPostCommentMonitorParam, wallPostComment)
+	match, err := checkByAttachments(wallPostCommentMonitorParam, wallPostComment)
+	if err != nil {
+		return false, err
+	}
+	if match == true {
+		return match, nil
+	}
+
+	match, err = checkByUsersIDs(wallPostCommentMonitorParam, wallPostComment)
 	if err != nil {
 		return false, err
 	}
@@ -152,6 +160,26 @@ func checkByCommentsFromCommunity(wallPostComment WallPostComment) bool {
 		return true
 	}
 	return false
+}
+
+func checkByAttachments(wallPostCommentMonitorParam WallPostCommentMonitorParam,
+	wallPostComment WallPostComment) (bool, error) {
+	if len(wallPostComment.Attachments) > 0 {
+		attachmentsFromParam, err := MakeParamList(wallPostCommentMonitorParam.AttachmentsTypesForMonitoring)
+		if err != nil {
+			return false, err
+		}
+		if len(attachmentsFromParam.List) > 0 {
+			for _, attachmentFromParam := range attachmentsFromParam.List {
+				for _, attachment := range wallPostComment.Attachments {
+					if attachment.Type == attachmentFromParam {
+						return true, nil
+					}
+				}
+			}
+		}
+	}
+	return false, nil
 }
 
 func checkByUsersIDs(wallPostCommentMonitorParam WallPostCommentMonitorParam,

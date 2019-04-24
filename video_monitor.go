@@ -77,7 +77,7 @@ func VideoMonitor(subject Subject) error {
 
 // outputReportAboutNewVideo выводит сообщение о новом видео
 func outputReportAboutNewVideo(sender string, video Video) {
-	creationDate := UnixTimeStampToDate(video.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(video.Date)
 	message := fmt.Sprintf("New video at %v.", creationDate)
 	OutputMessage(sender, message)
 }
@@ -176,7 +176,7 @@ func makeMessageVideo(sender string, subject Subject,
 	}
 
 	// и когда загрузил
-	creationDate := UnixTimeStampToDate(video.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(video.Date)
 
 	// формируем строку с прикреплением
 	attachment := fmt.Sprintf("video%d_%d", video.OwnerID, video.ID)

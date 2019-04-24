@@ -86,7 +86,7 @@ func AlbumPhotoMonitor(subject Subject) error {
 
 // outputReportAboutNewAlbumPhoto выводит сообщение о новой фотографии
 func outputReportAboutNewAlbumPhoto(sender string, albumPhoto AlbumPhoto) {
-	creationDate := UnixTimeStampToDate(albumPhoto.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(albumPhoto.Date)
 	message := fmt.Sprintf("New photo in %v at %v.", albumPhoto.AlbumName, creationDate)
 	OutputMessage(sender, message)
 }
@@ -251,7 +251,7 @@ func makeMessageAlbumPhoto(sender string, subject Subject,
 	}
 
 	// и когда загрузил
-	creationDate := UnixTimeStampToDate(albumPhoto.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(albumPhoto.Date)
 
 	// формируем строку с прикреплением
 	attachment := fmt.Sprintf("photo%d_%d", albumPhoto.OwnerID, albumPhoto.ID)

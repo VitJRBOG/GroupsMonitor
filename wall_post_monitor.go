@@ -110,7 +110,7 @@ func checkTargetWallPost(wallPostMonitorParam WallPostMonitorParam, wallPost Wal
 
 // outputReportAboutNewWallPost выводит сообщение о новом посте
 func outputReportAboutNewWallPost(sender string, wallPost WallPost) {
-	creationDate := UnixTimeStampToDate(wallPost.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(wallPost.Date)
 	message := fmt.Sprintf("New %v at %v.", wallPost.PostType, creationDate)
 	OutputMessage(sender, message)
 }
@@ -241,7 +241,7 @@ func makeMessageWallPost(sender string, subject Subject,
 	}
 
 	// и когда был создан
-	creationDate := UnixTimeStampToDate(wallPost.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(wallPost.Date)
 
 	// формируем строку с прикреплениями
 	var attachments string

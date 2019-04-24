@@ -81,7 +81,7 @@ func PhotoCommentMonitor(subject Subject) error {
 
 // outputReportAboutNewPhotoComment выводит сообщение о новом комментарии под фотографией
 func outputReportAboutNewPhotoComment(sender string, photoComment PhotoComment) {
-	creationDate := UnixTimeStampToDate(photoComment.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(photoComment.Date)
 	message := fmt.Sprintf("New comment under photo at %v.", creationDate)
 	OutputMessage(sender, message)
 }
@@ -189,7 +189,7 @@ func makeMessagePhotoComment(sender string, subject Subject,
 	}
 
 	// и когда был создан
-	creationDate := UnixTimeStampToDate(photoComment.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(photoComment.Date)
 
 	// формируем строку с прикреплениями
 	var attachments string

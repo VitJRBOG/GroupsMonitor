@@ -86,7 +86,7 @@ func VideoCommentMonitor(subject Subject) error {
 
 // outputReportAboutNewVideoComment выводит сообщение о новом комментарии
 func outputReportAboutNewVideoComment(sender string, videoComment VideoComment) {
-	creationDate := UnixTimeStampToDate(videoComment.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(videoComment.Date)
 	message := fmt.Sprintf("New comment under video at %v.", creationDate)
 	OutputMessage(sender, message)
 }
@@ -233,7 +233,7 @@ func makeMessageVideoComment(sender string, subject Subject,
 	}
 
 	// и когда был создан
-	creationDate := UnixTimeStampToDate(videoComment.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(videoComment.Date)
 
 	// формируем строку с прикреплениями
 	var attachments string

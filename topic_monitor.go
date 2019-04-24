@@ -100,7 +100,7 @@ func TopicMonitor(subject Subject) error {
 
 // outputReportAboutNewTopicComment выводит сообщение о новом комментарии
 func outputReportAboutNewTopicComment(sender string, topicComment TopicComment) {
-	creationDate := UnixTimeStampToDate(topicComment.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(topicComment.Date)
 	message := fmt.Sprintf("New comment in %v at %v.", topicComment.TopicName, creationDate)
 	OutputMessage(sender, message)
 }
@@ -277,7 +277,7 @@ func makeMessageTopicComment(sender string, subject Subject,
 	}
 
 	// и когда был создан
-	creationDate := UnixTimeStampToDate(topicComment.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(topicComment.Date)
 
 	// формируем строку с прикреплениями
 	var attachments string

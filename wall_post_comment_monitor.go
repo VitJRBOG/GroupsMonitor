@@ -327,7 +327,7 @@ func checkByKeywords(wallPostCommentMonitorParam WallPostCommentMonitorParam,
 
 // outputReportAboutNewWallPostComment выводит сообщение о новом комментарии под постом
 func outputReportAboutNewWallPostComment(sender string, wallPostComment WallPostComment) {
-	creationDate := UnixTimeStampToDate(wallPostComment.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(wallPostComment.Date)
 	message := fmt.Sprintf("New comment under wall post at %v.", creationDate)
 	OutputMessage(sender, message)
 }
@@ -533,7 +533,7 @@ func makeMessageWallPostComment(sender string, subject Subject,
 	}
 
 	// и когда был создан
-	creationDate := UnixTimeStampToDate(wallPostComment.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)
+	creationDate := UnixTimeStampToDate(wallPostComment.Date)
 
 	// формируем строку с прикреплениями
 	var attachments string

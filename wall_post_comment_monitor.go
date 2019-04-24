@@ -77,20 +77,20 @@ func WallPostCommentMonitor(subject Subject) error {
 			// если соответствует, то отправляем комментарий
 			if match {
 
-			// формируем строку с данными для карты для отправки сообщения
-			messageParameters, err := makeMessageWallPostComment(sender, subject,
-				wallPostCommentMonitorParam, wallPostComment)
-			if err != nil {
-				return err
-			}
+				// формируем строку с данными для карты для отправки сообщения
+				messageParameters, err := makeMessageWallPostComment(sender, subject,
+					wallPostCommentMonitorParam, wallPostComment)
+				if err != nil {
+					return err
+				}
 
-			// отправляем сообщение с полученными данными
-			if err := SendMessage(sender, messageParameters, subject); err != nil {
-				return err
-			}
+				// отправляем сообщение с полученными данными
+				if err := SendMessage(sender, messageParameters, subject); err != nil {
+					return err
+				}
 
-			// выводим в консоль сообщение о новом комментарии под постом
-			outputReportAboutNewWallPostComment(sender, wallPostComment)
+				// выводим в консоль сообщение о новом комментарии под постом
+				outputReportAboutNewWallPostComment(sender, wallPostComment)
 			}
 
 			// обновляем дату последнего проверенного комментария в БД
@@ -128,9 +128,17 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 	if match == true {
 		return match, nil
 	}
+
+	match, err = checkByKeywords(wallPostCommentMonitorParam, wallPostComment)
+	if err != nil {
+		return false, err
+	}
+	if match == true {
+		return match, nil
+	}
+
 	return match, nil
 }
-
 
 func checkByUsersIDs(wallPostCommentMonitorParam WallPostCommentMonitorParam,
 	wallPostComment WallPostComment) (bool, error) {
@@ -183,6 +191,24 @@ func checkByUsersNames(wallPostCommentMonitorParam WallPostCommentMonitorParam,
 	}
 	return false, nil
 }
+
+func checkByKeywords(wallPostCommentMonitorParam WallPostCommentMonitorParam,
+	wallPostComment WallPostComment) (bool, error) {
+	keywords, err := MakeParamList(wallPostCommentMonitorParam.KeywordsForMonitoring)
+	if err != nil {
+		return false, err
+	}
+	if len(keywords.List) > 0 {
+		for _, keyword := range keywords.List {
+			match := strings.Contains(wallPostComment.Text, keyword)
+			if match {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
 // outputReportAboutNewWallPostComment выводит сообщение о новом комментарии под постом
 func outputReportAboutNewWallPostComment(sender string, wallPostComment WallPostComment) {
 	creationDate := UnixTimeStampToDate(wallPostComment.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)

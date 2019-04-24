@@ -152,6 +152,14 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 		return match, nil
 	}
 
+	match, err = checkBySmallComments(wallPostCommentMonitorParam, wallPostComment)
+	if err != nil {
+		return false, err
+	}
+	if match == true {
+		return match, nil
+	}
+
 	match, err = checkByKeywords(wallPostCommentMonitorParam, wallPostComment)
 	if err != nil {
 		return false, err
@@ -255,6 +263,22 @@ func checkByUsersNames(wallPostCommentMonitorParam WallPostCommentMonitorParam,
 			}
 			match := strings.Contains(authorHyperlink, userName)
 			if match {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
+func checkBySmallComments(wallPostCommentMonitorParam WallPostCommentMonitorParam,
+	wallPostComment WallPostComment) (bool, error) {
+	smallComments, err := MakeParamList(wallPostCommentMonitorParam.SmallCommentsForMonitoring)
+	if err != nil {
+		return false, err
+	}
+	if len(smallComments.List) > 0 {
+		for _, smallComment := range smallComments.List {
+			if wallPostComment.Text == smallComment {
 				return true, nil
 			}
 		}

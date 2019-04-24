@@ -67,6 +67,15 @@ func WallPostCommentMonitor(subject Subject) error {
 		// перебираем отсортированный список
 		for _, wallPostComment := range targetWallPostComments {
 
+			// проверяем комментарий на соответствие критериям
+			match, err := checkTargetWallPostComment(wallPostCommentMonitorParam, wallPostComment)
+			if err != nil {
+				return err
+			}
+
+			// если соответствует, то отправляем комментарий
+			if match {
+
 			// формируем строку с данными для карты для отправки сообщения
 			messageParameters, err := makeMessageWallPostComment(sender, subject,
 				wallPostCommentMonitorParam, wallPostComment)
@@ -81,8 +90,9 @@ func WallPostCommentMonitor(subject Subject) error {
 
 			// выводим в консоль сообщение о новом комментарии под постом
 			outputReportAboutNewWallPostComment(sender, wallPostComment)
+			}
 
-			// обновляем дату последнего проверенного поста в БД
+			// обновляем дату последнего проверенного комментария в БД
 			if err := UpdateDBWallPostCommentMonitorLastDate(subject.ID, wallPostComment.Date); err != nil {
 				return err
 			}
@@ -92,6 +102,17 @@ func WallPostCommentMonitor(subject Subject) error {
 	return nil
 }
 
+// checkTargetWallPostComment проверяет комментарий на соответствие критериям
+func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonitorParam,
+	wallPostComment WallPostComment) (bool, error) {
+	var match bool
+
+	if wallPostCommentMonitorParam.MonitoringAll == 1 {
+		match = true
+		return match, nil
+	}
+	return match, nil
+}
 // outputReportAboutNewWallPostComment выводит сообщение о новом комментарии под постом
 func outputReportAboutNewWallPostComment(sender string, wallPostComment WallPostComment) {
 	creationDate := UnixTimeStampToDate(wallPostComment.Date + 18000) // цифру изменить под свой часовой пояс (тут 5 часов)

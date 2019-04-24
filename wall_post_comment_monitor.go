@@ -113,6 +113,13 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 		return match, nil
 	}
 
+	if wallPostCommentMonitorParam.MonitorByCommunity == 1 {
+		match = checkByCommentsFromCommunity(wallPostComment)
+	}
+	if match == true {
+		return match, nil
+	}
+
 	match, err := checkByUsersIDs(wallPostCommentMonitorParam, wallPostComment)
 	if err != nil {
 		return false, err
@@ -138,6 +145,13 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 	}
 
 	return match, nil
+}
+
+func checkByCommentsFromCommunity(wallPostComment WallPostComment) bool {
+	if wallPostComment.FromID < 0 {
+		return true
+	}
+	return false
 }
 
 func checkByUsersIDs(wallPostCommentMonitorParam WallPostCommentMonitorParam,

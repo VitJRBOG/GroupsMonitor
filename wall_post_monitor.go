@@ -149,7 +149,7 @@ func getWallPosts(sender string, subject Subject, wallPostMonitorParam WallPostM
 	}
 
 	// парсим полученные данные о постах
-	wallPosts = parseWallPostsVkAPIMap(response["response"].(map[string]interface{}))
+	wallPosts = ParseWallPostsVkAPIMap(response["response"].(map[string]interface{}))
 
 	return wallPosts, nil
 }
@@ -167,8 +167,8 @@ func parseCopyHistory(copyHistory []map[string]interface{}) Attachment {
 	return attachment
 }
 
-// parseWallPostsVkAPIMap извлекает данные о постах из полученной карты vk api
-func parseWallPostsVkAPIMap(resp map[string]interface{}) []WallPost {
+// ParseWallPostsVkAPIMap извлекает данные о постах из полученной карты vk api
+func ParseWallPostsVkAPIMap(resp map[string]interface{}) []WallPost {
 	var wallPosts []WallPost
 
 	// перебираем элементы с данными о постах

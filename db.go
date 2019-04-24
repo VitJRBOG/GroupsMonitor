@@ -627,3 +627,88 @@ func UpdateDBTopicMonitorLastDate(subjectID int, newLastDate int) error {
 
 	return nil
 }
+
+// WallPostCommentMonitorParam - структура для полей из таблицы wall_post_comment_monitor
+type WallPostCommentMonitorParam struct {
+	ID                                  int    `json:"id"`
+	SubjectID                           int    `json:"subject_id"`
+	NeedMonitoring                      int    `json:"need_monitoring"`
+	PostsCount                          int    `json:"posts_count"`
+	CommentsCount                       int    `json:"comments_count"`
+	MonitoringAll                       int    `json:"monitoring_all"`
+	UsersIDsForMonitoring               string `json:"users_ids_for_monitoring"`
+	UsersNamesForMonitoring             string `json:"users_names_for_monitoring"`
+	AttachmentsTypesForMonitoring       string `json:"attachments_types_for_monitoring"`
+	UsersIDsForIgnore                   string `json:"users_ids_for_ignore"`
+	Interval                            int    `json:"interval"`
+	SendTo                              int    `json:"send_to"`
+	Filter                              string `json:"filter"`
+	LastDate                            int    `json:"last_date"`
+	KeywordsForMonitoring               string `json:"keywords_for_monitoring"`
+	SmallCommentsForMonitoring          string `json:"small_comments_for_monitoring"`
+	CharsForCharchange                  string `json:"chars_for_charchange"`
+	DigitsCountForCardNumberMonitoring  string `json:"digits_count_for_card_number_monitoring"`
+	DigitsCountForPhoneNumberMonitoring string `json:"digits_count_for_phone_number_monitoring"`
+}
+
+// SelectDBWallPostCommentMonitorParam извлекает поля из таблицы wall_post_comment_monitor
+func SelectDBWallPostCommentMonitorParam(subjectID int) (WallPostCommentMonitorParam, error) {
+	var wallPostCommentMonitorParam WallPostCommentMonitorParam
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return wallPostCommentMonitorParam, err
+	}
+
+	// читаем данные из БД
+	query := fmt.Sprintf("SELECT * FROM wall_post_comment_monitor WHERE subject_id=%d", subjectID)
+	rows, err := db.Query(query)
+	defer rows.Close()
+	if err != nil {
+		return wallPostCommentMonitorParam, err
+	}
+
+	// считываем данные из rows
+	for rows.Next() {
+		err = rows.Scan(&wallPostCommentMonitorParam.ID, &wallPostCommentMonitorParam.SubjectID,
+			&wallPostCommentMonitorParam.NeedMonitoring, &wallPostCommentMonitorParam.PostsCount,
+			&wallPostCommentMonitorParam.CommentsCount, &wallPostCommentMonitorParam.MonitoringAll,
+			&wallPostCommentMonitorParam.UsersIDsForMonitoring,
+			&wallPostCommentMonitorParam.UsersNamesForMonitoring,
+			&wallPostCommentMonitorParam.AttachmentsTypesForMonitoring,
+			&wallPostCommentMonitorParam.UsersIDsForIgnore,
+			&wallPostCommentMonitorParam.Interval, &wallPostCommentMonitorParam.SendTo,
+			&wallPostCommentMonitorParam.Filter, &wallPostCommentMonitorParam.LastDate,
+			&wallPostCommentMonitorParam.KeywordsForMonitoring,
+			&wallPostCommentMonitorParam.SmallCommentsForMonitoring,
+			&wallPostCommentMonitorParam.CharsForCharchange,
+			&wallPostCommentMonitorParam.DigitsCountForCardNumberMonitoring,
+			&wallPostCommentMonitorParam.DigitsCountForPhoneNumberMonitoring)
+		if err != nil {
+			return wallPostCommentMonitorParam, err
+		}
+	}
+
+	return wallPostCommentMonitorParam, nil
+}
+
+// UpdateDBWallPostCommentMonitorLastDate обновляет значение в поле таблицы wall_post_comment_monitor
+func UpdateDBWallPostCommentMonitorLastDate(subjectID int, newLastDate int) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE wall_post_comment_monitor SET last_date=%d WHERE subject_id=%d`,
+		newLastDate, subjectID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

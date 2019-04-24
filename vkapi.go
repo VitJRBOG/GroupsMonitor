@@ -37,6 +37,7 @@ func SendVKAPIQuery(sender string, methodName string,
 	query := "https://api.vk.com/method/"
 	query += methodName
 	query += "?access_token=" + accessToken.Value
+	query += "&lang=0" // чтобы vk api отвечал на запросы по-русски
 
 	// преобразуем массив байт в словарь
 	var f interface{}

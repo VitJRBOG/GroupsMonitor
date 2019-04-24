@@ -113,6 +113,14 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 		return match, nil
 	}
 
+	ignore, err := checkByIgnoreUsersIDs(wallPostCommentMonitorParam, wallPostComment)
+	if err != nil {
+		return false, err
+	}
+	if ignore == true {
+		return false, nil
+	}
+
 	if wallPostCommentMonitorParam.MonitorByCommunity == 1 {
 		match = checkByCommentsFromCommunity(wallPostComment)
 	}
@@ -120,7 +128,7 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 		return match, nil
 	}
 
-	match, err := checkByAttachments(wallPostCommentMonitorParam, wallPostComment)
+	match, err = checkByAttachments(wallPostCommentMonitorParam, wallPostComment)
 	if err != nil {
 		return false, err
 	}
@@ -153,6 +161,26 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 	}
 
 	return match, nil
+}
+
+func checkByIgnoreUsersIDs(wallPostCommentMonitorParam WallPostCommentMonitorParam,
+	wallPostComment WallPostComment) (bool, error) {
+	usersIDs, err := MakeParamList(wallPostCommentMonitorParam.UsersIDsForIgnore)
+	if err != nil {
+		return false, err
+	}
+	if len(usersIDs.List) > 0 {
+		for _, userID := range usersIDs.List {
+			numUser, err := strconv.Atoi(userID)
+			if err != nil {
+				return false, err
+			}
+			if wallPostComment.FromID == numUser {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 
 func checkByCommentsFromCommunity(wallPostComment WallPostComment) bool {

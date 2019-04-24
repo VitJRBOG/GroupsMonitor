@@ -649,6 +649,7 @@ type WallPostCommentMonitorParam struct {
 	CharsForCharchange                  string `json:"chars_for_charchange"`
 	DigitsCountForCardNumberMonitoring  string `json:"digits_count_for_card_number_monitoring"`
 	DigitsCountForPhoneNumberMonitoring string `json:"digits_count_for_phone_number_monitoring"`
+	MonitorByCommunity                  int    `json:"monitor_by_community"`
 }
 
 // SelectDBWallPostCommentMonitorParam извлекает поля из таблицы wall_post_comment_monitor
@@ -684,7 +685,8 @@ func SelectDBWallPostCommentMonitorParam(subjectID int) (WallPostCommentMonitorP
 			&wallPostCommentMonitorParam.SmallCommentsForMonitoring,
 			&wallPostCommentMonitorParam.CharsForCharchange,
 			&wallPostCommentMonitorParam.DigitsCountForCardNumberMonitoring,
-			&wallPostCommentMonitorParam.DigitsCountForPhoneNumberMonitoring)
+			&wallPostCommentMonitorParam.DigitsCountForPhoneNumberMonitoring,
+			&wallPostCommentMonitorParam.MonitorByCommunity)
 		if err != nil {
 			return wallPostCommentMonitorParam, err
 		}

@@ -177,6 +177,14 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 		return match, nil
 	}
 
+	match, err = checkByCardNumber(wallPostCommentMonitorParam, wallPostComment)
+	if err != nil {
+		return false, err
+	}
+	if match == true {
+		return match, nil
+	}
+
 	return match, nil
 }
 
@@ -343,6 +351,54 @@ func checkByPhoneNumber(wallPostCommentMonitorParam WallPostCommentMonitorParam,
 	if len(digitsCounts.List) > 0 {
 		reDigits := regexp.MustCompile("[0-9]+")
 		reSymbols := regexp.MustCompile("[() -]+")
+		var repeats int
+		var interrupts int
+		for i := 0; i < len(wallPostComment.Text); i++ {
+			if len(reDigits.FindAllString(string(wallPostComment.Text[i]), -1)) > 0 {
+				repeats++
+				interrupts = 0
+			} else {
+				if len(reSymbols.FindAllString(string(wallPostComment.Text[i]), -1)) > 0 {
+					if interrupts == 0 {
+						interrupts++
+					} else {
+						interrupts = 0
+						repeats = 0
+					}
+				} else {
+					repeats = 0
+					interrupts = 0
+				}
+			}
+			for _, needDigits := range digitsCounts.List {
+				numNeedDigits, err := strconv.Atoi(needDigits)
+				if err != nil {
+					return false, err
+				}
+				if repeats == numNeedDigits {
+					if i < len(wallPostComment.Text)-1 {
+						if len(reDigits.FindAllString(string(wallPostComment.Text[i+1]), -1)) == 0 {
+							return true, nil
+						}
+					} else {
+						return true, nil
+					}
+				}
+			}
+		}
+	}
+	return false, nil
+}
+
+func checkByCardNumber(wallPostCommentMonitorParam WallPostCommentMonitorParam,
+	wallPostComment WallPostComment) (bool, error) {
+	digitsCounts, err := MakeParamList(wallPostCommentMonitorParam.DigitsCountForCardNumberMonitoring)
+	if err != nil {
+		return false, err
+	}
+	if len(digitsCounts.List) > 0 {
+		reDigits := regexp.MustCompile("[0-9]+")
+		reSymbols := regexp.MustCompile("[ ]+")
 		var repeats int
 		var interrupts int
 		for i := 0; i < len(wallPostComment.Text); i++ {

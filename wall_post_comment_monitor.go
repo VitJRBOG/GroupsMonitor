@@ -152,7 +152,7 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 		return match, nil
 	}
 
-	match, err = checkBySmallComments(wallPostCommentMonitorParam, wallPostComment)
+	match, err = checkBySmallComments(wallPostCommentMonitorParam, wallPostComment, 0)
 	if err != nil {
 		return false, err
 	}
@@ -160,7 +160,7 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 		return match, nil
 	}
 
-	match, err = checkByKeywords(wallPostCommentMonitorParam, wallPostComment)
+	match, err = checkByKeywords(wallPostCommentMonitorParam, wallPostComment, 0)
 	if err != nil {
 		return false, err
 	}
@@ -271,7 +271,7 @@ func checkByUsersNames(wallPostCommentMonitorParam WallPostCommentMonitorParam,
 }
 
 func checkBySmallComments(wallPostCommentMonitorParam WallPostCommentMonitorParam,
-	wallPostComment WallPostComment) (bool, error) {
+	wallPostComment WallPostComment, step int) (bool, error) {
 	smallComments, err := MakeParamList(wallPostCommentMonitorParam.SmallCommentsForMonitoring)
 	if err != nil {
 		return false, err
@@ -283,11 +283,22 @@ func checkBySmallComments(wallPostCommentMonitorParam WallPostCommentMonitorPara
 			}
 		}
 	}
+	switch step {
+	case 0:
+		step++
+		wallPostComment.Text = CharChange(wallPostComment.Text, "lat_to_cyr")
+		return checkBySmallComments(wallPostCommentMonitorParam, wallPostComment, step)
+	case 1:
+		step++
+		wallPostComment.Text = CharChange(wallPostComment.Text, "cyr_to_lat")
+		return checkBySmallComments(wallPostCommentMonitorParam, wallPostComment, step)
+	}
+
 	return false, nil
 }
 
 func checkByKeywords(wallPostCommentMonitorParam WallPostCommentMonitorParam,
-	wallPostComment WallPostComment) (bool, error) {
+	wallPostComment WallPostComment, step int) (bool, error) {
 	keywords, err := MakeParamList(wallPostCommentMonitorParam.KeywordsForMonitoring)
 	if err != nil {
 		return false, err
@@ -300,6 +311,17 @@ func checkByKeywords(wallPostCommentMonitorParam WallPostCommentMonitorParam,
 			}
 		}
 	}
+	switch step {
+	case 0:
+		step++
+		wallPostComment.Text = CharChange(wallPostComment.Text, "lat_to_cyr")
+		return checkBySmallComments(wallPostCommentMonitorParam, wallPostComment, step)
+	case 1:
+		step++
+		wallPostComment.Text = CharChange(wallPostComment.Text, "cyr_to_lat")
+		return checkBySmallComments(wallPostCommentMonitorParam, wallPostComment, step)
+	}
+
 	return false, nil
 }
 

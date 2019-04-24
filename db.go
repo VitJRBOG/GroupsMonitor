@@ -646,7 +646,6 @@ type WallPostCommentMonitorParam struct {
 	LastDate                            int    `json:"last_date"`
 	KeywordsForMonitoring               string `json:"keywords_for_monitoring"`
 	SmallCommentsForMonitoring          string `json:"small_comments_for_monitoring"`
-	CharsForCharchange                  string `json:"chars_for_charchange"`
 	DigitsCountForCardNumberMonitoring  string `json:"digits_count_for_card_number_monitoring"`
 	DigitsCountForPhoneNumberMonitoring string `json:"digits_count_for_phone_number_monitoring"`
 	MonitorByCommunity                  int    `json:"monitor_by_community"`
@@ -683,7 +682,6 @@ func SelectDBWallPostCommentMonitorParam(subjectID int) (WallPostCommentMonitorP
 			&wallPostCommentMonitorParam.Filter, &wallPostCommentMonitorParam.LastDate,
 			&wallPostCommentMonitorParam.KeywordsForMonitoring,
 			&wallPostCommentMonitorParam.SmallCommentsForMonitoring,
-			&wallPostCommentMonitorParam.CharsForCharchange,
 			&wallPostCommentMonitorParam.DigitsCountForCardNumberMonitoring,
 			&wallPostCommentMonitorParam.DigitsCountForPhoneNumberMonitoring,
 			&wallPostCommentMonitorParam.MonitorByCommunity)

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -51,6 +52,33 @@ func MakeParamList(jsonDump string) (ListFromDB, error) {
 	}
 
 	return values, nil
+}
+
+// CharChangeChars - структура для хранение символов и их аналогий в другом языке
+type CharChangeChars struct {
+	CyrChars []string
+	LatChars []string
+}
+
+// CharChange выполняет замену символов с кириллических на латинские и наоборот
+func CharChange(text string, changeType string) string {
+	var charChangeChars CharChangeChars
+	charChangeChars.CyrChars = []string{"С", "Р", "у", "Х", "о", "р", "а", "с", "х", "Е", "е", "А", "О"}
+	charChangeChars.LatChars = []string{"C", "P", "y", "X", "o", "p", "a", "c", "x", "E", "e", "A", "O"}
+
+	// замена символов не происходит
+
+	switch changeType {
+	case "lat_to_cyr":
+		for i, symb := range charChangeChars.LatChars {
+			text = strings.Replace(text, symb, charChangeChars.CyrChars[i], -1)
+		}
+	case "cyr_to_lat":
+		for i, symb := range charChangeChars.CyrChars {
+			text = strings.Replace(text, symb, charChangeChars.LatChars[i], -1)
+		}
+	}
+	return text
 }
 
 // GetAccessToken получает токен доступа из БД по названию метода и id субъекта

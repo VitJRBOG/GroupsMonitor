@@ -111,6 +111,15 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 		match = true
 		return match, nil
 	}
+
+	match, err := checkByUsersIDs(wallPostCommentMonitorParam, wallPostComment)
+	if err != nil {
+		return false, err
+	}
+	if match == true {
+		return match, nil
+	}
+
 	match, err = checkByUsersNames(wallPostCommentMonitorParam, wallPostComment, subject)
 	if err != nil {
 		return false, err
@@ -119,6 +128,27 @@ func checkTargetWallPostComment(wallPostCommentMonitorParam WallPostCommentMonit
 		return match, nil
 	}
 	return match, nil
+}
+
+
+func checkByUsersIDs(wallPostCommentMonitorParam WallPostCommentMonitorParam,
+	wallPostComment WallPostComment) (bool, error) {
+	usersIDs, err := MakeParamList(wallPostCommentMonitorParam.UsersIDsForMonitoring)
+	if err != nil {
+		return false, err
+	}
+	if len(usersIDs.List) > 0 {
+		for _, userID := range usersIDs.List {
+			numUser, err := strconv.Atoi(userID)
+			if err != nil {
+				return false, err
+			}
+			if wallPostComment.FromID == numUser {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 
 func checkByUsersNames(wallPostCommentMonitorParam WallPostCommentMonitorParam,

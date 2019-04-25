@@ -582,9 +582,11 @@ func getWallPostComment(sender string, subject Subject,
 			return wallPostComments, err
 		}
 
-		setParentsStack(response["response"].(map[string]interface{}), &wallPostComment)
+		if _, exist := response["response"]; exist == true {
+			setParentsStack(response["response"].(map[string]interface{}), &wallPostComment)
 
-		updatedWallPostComments = append(updatedWallPostComments, wallPostComment)
+			updatedWallPostComments = append(updatedWallPostComments, wallPostComment)
+		}
 	}
 
 	return updatedWallPostComments, nil

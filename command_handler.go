@@ -25,6 +25,9 @@ func ListenUserCommands(threads []*Thread) error {
 				return err
 			}
 
+		case "restart":
+			restartThreads(threads)
+
 		// команда на нормальную остановку потоков
 		case "stop":
 			stopThreads(threads)
@@ -60,6 +63,16 @@ func updateAccessToken() error {
 	}
 
 	return nil
+}
+
+func restartThreads(threads []*Thread) {
+
+	// пробегаем по всем потокам и выставляем флаги на перезапуск потоков
+	for _, thread := range threads {
+		if thread != nil {
+			thread.StopFlag = 2
+		}
+	}
 }
 
 func stopThreads(threads []*Thread) {

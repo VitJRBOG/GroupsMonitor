@@ -109,6 +109,10 @@ func SendVKAPIQuery(sender string, methodName string,
 			time.Sleep(time.Duration(interval) * time.Second)
 			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
 
+		// выход из обработчика ошибок, если эта ошибка обрабатывается в другом месте
+		case "skip error":
+			return response, nil
+
 		// выход, если неизвестная ошибка
 		default:
 			message := fmt.Sprintf("Unknown error: %v. Exit...",
@@ -140,6 +144,11 @@ func VkAPIErrorHandler(responseError interface{}) (string, string) {
 		"no access_token passed",
 	}
 
+	// список пропускаемых ошибок
+	skipErrors := []string{
+		"comment was not found",
+	}
+
 	// извлекаем текст ошибки из словаря от vk api
 	errorMessage, _ := responseError.(map[string]interface{})["error_msg"].(string)
 
@@ -152,6 +161,11 @@ func VkAPIErrorHandler(responseError interface{}) (string, string) {
 	for _, item := range accessTokenErrors {
 		if strings.Contains(strings.ToLower(errorMessage), item) {
 			return "access token error", item
+		}
+	}
+	for _, item := range skipErrors {
+		if strings.Contains(strings.ToLower(errorMessage), item) {
+			return "skip error", item
 		}
 	}
 

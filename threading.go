@@ -17,6 +17,11 @@ type Thread struct {
 func MakeThreads() ([]*Thread, error) {
 	var threads []*Thread
 
+	// сообщаем пользователю о начале операции запуска потоков
+	sender := "Core"
+	message := "Starting threads. Please stand by..."
+	OutputMessage(sender, message)
+
 	// получаем из БД список субъектов
 	subjects, err := SelectDBSubjects()
 	if err != nil {

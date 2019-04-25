@@ -109,13 +109,6 @@ func SendVKAPIQuery(sender string, methodName string,
 			time.Sleep(time.Duration(interval) * time.Second)
 			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
 
-		// выход, если критическая ошибка
-		case "fatal error":
-			message := fmt.Sprintf("Error: %v. Exit...",
-				errorItem.(map[string]interface{})["error_msg"].(string))
-			OutputMessage(sender, message)
-			runtime.Goexit()
-
 		// выход, если неизвестная ошибка
 		default:
 			message := fmt.Sprintf("Unknown error: %v. Exit...",
@@ -147,11 +140,6 @@ func VkAPIErrorHandler(responseError interface{}) (string, string) {
 		"no access_token passed",
 	}
 
-	// список ошибок для выхода из потока
-	fatalErrors := []string{
-		"access denied",
-	}
-
 	// извлекаем текст ошибки из словаря от vk api
 	errorMessage, _ := responseError.(map[string]interface{})["error_msg"].(string)
 
@@ -164,11 +152,6 @@ func VkAPIErrorHandler(responseError interface{}) (string, string) {
 	for _, item := range accessTokenErrors {
 		if strings.Contains(strings.ToLower(errorMessage), item) {
 			return "access token error", item
-		}
-	}
-	for _, item := range fatalErrors {
-		if strings.Contains(strings.ToLower(errorMessage), item) {
-			return "fatal error", item
 		}
 	}
 

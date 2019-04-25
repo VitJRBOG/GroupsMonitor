@@ -693,6 +693,7 @@ func makeMessageWallPostComment(sender string, subject Subject,
 		// но сначала обрезаем его из-за ограничения на длину запроса
 		if len(wallPostComment.Text) > 800 {
 			wallPostComment.Text = string(wallPostComment.Text[0:800])
+			wallPostComment.Text = string(wallPostComment.Text[0:800]) + "\\n[long_text]"
 		}
 		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		wallPostComment.Text = strings.Replace(wallPostComment.Text, "\n", "\\n", -1)

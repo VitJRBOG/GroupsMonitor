@@ -229,7 +229,7 @@ func makeMessagePhotoComment(sender string, subject Subject,
 	if len(photoComment.Text) > 0 {
 		// но сначала обрезаем его из-за ограничения на длину запроса
 		if len(photoComment.Text) > 800 {
-			photoComment.Text = string(photoComment.Text[0:800])
+			photoComment.Text = string(photoComment.Text[0:800]) + "\\n[long_text]"
 		}
 		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		photoComment.Text = strings.Replace(photoComment.Text, "\n", "\\n", -1)

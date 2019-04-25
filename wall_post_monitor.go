@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -88,7 +89,50 @@ func WallPostMonitor(subject Subject) error {
 }
 
 // checkTargetWallPost проверяет пост на соответствие критериям
-func checkTargetWallPost(wallPostMonitorParam WallPostMonitorParam, wallPost WallPost) (bool, error) {
+func checkTargetWallPost(wallPostMonitorParam WallPostMonitorParam,
+	wallPost WallPost) (bool, error) {
+	var match bool
+
+	ignore, err := checkWallPostByIgnoreUsersIDs(wallPostMonitorParam, wallPost)
+	if err != nil {
+		return false, err
+	}
+	if ignore == true {
+		return false, nil
+	}
+
+	match, err = checkWallPostByKeywords(wallPostMonitorParam, wallPost)
+	if err != nil {
+		return false, err
+	}
+	if match == true {
+		return match, nil
+	}
+
+	return match, nil
+}
+
+func checkWallPostByIgnoreUsersIDs(wallPostMonitorParam WallPostMonitorParam,
+	wallPost WallPost) (bool, error) {
+	usersIDs, err := MakeParamList(wallPostMonitorParam.UsersIDsForIgnore)
+	if err != nil {
+		return false, err
+	}
+	if len(usersIDs.List) > 0 {
+		for _, userID := range usersIDs.List {
+			numUser, err := strconv.Atoi(userID)
+			if err != nil {
+				return false, err
+			}
+			if wallPost.FromID == numUser {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
+func checkWallPostByKeywords(wallPostMonitorParam WallPostMonitorParam, wallPost WallPost) (bool, error) {
 	var match bool
 	keywords, err := MakeParamList(wallPostMonitorParam.KeywordsForMonitoring)
 	if err != nil {

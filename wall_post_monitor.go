@@ -154,14 +154,15 @@ func getWallPosts(sender string, subject Subject, wallPostMonitorParam WallPostM
 	return wallPosts, nil
 }
 
-func parseCopyHistory(copyHistory []map[string]interface{}) Attachment {
+func parseCopyHistory(copyHistory []interface{}) Attachment {
 	var attachment Attachment
 
+	itemsMap := copyHistory[0].(map[string]interface{})
 	// извлекаем данные об одном единственном репосте из карты vk api
-	attachment.Type = copyHistory[0]["post_type"].(string)
-	attachment.OwnerID = copyHistory[0]["owner_id"].(int)
-	attachment.ID = copyHistory[0]["id"].(int)
-	if accessKey, exist := copyHistory[0]["access_key"]; exist {
+	attachment.Type = itemsMap["post_type"].(string)
+	attachment.OwnerID = int(itemsMap["owner_id"].(float64))
+	attachment.ID = int(itemsMap["id"].(float64))
+	if accessKey, exist := itemsMap["access_key"]; exist {
 		attachment.AccessKey = accessKey.(string)
 	}
 	return attachment
@@ -197,7 +198,7 @@ func ParseWallPostsVkAPIMap(resp map[string]interface{}) []WallPost {
 		// если есть репосты, то вызываем парсер репостов
 		if copyHistory, exist := item["copy_history"]; exist == true {
 			wallPost.Attachments = append(wallPost.Attachments, parseCopyHistory(
-				copyHistory.([]map[string]interface{})))
+				copyHistory.([]interface{})))
 		}
 		wallPosts = append(wallPosts, wallPost)
 	}

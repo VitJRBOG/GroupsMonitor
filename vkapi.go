@@ -111,10 +111,19 @@ func SendVKAPIQuery(sender string, methodName string,
 
 		// выход, если критическая ошибка
 		case "fatal error":
-			message := fmt.Sprintf("Error: %v. Exit...", causeError)
+			message := fmt.Sprintf("Error: %v. Exit...",
+				errorItem.(map[string]interface{})["error_msg"].(string))
+			OutputMessage(sender, message)
+			runtime.Goexit()
+
+		// выход, если неизвестная ошибка
+		default:
+			message := fmt.Sprintf("Unknown error: %v. Exit...",
+				errorItem.(map[string]interface{})["error_msg"].(string))
 			OutputMessage(sender, message)
 			runtime.Goexit()
 		}
+
 	}
 
 	return response, nil
@@ -148,17 +157,17 @@ func VkAPIErrorHandler(responseError interface{}) (string, string) {
 
 	// далее проверяем текст ошибки на наличие похожих в трех списках
 	for _, item := range timeoutErrors {
-		if strings.Contains(errorMessage, item) {
+		if strings.Contains(strings.ToLower(errorMessage), item) {
 			return "timeout error", item
 		}
 	}
 	for _, item := range accessTokenErrors {
-		if strings.Contains(errorMessage, item) {
+		if strings.Contains(strings.ToLower(errorMessage), item) {
 			return "access token error", item
 		}
 	}
 	for _, item := range fatalErrors {
-		if strings.Contains(errorMessage, item) {
+		if strings.Contains(strings.ToLower(errorMessage), item) {
 			return "fatal error", item
 		}
 	}

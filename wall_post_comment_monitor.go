@@ -295,7 +295,7 @@ func checkBySmallComments(wallPostCommentMonitorParam WallPostCommentMonitorPara
 	}
 	if len(smallComments.List) > 0 {
 		for _, smallComment := range smallComments.List {
-			if wallPostComment.Text == smallComment {
+			if strings.ToLower(wallPostComment.Text) == smallComment {
 				return true, nil
 			}
 		}
@@ -322,7 +322,7 @@ func checkByKeywords(wallPostCommentMonitorParam WallPostCommentMonitorParam,
 	}
 	if len(keywords.List) > 0 {
 		for _, keyword := range keywords.List {
-			match := strings.Contains(wallPostComment.Text, keyword)
+			match := strings.Contains(strings.ToLower(wallPostComment.Text), keyword)
 			if match {
 				return true, nil
 			}

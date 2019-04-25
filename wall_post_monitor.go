@@ -96,7 +96,7 @@ func checkTargetWallPost(wallPostMonitorParam WallPostMonitorParam, wallPost Wal
 	}
 	if len(keywords.List) > 0 {
 		for _, keyword := range keywords.List {
-			match = strings.Contains(wallPost.Text, keyword)
+			match = strings.Contains(strings.ToLower(wallPost.Text), keyword)
 			if match {
 				return match, nil
 			}

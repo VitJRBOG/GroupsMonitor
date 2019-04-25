@@ -159,7 +159,7 @@ func parseCopyHistory(copyHistory []interface{}) Attachment {
 
 	itemsMap := copyHistory[0].(map[string]interface{})
 	// извлекаем данные об одном единственном репосте из карты vk api
-	attachment.Type = itemsMap["post_type"].(string)
+	attachment.Type = "wall"
 	attachment.OwnerID = int(itemsMap["owner_id"].(float64))
 	attachment.ID = int(itemsMap["id"].(float64))
 	if accessKey, exist := itemsMap["access_key"]; exist {

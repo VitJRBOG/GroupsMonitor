@@ -266,7 +266,11 @@ func makeMessageAlbumPhoto(sender string, subject Subject,
 
 	// затем описание к фотографии, если оно есть
 	if len(albumPhoto.Text) > 0 {
-		// но сначала экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
+		// но сначала обрезаем его из-за ограничения на длину запроса
+		if len(albumPhoto.Text) > 800 {
+			albumPhoto.Text = string(albumPhoto.Text[0:800])
+		}
+		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		albumPhoto.Text = strings.Replace(albumPhoto.Text, "\n", "\\n", -1)
 		text += fmt.Sprintf("\\n\\n%v", albumPhoto.Text)
 	}

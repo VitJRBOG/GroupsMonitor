@@ -271,7 +271,11 @@ func makeMessageVideoComment(sender string, subject Subject,
 
 	// затем основной текст комментария, если он есть
 	if len(videoComment.Text) > 0 {
-		// но сначала экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
+		// но сначала обрезаем его из-за ограничения на длину запроса
+		if len(videoComment.Text) > 800 {
+			videoComment.Text = string(videoComment.Text[0:800])
+		}
+		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		videoComment.Text = strings.Replace(videoComment.Text, "\n", "\\n", -1)
 		text += fmt.Sprintf("\\n\\n%v", videoComment.Text)
 	}

@@ -690,7 +690,11 @@ func makeMessageWallPostComment(sender string, subject Subject,
 
 	// затем основной текст комментария, если он есть
 	if len(wallPostComment.Text) > 0 {
-		// но сначала экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
+		// но сначала обрезаем его из-за ограничения на длину запроса
+		if len(wallPostComment.Text) > 800 {
+			wallPostComment.Text = string(wallPostComment.Text[0:800])
+		}
+		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		wallPostComment.Text = strings.Replace(wallPostComment.Text, "\n", "\\n", -1)
 		text += fmt.Sprintf("\\n\\n%v", wallPostComment.Text)
 	}

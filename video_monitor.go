@@ -191,7 +191,11 @@ func makeMessageVideo(sender string, subject Subject,
 
 	// затем описание к видео, если оно есть
 	if len(video.Description) > 0 {
-		// но сначала экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
+		// но сначала обрезаем его из-за ограничения на длину запроса
+		if len(video.Description) > 800 {
+			video.Description = string(video.Description[0:800])
+		}
+		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		video.Description = strings.Replace(video.Description, "\n", "\\n", -1)
 		text += fmt.Sprintf("\\n\\n%v", video.Description)
 	}

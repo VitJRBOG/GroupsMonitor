@@ -316,7 +316,11 @@ func makeMessageTopicComment(sender string, subject Subject,
 
 	// затем основной текст комментария, если он есть
 	if len(topicComment.Text) > 0 {
-		// но сначала экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
+		// но сначала обрезаем его из-за ограничения на длину запроса
+		if len(topicComment.Text) > 800 {
+			topicComment.Text = string(topicComment.Text[0:800])
+		}
+		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		topicComment.Text = strings.Replace(topicComment.Text, "\n", "\\n", -1)
 		text += fmt.Sprintf("\\n\\n%v", topicComment.Text)
 	}

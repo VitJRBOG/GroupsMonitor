@@ -113,12 +113,20 @@ func SendVKAPIQuery(sender string, methodName string,
 
 		// задержка, если слишком часто отправляются запросы
 		case "timeout error":
-			interval := 1
-			if causeError != "many requests per second" { // такие ошибки бывают часто, поэтому сообщение пропускаем
+			if causeError != "many requests per second" {
+
+				// однотипно обработаем все ошибки, которые не "many requests per second"
+				interval := 1
 				message := fmt.Sprintf("Error: %v. Timeout for %d seconds...", causeError, interval)
 				OutputMessage(sender, message)
+				time.Sleep(time.Duration(interval) * time.Second)
+			} else {
+
+				// индивидуально обработаем ошибку "many requests per second"
+				// потому что они выскакивают регулярно
+				interval := 500
+				time.Sleep(time.Duration(interval) * time.Millisecond)
 			}
-			time.Sleep(time.Duration(interval) * time.Second)
 			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
 
 		// задержка, если токен доступа невалидный

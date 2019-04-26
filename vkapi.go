@@ -61,6 +61,26 @@ func SendVKAPIQuery(sender string, methodName string,
 	// отправляем запрос
 	requestResult, err := http.Post(query, "", nil)
 	if err != nil {
+
+		// если словил ошибку, то преобразуем ее в текст
+		errorMessage := fmt.Sprintf("%v", err)
+
+		// и отправляем в обработчик ошибок
+		typeError, _ := RequestError(errorMessage)
+
+		// потом проверяем тип полученной ошибки
+		switch typeError {
+
+		// задержка, если получена ошибка, которую можно решить таким образом
+		case "timeout error":
+			interval := 60
+			message := fmt.Sprintf("Error: %v. Timeout for %d seconds...", errorMessage, interval)
+			OutputMessage(sender, message)
+			time.Sleep(time.Duration(interval) * time.Second)
+			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
+		}
+
+		// если пойманная ошибка не обрабатывается, то возвращаем ее стандартным путем
 		return nil, err
 	}
 

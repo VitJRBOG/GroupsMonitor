@@ -2,6 +2,22 @@ package main
 
 import "strings"
 
+// RequestError проверяет ошибки при отправке запроса
+func RequestError(errorMessage string) (string, string) {
+	timeoutErrors := []string{
+		"connection reset by peer",
+	}
+
+	// проверяем текст ошибки на наличие похожих в списке
+	for _, item := range timeoutErrors {
+		if strings.Contains(strings.ToLower(errorMessage), item) {
+			return "timeout error", item
+		}
+	}
+
+	return "unknown error", ""
+}
+
 // VkAPIError проверяет ошибки от VK API
 func VkAPIError(errorMessage string) (string, string) {
 	// список ошибок для вызова таймаута

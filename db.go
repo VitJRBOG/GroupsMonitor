@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3" // иначе драйвер для работы с SQLite не работает
 )
@@ -18,8 +19,29 @@ func openDB() (*sql.DB, error) {
 	// читаем db sqlite
 	db, err := sql.Open("sqlite3", pathToDB)
 	if err != nil {
+		// если словил ошибку, то преобразуем ее в текст
+		errorMessage := fmt.Sprintf("%v", err)
+
+		// и отправляем в обработчик ошибок
+		typeError, causeError := DBIOError(errorMessage)
+
+		// потом проверяем тип полученной ошибки
+		switch typeError {
+
+		// задержка, если получена ошибка, которую можно решить таким образом
+		case "timeout error":
+			interval := 1
+			sender := "Database"
+			message := fmt.Sprintf("Error: %v. Timeout for %d seconds...", causeError, interval)
+			OutputMessage(sender, message)
+			time.Sleep(time.Duration(interval) * time.Second)
+			return openDB()
+		}
+
+		// если пойманная ошибка не обрабатывается, то возвращаем ее стандартным путем
 		return nil, err
 	}
+
 	return db, nil
 }
 

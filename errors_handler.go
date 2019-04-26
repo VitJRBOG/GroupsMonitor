@@ -2,6 +2,22 @@ package main
 
 import "strings"
 
+// DBIOError проверяет ошибки при вводе/выводе данных из БД
+func DBIOError(errorMessage string) (string, string) {
+	timeoutErrors := []string{
+		"database is locked",
+	}
+
+	// проверяем текст ошибки на наличие похожих в списке
+	for _, item := range timeoutErrors {
+		if strings.Contains(strings.ToLower(errorMessage), item) {
+			return "timeout error", item
+		}
+	}
+
+	return "unknown error", ""
+}
+
 // RequestError проверяет ошибки при отправке запроса
 func RequestError(errorMessage string) (string, string) {
 	timeoutErrors := []string{

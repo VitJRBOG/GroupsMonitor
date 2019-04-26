@@ -67,6 +67,11 @@ func updateAccessToken() error {
 
 func restartThreads(threads []*Thread) {
 
+	// сообщаем пользователю о перезапуске алгоритмов мониторинга
+	sender := "Core"
+	message := "Restarting monitors. Please stand by..."
+	OutputMessage(sender, message)
+
 	// пробегаем по всем потокам и выставляем флаги на перезапуск потоков
 	for _, thread := range threads {
 		if thread != nil {

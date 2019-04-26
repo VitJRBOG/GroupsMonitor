@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 	"time"
 )
 
@@ -224,9 +223,8 @@ func wallPostMonitoring(threadData *Thread, subject Subject, wallPostMonitorPara
 
 			// периодически проверяем, был ли выставлен флаг остановки
 			if threadData.StopFlag == 1 {
-				// если был, то меняем статус потока на "stopped" и завершаем его работу
+				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
-				runtime.Goexit()
 			}
 
 			// если выставлен флаг рестарта, то выходим из режима ожидания
@@ -234,6 +232,11 @@ func wallPostMonitoring(threadData *Thread, subject Subject, wallPostMonitorPara
 				threadData.StopFlag = 0
 				break
 			}
+		}
+
+		// если статус потока "stopped", то завершаем его работу
+		if threadData.Status == "stopped" {
+			return nil
 		}
 	}
 	return nil
@@ -268,9 +271,8 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject, albumPhotoMonitor
 
 			// периодически проверяем, был ли выставлен флаг остановки
 			if threadData.StopFlag == 1 {
-				// если был, то меняем статус потока на "stopped" и завершаем его работу
+				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
-				runtime.Goexit()
 			}
 
 			// если выставлен флаг рестарта, то выходим из режима ожидания
@@ -278,6 +280,11 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject, albumPhotoMonitor
 				threadData.StopFlag = 0
 				break
 			}
+		}
+
+		// если статус потока "stopped", то завершаем его работу
+		if threadData.Status == "stopped" {
+			return nil
 		}
 	}
 	return nil
@@ -312,9 +319,8 @@ func videoMonitoring(threadData *Thread, subject Subject, videoMonitorParam Vide
 
 			// периодически проверяем, был ли выставлен флаг остановки
 			if threadData.StopFlag == 1 {
-				// если был, то меняем статус потока на "stopped" и завершаем его работу
+				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
-				runtime.Goexit()
 			}
 
 			// если выставлен флаг рестарта, то выходим из режима ожидания
@@ -322,6 +328,11 @@ func videoMonitoring(threadData *Thread, subject Subject, videoMonitorParam Vide
 				threadData.StopFlag = 0
 				break
 			}
+		}
+
+		// если статус потока "stopped", то завершаем его работу
+		if threadData.Status == "stopped" {
+			return nil
 		}
 	}
 	return nil
@@ -357,9 +368,8 @@ func photoCommentMonitoring(threadData *Thread, subject Subject,
 
 			// периодически проверяем, был ли выставлен флаг остановки
 			if threadData.StopFlag == 1 {
-				// если был, то меняем статус потока на "stopped" и завершаем его работу
+				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
-				runtime.Goexit()
 			}
 
 			// если выставлен флаг рестарта, то выходим из режима ожидания
@@ -367,6 +377,11 @@ func photoCommentMonitoring(threadData *Thread, subject Subject,
 				threadData.StopFlag = 0
 				break
 			}
+		}
+
+		// если статус потока "stopped", то завершаем его работу
+		if threadData.Status == "stopped" {
+			return nil
 		}
 	}
 	return nil
@@ -402,9 +417,8 @@ func videoCommentMonitoring(threadData *Thread, subject Subject,
 
 			// периодически проверяем, был ли выставлен флаг остановки
 			if threadData.StopFlag == 1 {
-				// если был, то меняем статус потока на "stopped" и завершаем его работу
+				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
-				runtime.Goexit()
 			}
 
 			// если выставлен флаг рестарта, то выходим из режима ожидания
@@ -412,6 +426,11 @@ func videoCommentMonitoring(threadData *Thread, subject Subject,
 				threadData.StopFlag = 0
 				break
 			}
+		}
+
+		// если статус потока "stopped", то завершаем его работу
+		if threadData.Status == "stopped" {
+			return nil
 		}
 	}
 	return nil
@@ -447,9 +466,8 @@ func topicMonitoring(threadData *Thread, subject Subject,
 
 			// периодически проверяем, был ли выставлен флаг остановки
 			if threadData.StopFlag == 1 {
-				// если был, то меняем статус потока на "stopped" и завершаем его работу
+				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
-				runtime.Goexit()
 			}
 
 			// если выставлен флаг рестарта, то выходим из режима ожидания
@@ -457,6 +475,11 @@ func topicMonitoring(threadData *Thread, subject Subject,
 				threadData.StopFlag = 0
 				break
 			}
+		}
+
+		// если статус потока "stopped", то завершаем его работу
+		if threadData.Status == "stopped" {
+			return nil
 		}
 	}
 	return nil
@@ -492,9 +515,8 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject,
 
 			// периодически проверяем, был ли выставлен флаг остановки
 			if threadData.StopFlag == 1 {
-				// если был, то меняем статус потока на "stopped" и завершаем его работу
+				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
-				runtime.Goexit()
 			}
 
 			// если выставлен флаг рестарта, то выходим из режима ожидания
@@ -502,6 +524,11 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject,
 				threadData.StopFlag = 0
 				break
 			}
+		}
+
+		// если статус потока "stopped", то завершаем его работу
+		if threadData.Status == "stopped" {
+			return nil
 		}
 	}
 	return nil

@@ -5,7 +5,7 @@ import "strings"
 // RequestError проверяет ошибки при отправке запроса
 func RequestError(errorMessage string) (string, string) {
 	timeoutErrors := []string{
-		"connection reset by peer",
+		"connection reset by peer", "operation timed out",
 	}
 
 	// проверяем текст ошибки на наличие похожих в списке

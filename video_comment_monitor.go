@@ -244,7 +244,7 @@ func makeMessageVideoComment(sender string, subject Subject,
 			if attachment.Type == "link" {
 				link = attachment.URL
 			} else { // если не ссылка, значит - всё остальное
-				attachments = fmt.Sprintf("%v%d_%d", attachment.Type, attachment.OwnerID, attachment.ID)
+				attachments += fmt.Sprintf("%v%d_%d", attachment.Type, attachment.OwnerID, attachment.ID)
 				if len(attachment.AccessKey) > 0 {
 					attachments += fmt.Sprintf("_%v", attachment.AccessKey)
 				}

@@ -208,8 +208,9 @@ func wallPostMonitoring(threadData *Thread, subject Subject, wallPostMonitorPara
 		if err := WallPostMonitor(subject); err != nil {
 
 			// если функция вернула ошибку, то сообщаем об этом пользователю
-			message := fmt.Sprintf("Error: %v", err)
-			OutputMessage(threadData.Name, message)
+			sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
+			message := fmt.Sprintf("ERROR: %v", err)
+			OutputMessage(sender, message)
 
 			// и меняем статус на "error"
 			threadData.Status = "error"
@@ -256,9 +257,9 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject, albumPhotoMonitor
 		// запускаем функцию мониторинга
 		if err := AlbumPhotoMonitor(subject); err != nil {
 
-			// если функция вернула ошибку, то сообщаем об этом пользователю
-			message := fmt.Sprintf("Error: %v", err)
-			OutputMessage(threadData.Name, message)
+			sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
+			message := fmt.Sprintf("ERROR: %v", err)
+			OutputMessage(sender, message)
 
 			// и меняем статус на "error"
 			threadData.Status = "error"
@@ -304,9 +305,9 @@ func videoMonitoring(threadData *Thread, subject Subject, videoMonitorParam Vide
 		// запускаем функцию мониторинга
 		if err := VideoMonitor(subject); err != nil {
 
-			// если функция вернула ошибку, то сообщаем об этом пользователю
-			message := fmt.Sprintf("Error: %v", err)
-			OutputMessage(threadData.Name, message)
+			sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
+			message := fmt.Sprintf("ERROR: %v", err)
+			OutputMessage(sender, message)
 
 			// и меняем статус на "error"
 			threadData.Status = "error"
@@ -353,9 +354,9 @@ func photoCommentMonitoring(threadData *Thread, subject Subject,
 		// запускаем функцию мониторинга
 		if err := PhotoCommentMonitor(subject); err != nil {
 
-			// если функция вернула ошибку, то сообщаем об этом пользователю
-			message := fmt.Sprintf("Error: %v", err)
-			OutputMessage(threadData.Name, message)
+			sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
+			message := fmt.Sprintf("ERROR: %v", err)
+			OutputMessage(sender, message)
 
 			// и меняем статус на "error"
 			threadData.Status = "error"
@@ -402,9 +403,9 @@ func videoCommentMonitoring(threadData *Thread, subject Subject,
 		// запускаем функцию мониторинга
 		if err := VideoCommentMonitor(subject); err != nil {
 
-			// если функция вернула ошибку, то сообщаем об этом пользователю
-			message := fmt.Sprintf("Error: %v", err)
-			OutputMessage(threadData.Name, message)
+			sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
+			message := fmt.Sprintf("ERROR: %v", err)
+			OutputMessage(sender, message)
 
 			// и меняем статус на "error"
 			threadData.Status = "error"
@@ -451,9 +452,9 @@ func topicMonitoring(threadData *Thread, subject Subject,
 		// запускаем функцию мониторинга
 		if err := TopicMonitor(subject); err != nil {
 
-			// если функция вернула ошибку, то сообщаем об этом пользователю
-			message := fmt.Sprintf("Error: %v", err)
-			OutputMessage(threadData.Name, message)
+			sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
+			message := fmt.Sprintf("ERROR: %v", err)
+			OutputMessage(sender, message)
 
 			// и меняем статус на "error"
 			threadData.Status = "error"
@@ -500,9 +501,9 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject,
 		// запускаем функцию мониторинга
 		if err := WallPostCommentMonitor(subject); err != nil {
 
-			// если функция вернула ошибку, то сообщаем об этом пользователю
-			message := fmt.Sprintf("Error: %v", err)
-			OutputMessage(threadData.Name, message)
+			sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
+			message := fmt.Sprintf("ERROR: %v", err)
+			OutputMessage(sender, message)
 
 			// и меняем статус на "error"
 			threadData.Status = "error"

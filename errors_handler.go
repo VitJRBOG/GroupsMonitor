@@ -10,7 +10,7 @@ func DBIOError(errorMessage string) (string, string) {
 
 	// проверяем текст ошибки на наличие похожих в списке
 	for _, item := range timeoutErrors {
-		if strings.Contains(strings.ToLower(errorMessage), item) {
+		if strings.Contains(strings.ToLower(errorMessage), strings.ToLower(item)) {
 			return "timeout error", item
 		}
 	}
@@ -30,7 +30,7 @@ func RequestError(errorMessage string) (string, string) {
 
 	// проверяем текст ошибки на наличие похожих в списке
 	for _, item := range timeoutErrors {
-		if strings.Contains(strings.ToLower(errorMessage), item) {
+		if strings.Contains(strings.ToLower(errorMessage), strings.ToLower(item)) {
 			return "timeout error", item
 		}
 	}
@@ -62,17 +62,17 @@ func VkAPIError(errorMessage string) (string, string) {
 
 	// проверяем текст ошибки на наличие похожих в трех списках
 	for _, item := range timeoutErrors {
-		if strings.Contains(strings.ToLower(errorMessage), item) {
+		if strings.Contains(strings.ToLower(errorMessage), strings.ToLower(item)) {
 			return "timeout error", item
 		}
 	}
 	for _, item := range accessTokenErrors {
-		if strings.Contains(strings.ToLower(errorMessage), item) {
+		if strings.Contains(strings.ToLower(errorMessage), strings.ToLower(item)) {
 			return "access token error", item
 		}
 	}
 	for _, item := range skipErrors {
-		if strings.Contains(strings.ToLower(errorMessage), item) {
+		if strings.Contains(strings.ToLower(errorMessage), strings.ToLower(item)) {
 			return "skip error", item
 		}
 	}

@@ -6,19 +6,19 @@ import (
 )
 
 // TopicMonitor проверяет комментарии в топиках обсуждений
-func TopicMonitor(subject Subject) error {
+func TopicMonitor(subject Subject) (*TopicMonitorParam, error) {
 	sender := fmt.Sprintf("%v's topic monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга топиков обсуждений
 	topicMonitorParam, err := SelectDBTopicMonitorParam(subject.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// запрашиваем структуру с топиками обсуждений
 	topics, err := getTopics(sender, subject, topicMonitorParam)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var targetTopics []Topic
@@ -37,7 +37,7 @@ func TopicMonitor(subject Subject) error {
 		// запрашиваем комментарии из этих топиков
 		topicComments, err := getTopicComments(sender, subject, topicMonitorParam, targetTopics)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		var targetTopicComments []TopicComment
@@ -76,12 +76,12 @@ func TopicMonitor(subject Subject) error {
 				messageParameters, err := makeMessageTopicComment(sender, subject,
 					topicMonitorParam, topicComment)
 				if err != nil {
-					return err
+					return nil, err
 				}
 
 				// отправляем сообщение с полученными данными
 				if err := SendMessage(sender, messageParameters, subject); err != nil {
-					return err
+					return nil, err
 				}
 
 				// выводим в консоль сообщение о новом комментарии
@@ -89,13 +89,13 @@ func TopicMonitor(subject Subject) error {
 
 				// обновляем дату последнего проверенного комментария в БД
 				if err := UpdateDBTopicMonitorLastDate(subject.ID, topicComment.Date); err != nil {
-					return err
+					return nil, err
 				}
 			}
 		}
 	}
 
-	return nil
+	return &topicMonitorParam, nil
 }
 
 // outputReportAboutNewTopicComment выводит сообщение о новом комментарии

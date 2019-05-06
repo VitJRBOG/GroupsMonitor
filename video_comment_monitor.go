@@ -6,25 +6,25 @@ import (
 )
 
 // VideoCommentMonitor проверяет комментарии под видео
-func VideoCommentMonitor(subject Subject) error {
+func VideoCommentMonitor(subject Subject) (*VideoCommentMonitorParam, error) {
 	sender := fmt.Sprintf("%v's video comment monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга комментариев под видео
 	videoCommentMonitorParam, err := SelectDBVideoCommentMonitorParam(subject.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// запрашиваем структуру с видеозаписями
 	videos, err := getVideosForComments(sender, subject, videoCommentMonitorParam)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// запрашиваем комментарии из этих видео
 	videoComments, err := getVideoComments(sender, subject, videoCommentMonitorParam, videos)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var targetVideoComments []VideoComment
@@ -63,12 +63,12 @@ func VideoCommentMonitor(subject Subject) error {
 			messageParameters, err := makeMessageVideoComment(sender, subject,
 				videoCommentMonitorParam, videoComment)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			// отправляем сообщение с полученными данными
 			if err := SendMessage(sender, messageParameters, subject); err != nil {
-				return err
+				return nil, err
 			}
 
 			// выводим в консоль сообщение о новом комментарии
@@ -76,12 +76,12 @@ func VideoCommentMonitor(subject Subject) error {
 
 			// обновляем дату последнего проверенного комментария в БД
 			if err := UpdateDBVideoCommentMonitorLastDate(subject.ID, videoComment.Date); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
-	return nil
+	return &videoCommentMonitorParam, nil
 }
 
 // outputReportAboutNewVideoComment выводит сообщение о новом комментарии

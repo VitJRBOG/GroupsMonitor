@@ -6,19 +6,19 @@ import (
 )
 
 // VideoMonitor проверяет видео
-func VideoMonitor(subject Subject) error {
+func VideoMonitor(subject Subject) (*VideoMonitorParam, error) {
 	sender := fmt.Sprintf("%v's video monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга видео
 	videoMonitorParam, err := SelectDBVideoMonitorParam(subject.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// запрашиваем структуру с видео из альбомов субъекта
 	videos, err := getVideos(sender, subject, videoMonitorParam)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var targetVideos []Video
@@ -54,12 +54,12 @@ func VideoMonitor(subject Subject) error {
 			// формируем строку с данными для карты для отправки сообщения
 			messageParameters, err := makeMessageVideo(sender, subject, videoMonitorParam, video)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			// отправляем сообщение с полученными данными
 			if err := SendMessage(sender, messageParameters, subject); err != nil {
-				return err
+				return nil, err
 			}
 
 			// выводим в консоль сообщение о новом видео
@@ -67,12 +67,12 @@ func VideoMonitor(subject Subject) error {
 
 			// обновляем дату последнего проверенного поста в БД
 			if err := UpdateDBVideoMonitorLastDate(subject.ID, video.Date); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
-	return nil
+	return &videoMonitorParam, nil
 }
 
 // outputReportAboutNewVideo выводит сообщение о новом видео

@@ -8,26 +8,26 @@ import (
 )
 
 // WallPostCommentMonitor проверяет комментарии под постами на стене
-func WallPostCommentMonitor(subject Subject) error {
+func WallPostCommentMonitor(subject Subject) (*WallPostCommentMonitorParam, error) {
 
 	sender := fmt.Sprintf("%v's wall post comment monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга комментариев под постами
 	wallPostCommentMonitorParam, err := SelectDBWallPostCommentMonitorParam(subject.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// запрашиваем структуру с постами со стены субъекта
 	wallPosts, err := getWallPostsForComments(sender, subject, wallPostCommentMonitorParam)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// запрашиваем комментарии из под каждого поста
 	wallPostComments, err := getWallPostComments(sender, subject, wallPostCommentMonitorParam, wallPosts)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var targetWallPostComments []WallPostComment
@@ -46,7 +46,7 @@ func WallPostCommentMonitor(subject Subject) error {
 		targetWallPostComments, err := getWallPostComment(sender, subject,
 			wallPostCommentMonitorParam, targetWallPostComments)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// сортируем в порядке от раннего к позднему
@@ -72,7 +72,7 @@ func WallPostCommentMonitor(subject Subject) error {
 			// проверяем комментарий на соответствие критериям
 			match, err := checkTargetWallPostComment(wallPostCommentMonitorParam, wallPostComment, subject)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			// если соответствует, то отправляем комментарий
@@ -82,12 +82,12 @@ func WallPostCommentMonitor(subject Subject) error {
 				messageParameters, err := makeMessageWallPostComment(sender, subject,
 					wallPostCommentMonitorParam, wallPostComment)
 				if err != nil {
-					return err
+					return nil, err
 				}
 
 				// отправляем сообщение с полученными данными
 				if err := SendMessage(sender, messageParameters, subject); err != nil {
-					return err
+					return nil, err
 				}
 
 				// выводим в консоль сообщение о новом комментарии под постом
@@ -96,12 +96,12 @@ func WallPostCommentMonitor(subject Subject) error {
 
 			// обновляем дату последнего проверенного комментария в БД
 			if err := UpdateDBWallPostCommentMonitorLastDate(subject.ID, wallPostComment.Date); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
-	return nil
+	return &wallPostCommentMonitorParam, nil
 }
 
 // checkTargetWallPostComment проверяет комментарий на соответствие критериям
@@ -523,9 +523,9 @@ func getWallPostComments(sender string, subject Subject,
 			return wallPostsComments, err
 		}
 
-		wallPostComment := parseWallPostCommentVkAPIMap(response["response"].(map[string]interface{}), wallPost)
-		wallPostsComments = append(wallPostsComments, wallPostComment...)
-	}
+			wallPostComment := parseWallPostCommentVkAPIMap(response["response"].(map[string]interface{}), wallPost)
+			wallPostsComments = append(wallPostsComments, wallPostComment...)
+		}
 
 	return wallPostsComments, nil
 }

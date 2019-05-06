@@ -7,19 +7,19 @@ import (
 )
 
 // WallPostMonitor проверяет посты со стены
-func WallPostMonitor(subject Subject) error {
+func WallPostMonitor(subject Subject) (*WallPostMonitorParam, error) {
 	sender := fmt.Sprintf("%v's wall post monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга постов
 	wallPostMonitorParam, err := SelectDBWallPostMonitorParam(subject.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// запрашиваем структуру с постами со стены субъекта
 	wallPosts, err := getWallPosts(sender, subject, wallPostMonitorParam)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var targetWallPosts []WallPost
@@ -57,7 +57,7 @@ func WallPostMonitor(subject Subject) error {
 			// проверяем пост на соответствие критериям
 			match, err := checkTargetWallPost(wallPostMonitorParam, wallPost)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			// если соответствует, то отправляем пост
@@ -66,12 +66,12 @@ func WallPostMonitor(subject Subject) error {
 				// формируем строку с данными для карты для отправки сообщения
 				messageParameters, err := makeMessageWallPost(sender, subject, wallPostMonitorParam, wallPost)
 				if err != nil {
-					return err
+					return nil, err
 				}
 
 				// отправляем сообщение с полученными данными
 				if err := SendMessage(sender, messageParameters, subject); err != nil {
-					return err
+					return nil, err
 				}
 
 				// выводим в консоль сообщение о новом посте
@@ -80,12 +80,12 @@ func WallPostMonitor(subject Subject) error {
 
 			// обновляем дату последнего проверенного поста в БД
 			if err := UpdateDBWallPostMonitorLastDate(subject.ID, wallPost.Date, wallPostMonitorParam); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
-	return nil
+	return &wallPostMonitorParam, nil
 }
 
 // checkTargetWallPost проверяет пост на соответствие критериям

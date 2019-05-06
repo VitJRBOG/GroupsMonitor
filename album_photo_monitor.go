@@ -6,25 +6,25 @@ import (
 )
 
 // AlbumPhotoMonitor проверяет фотографии в альбомах
-func AlbumPhotoMonitor(subject Subject) error {
+func AlbumPhotoMonitor(subject Subject) (*AlbumPhotoMonitorParam, error) {
 	sender := fmt.Sprintf("%v's album photo monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга фотографий
 	albumPhotoMonitorParam, err := SelectDBAlbumPhotoMonitorParam(subject.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// запрашиваем структуру с альбомами
 	albums, err := getAlbums(sender, subject)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// запрашиваем фотографии из этих альбомов
 	albumsPhotos, err := getAlbumsPhotos(sender, subject, albumPhotoMonitorParam, albums)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var targetAlbumsPhotos []AlbumPhoto
@@ -62,12 +62,12 @@ func AlbumPhotoMonitor(subject Subject) error {
 			// формируем строку с данными для карты для отправки сообщения
 			messageParameters, err := makeMessageAlbumPhoto(sender, subject, albumPhotoMonitorParam, albumPhoto)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			// отправляем сообщение с полученными данными
 			if err := SendMessage(sender, messageParameters, subject); err != nil {
-				return err
+				return nil, err
 			}
 
 			// выводим в консоль сообщение о новой фотографии
@@ -76,12 +76,12 @@ func AlbumPhotoMonitor(subject Subject) error {
 			// обновляем дату последнего проверенного поста в БД
 			if err := UpdateDBAlbumPhotoMonitorLastDate(subject.ID, albumPhoto.Date,
 				albumPhotoMonitorParam); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
-	return nil
+	return &albumPhotoMonitorParam, nil
 }
 
 // outputReportAboutNewAlbumPhoto выводит сообщение о новой фотографии

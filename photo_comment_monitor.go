@@ -6,20 +6,20 @@ import (
 )
 
 // PhotoCommentMonitor проверяет комментарии под фотографиями
-func PhotoCommentMonitor(subject Subject) error {
+func PhotoCommentMonitor(subject Subject) (*PhotoCommentMonitorParam, error) {
 
 	sender := fmt.Sprintf("%v's photo comment monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга постов
 	photoCommentMonitorParam, err := SelectDBPhotoCommentMonitorParam(subject.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// запрашиваем структуру с постами со стены субъекта
 	photoComments, err := getPhotoComments(sender, subject, photoCommentMonitorParam)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var targetPhotoComments []PhotoComment
@@ -58,12 +58,12 @@ func PhotoCommentMonitor(subject Subject) error {
 			messageParameters, err := makeMessagePhotoComment(sender, subject,
 				photoCommentMonitorParam, photoComment)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			// отправляем сообщение с полученными данными
 			if err := SendMessage(sender, messageParameters, subject); err != nil {
-				return err
+				return nil, err
 			}
 
 			// выводим в консоль сообщение о новом посте
@@ -71,12 +71,12 @@ func PhotoCommentMonitor(subject Subject) error {
 
 			// обновляем дату последнего проверенного поста в БД
 			if err := UpdateDBPhotoCommentMonitorLastDate(subject.ID, photoComment.Date); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
-	return nil
+	return &photoCommentMonitorParam, nil
 }
 
 // outputReportAboutNewPhotoComment выводит сообщение о новом комментарии под фотографией

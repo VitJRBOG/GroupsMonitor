@@ -94,7 +94,7 @@ func stopThreads(threads []*Thread) {
 		}
 	}
 
-	repeats := 60
+	repeats := 90
 
 	// проверяем успешность остановки потоков
 	for i := 0; i < repeats; i++ {

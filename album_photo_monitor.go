@@ -280,6 +280,10 @@ func makeMessageAlbumPhoto(sender string, subject Subject,
 
 	// экранируем все апострофы, чтобы не сломали нам json.Unmarshal
 	text = strings.Replace(text, `"`, `\"`, -1)
+	// экранируем все обратные слэши, чтобы также не сломали json.Unmarshal
+	text = strings.Replace(text, `\`, `\\`, -1)
+	// и возвращаем символы пропуска строки после экранировки обратных слэшей
+	text = strings.Replace(text, `\\n`, `\n`, -1)
 
 	// далее формируем строку с данными для карты
 	jsonDump := fmt.Sprintf(`{

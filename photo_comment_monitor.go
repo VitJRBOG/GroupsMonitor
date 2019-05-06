@@ -247,10 +247,10 @@ func makeMessagePhotoComment(sender string, subject Subject,
 	// и ссылку на саму фотку
 	text += fmt.Sprintf("\\n\\n%v", photoURL)
 
+	// экранируем все обратные слэши, не сломали json.Unmarshal
+	text = strings.Replace(text, `\`, `\\`, -1)
 	// экранируем все апострофы, чтобы не сломали нам json.Unmarshal
 	text = strings.Replace(text, `"`, `\"`, -1)
-	// экранируем все обратные слэши, чтобы также не сломали json.Unmarshal
-	text = strings.Replace(text, `\`, `\\`, -1)
 	// и возвращаем символы пропуска строки после экранировки обратных слэшей
 	text = strings.Replace(text, `\\n`, `\n`, -1)
 

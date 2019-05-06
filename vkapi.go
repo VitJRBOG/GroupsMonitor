@@ -73,10 +73,10 @@ func SendVKAPIQuery(sender string, methodName string,
 
 		// задержка, если получена ошибка, которую можно решить таким образом
 		case "timeout error":
-			interval := 60
-			message := fmt.Sprintf("Error: %v. Timeout for %d seconds...", causeError, interval)
+			interval := 60 * time.Second
+			message := fmt.Sprintf("ERROR: %v. Timeout for %v...", causeError, interval)
 			OutputMessage(sender, message)
-			time.Sleep(time.Duration(interval) * time.Second)
+			time.Sleep(interval)
 			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
 		}
 
@@ -116,26 +116,26 @@ func SendVKAPIQuery(sender string, methodName string,
 			if causeError != "many requests per second" {
 
 				// однотипно обработаем все ошибки, которые не "many requests per second"
-				interval := 1
-				message := fmt.Sprintf("Error: %v. Timeout for %d seconds...", causeError, interval)
+				interval := 1 * time.Second
+				message := fmt.Sprintf("ERROR: %v. Timeout for %v...", causeError, interval)
 				OutputMessage(sender, message)
-				time.Sleep(time.Duration(interval) * time.Second)
+				time.Sleep(interval)
 			} else {
 
 				// индивидуально обработаем ошибку "many requests per second"
 				// потому что они выскакивают регулярно
-				interval := 500
-				time.Sleep(time.Duration(interval) * time.Millisecond)
+				interval := 500 * time.Millisecond
+				time.Sleep(interval)
 			}
 			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
 
 		// задержка, если токен доступа невалидный
 		case "access token error":
-			interval := 60
-			message := fmt.Sprintf("Error: %v. Need new %v's access token. Waiting for %d seconds...",
+			interval := 60 * time.Second
+			message := fmt.Sprintf("ERROR: %v. Need new %v's access token. Waiting for %v...",
 				causeError, accessToken.Name, interval)
 			OutputMessage(sender, message)
-			time.Sleep(time.Duration(interval) * time.Second)
+			time.Sleep(interval)
 			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
 
 		// выход из обработчика ошибок, если эта ошибка обрабатывается в другом месте
@@ -144,7 +144,7 @@ func SendVKAPIQuery(sender string, methodName string,
 
 		// выход, если неизвестная ошибка
 		default:
-			message := fmt.Sprintf("Unknown error: %v. Exit...",
+			message := fmt.Sprintf("UNKNOWN ERROR: %v. Exit...",
 				errorItem.(map[string]interface{})["error_msg"].(string))
 			OutputMessage(sender, message)
 			runtime.Goexit()

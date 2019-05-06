@@ -30,11 +30,11 @@ func openDB() (*sql.DB, error) {
 
 		// задержка, если получена ошибка, которую можно решить таким образом
 		case "timeout error":
-			interval := 1
+			interval := 1 * time.Second
 			sender := "Database"
-			message := fmt.Sprintf("Error: %v. Timeout for %d seconds...", causeError, interval)
+			message := fmt.Sprintf("Error: %v. Timeout for %v...", causeError, interval)
 			OutputMessage(sender, message)
-			time.Sleep(time.Duration(interval) * time.Second)
+			time.Sleep(interval)
 			return openDB()
 		}
 

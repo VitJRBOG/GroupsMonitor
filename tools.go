@@ -63,8 +63,8 @@ type CharChangeChars struct {
 // CharChange выполняет замену символов с кириллических на латинские и наоборот
 func CharChange(text string, changeType string) string {
 	var charChangeChars CharChangeChars
-	charChangeChars.CyrChars = []string{"С", "Р", "у", "Х", "о", "р", "а", "с", "х", "Е", "е", "А", "О"}
-	charChangeChars.LatChars = []string{"C", "P", "y", "X", "o", "p", "a", "c", "x", "E", "e", "A", "O"}
+	charChangeChars.CyrChars = []string{"Е", "Т", "О", "Р", "А", "Н", "К", "Х", "С", "В", "М", "е", "о", "р", "а", "х", "с"}
+	charChangeChars.LatChars = []string{"E", "T", "O", "P", "A", "H", "K", "X", "C", "B", "M", "e", "o", "p", "a", "x", "c"}
 
 	// замена символов не происходит
 

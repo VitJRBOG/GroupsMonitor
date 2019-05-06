@@ -523,9 +523,11 @@ func getWallPostComments(sender string, subject Subject,
 			return wallPostsComments, err
 		}
 
+		if _, exist := response["response"]; exist == true {
 			wallPostComment := parseWallPostCommentVkAPIMap(response["response"].(map[string]interface{}), wallPost)
 			wallPostsComments = append(wallPostsComments, wallPostComment...)
 		}
+	}
 
 	return wallPostsComments, nil
 }

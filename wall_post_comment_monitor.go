@@ -322,7 +322,7 @@ func checkByKeywords(wallPostCommentMonitorParam WallPostCommentMonitorParam,
 	}
 	if len(keywords.List) > 0 {
 		for _, keyword := range keywords.List {
-			match := strings.Contains(strings.ToLower(wallPostComment.Text), keyword)
+			match := strings.Contains(strings.ToLower(wallPostComment.Text), strings.ToLower(keyword))
 			if match {
 				return true, nil
 			}
@@ -332,11 +332,11 @@ func checkByKeywords(wallPostCommentMonitorParam WallPostCommentMonitorParam,
 	case 0:
 		step++
 		wallPostComment.Text = CharChange(wallPostComment.Text, "lat_to_cyr")
-		return checkBySmallComments(wallPostCommentMonitorParam, wallPostComment, step)
+		return checkByKeywords(wallPostCommentMonitorParam, wallPostComment, step)
 	case 1:
 		step++
 		wallPostComment.Text = CharChange(wallPostComment.Text, "cyr_to_lat")
-		return checkBySmallComments(wallPostCommentMonitorParam, wallPostComment, step)
+		return checkByKeywords(wallPostCommentMonitorParam, wallPostComment, step)
 	}
 
 	return false, nil

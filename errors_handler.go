@@ -21,7 +21,11 @@ func DBIOError(errorMessage string) (string, string) {
 // RequestError проверяет ошибки при отправке запроса
 func RequestError(errorMessage string) (string, string) {
 	timeoutErrors := []string{
-		"connection reset by peer", "operation timed out",
+		"connection reset by peer", "read: connection reset by peer",
+		"operation timed out",
+		"server sent goaway and closed the connection",
+		"failed to establish a new connection",
+		"connection aborted",
 	}
 
 	// проверяем текст ошибки на наличие похожих в списке
@@ -38,9 +42,8 @@ func RequestError(errorMessage string) (string, string) {
 func VkAPIError(errorMessage string) (string, string) {
 	// список ошибок для вызова таймаута
 	timeoutErrors := []string{
-		"captcha needed", "failed to establish a new connection",
-		"connection aborted", "internal server error", "response code 504",
-		"response code 502", "many requests per second",
+		"captcha needed", "many requests per second",
+		"internal server error",
 	}
 
 	// список ошибок для запроса нового токена доступа
@@ -53,6 +56,7 @@ func VkAPIError(errorMessage string) (string, string) {
 
 	// список пропускаемых ошибок
 	skipErrors := []string{
+		"post was deleted", "post was not found",
 		"comment was not found",
 	}
 

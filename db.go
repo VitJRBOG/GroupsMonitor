@@ -79,6 +79,35 @@ type AccessToken struct {
 	Value string
 }
 
+// SelectDBAccessTokens извлекает поля из таблицы access_token
+func SelectDBAccessTokens() ([]AccessToken, error) {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	// читаем данные из БД
+	rows, err := db.Query("SELECT * FROM access_token")
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	// считываем данные из rows
+	var accessTokens []AccessToken
+	for rows.Next() {
+		var accessToken AccessToken
+		err = rows.Scan(&accessToken.ID, &accessToken.Name, &accessToken.Value)
+		if err != nil {
+			return nil, err
+		}
+		accessTokens = append(accessTokens, accessToken)
+	}
+	return accessTokens, nil
+}
+
 // SelectDBAccessTokenByID извлекает поле из таблицы access_token по id
 func SelectDBAccessTokenByID(accessTokenID int) (AccessToken, error) {
 	var accessToken AccessToken
@@ -163,6 +192,27 @@ type Subject struct {
 	LastBackup     int    `json:"last_backup"`
 }
 
+// InsertDBSubject добавляет новое поле в таблицу subject
+func InsertDBSubject(subject Subject) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO subject (subject_id, name, 
+		backup_wikipage, last_backup) VALUES ('%d', '%v', '%v', '%d')`,
+		subject.SubjectID, subject.Name, subject.BackupWikipage, subject.LastBackup)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // SelectDBSubjects извлекает поля из таблицы subject
 func SelectDBSubjects() ([]Subject, error) {
 	// получаем ссылку на db
@@ -200,6 +250,27 @@ type Monitor struct {
 	SubjectID int
 }
 
+// InsertDBMonitor добавляет новое поле в таблицу monitor
+func InsertDBMonitor(monitor Monitor) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO monitor (name, subject_id) 
+		VALUES ('%v', '%d')`,
+		monitor.Name, monitor.SubjectID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // SelectDBMonitor извлекает из таблицы monitor поле с указанными name и subject_id
 func SelectDBMonitor(monitorName string, subjectID int) (*Monitor, error) {
 	// получаем ссылку на db
@@ -235,6 +306,28 @@ type Method struct {
 	SubjectID     int
 	AccessTokenID int
 	MonitorID     int
+}
+
+// InsertDBMethod добавляет новое поле в таблицу method
+func InsertDBMethod(method Method) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO method (name, subject_id, 
+		access_token_id, monitor_id) 
+		VALUES ('%v', '%d', '%d', '%d')`,
+		method.Name, method.SubjectID, method.AccessTokenID, method.MonitorID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SelectDBMethod извлекает из таблицы method поле с указанным name, subject_id и monitor_id
@@ -280,6 +373,29 @@ type WallPostMonitorParam struct {
 	PostsCount            int
 	KeywordsForMonitoring string
 	UsersIDsForIgnore     string
+}
+
+// InsertDBWallPostMonitor добавляет новое поле в таблицу wall_post_monitor
+func InsertDBWallPostMonitor(wPMP WallPostMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO wall_post_monitor (subject_id, need_monitoring, interval, 
+		send_to, filter, last_date, posts_count, keywords_for_monitoring, users_ids_for_ignore) 
+		VALUES ('%d', '%d', '%d', '%d', '%v', '%d', '%d', '%v', '%v')`,
+		wPMP.SubjectID, wPMP.NeedMonitoring, wPMP.Interval, wPMP.SendTo,
+		wPMP.Filter, wPMP.LastDate, wPMP.PostsCount, wPMP.KeywordsForMonitoring, wPMP.UsersIDsForIgnore)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SelectDBWallPostMonitorParam извлекает поля из таблицы wall_post_monitor
@@ -346,6 +462,30 @@ type AlbumPhotoMonitorParam struct {
 	PhotosCount    int `json:"photos_count"`
 }
 
+// InsertDBAlbumPhotoMonitor добавляет новое поле в таблицу album_photo_monitor
+func InsertDBAlbumPhotoMonitor(aPMP AlbumPhotoMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO album_photo_monitor (subject_id, 
+		need_monitoring, send_to, interval, 
+		last_date, photos_count) 
+		VALUES ('%d', '%d', '%d', '%d', '%d', '%d')`,
+		aPMP.SubjectID, aPMP.NeedMonitoring, aPMP.SendTo, aPMP.Interval,
+		aPMP.LastDate, aPMP.PhotosCount)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // SelectDBAlbumPhotoMonitorParam извлекает поля из таблицы album_photo_monitor
 func SelectDBAlbumPhotoMonitorParam(subjectID int) (AlbumPhotoMonitorParam, error) {
 	var albumPhotoMonitorParam AlbumPhotoMonitorParam
@@ -409,6 +549,29 @@ type VideoMonitorParam struct {
 	VideoCount     int `json:"video_count"`
 }
 
+// InsertDBVideoMonitor добавляет новое поле в таблицу video_monitor
+func InsertDBVideoMonitor(vMP VideoMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO video_monitor (subject_id, 
+		need_monitoring, send_to, interval, last_date, video_count) 
+		VALUES ('%d', '%d', '%d', '%d', '%d', '%d')`,
+		vMP.SubjectID, vMP.NeedMonitoring, vMP.SendTo, vMP.Interval,
+		vMP.LastDate, vMP.VideoCount)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // SelectDBVideoMonitorParam извлекает поля из таблицы video_monitor
 func SelectDBVideoMonitorParam(subjectID int) (VideoMonitorParam, error) {
 	var videoMonitorParam VideoMonitorParam
@@ -469,6 +632,29 @@ type PhotoCommentMonitorParam struct {
 	LastDate       int `json:"last_date"`
 	Interval       int `json:"interval"`
 	SendTo         int `json:"send_to"`
+}
+
+// InsertDBPhotoCommentMonitor добавляет новое поле в таблицу photo_comment_monitor
+func InsertDBPhotoCommentMonitor(pCMP PhotoCommentMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO photo_comment_monitor (subject_id, 
+		need_monitoring, comments_count, last_date, interval, send_to) 
+		VALUES ('%d', '%d', '%d', '%d', '%d', '%d')`,
+		pCMP.SubjectID, pCMP.NeedMonitoring, pCMP.CommentsCount, pCMP.LastDate,
+		pCMP.Interval, pCMP.SendTo)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SelectDBPhotoCommentMonitorParam извлекает поля из таблицы photo_comment_monitor
@@ -534,6 +720,29 @@ type VideoCommentMonitorParam struct {
 	LastDate       int `json:"last_date"`
 }
 
+// InsertDBVideoCommentMonitor добавляет новое поле в таблицу video_comment_monitor
+func InsertDBVideoCommentMonitor(vCMP VideoCommentMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO video_comment_monitor (subject_id, need_monitoring, videos_count, 
+		interval, comments_count, send_to, last_date) 
+		VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d')`,
+		vCMP.SubjectID, vCMP.NeedMonitoring, vCMP.VideosCount, vCMP.Interval, vCMP.CommentsCount, vCMP.SendTo,
+		vCMP.LastDate)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // SelectDBVideoCommentMonitorParam извлекает поля из таблицы video_comment_monitor
 func SelectDBVideoCommentMonitorParam(subjectID int) (VideoCommentMonitorParam, error) {
 	var videoCommentMonitorParam VideoCommentMonitorParam
@@ -596,6 +805,30 @@ type TopicMonitorParam struct {
 	Interval       int `json:"interval"`
 	SendTo         int `json:"send_to"`
 	LastDate       int `json:"last_date"`
+}
+
+// InsertDBTopicMonitor добавляет новое поле в таблицу topic_monitor
+func InsertDBTopicMonitor(tMP TopicMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO topic_monitor (subject_id, 
+		need_monitoring, topics_count, comments_count, 
+		interval, send_to, last_date) 
+		VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d')`,
+		tMP.SubjectID, tMP.NeedMonitoring, tMP.TopicsCount, tMP.CommentsCount,
+		tMP.Interval, tMP.SendTo, tMP.LastDate)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SelectDBTopicMonitorParam извлекает поля из таблицы topic_monitor
@@ -671,6 +904,39 @@ type WallPostCommentMonitorParam struct {
 	DigitsCountForCardNumberMonitoring  string `json:"digits_count_for_card_number_monitoring"`
 	DigitsCountForPhoneNumberMonitoring string `json:"digits_count_for_phone_number_monitoring"`
 	MonitorByCommunity                  int    `json:"monitor_by_community"`
+}
+
+// InsertDBWallPostCommentMonitor добавляет новое поле в таблицу wall_post_comment_monitor
+func InsertDBWallPostCommentMonitor(wPCMP WallPostCommentMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO wall_post_comment_monitor (subject_id, 
+		need_monitoring, posts_count, comments_count, monitoring_all, 
+   		users_ids_for_monitoring, users_names_for_monitoring, attachments_types_for_monitoring, 
+		users_ids_for_ignore, interval, send_to, filter, last_date, 
+		keywords_for_monitoring, small_comments_for_monitoring, 
+		digits_count_for_card_number_monitoring, 
+		digits_count_for_phone_number_monitoring, monitor_by_community)
+		VALUES ('%d', '%d', '%d', '%d', '%d', '%v', '%v', '%v', '%v', '%d', 
+		'%d', '%v', '%d', '%v', '%v', '%v', '%v', '%d')`,
+		wPCMP.SubjectID, wPCMP.NeedMonitoring, wPCMP.PostsCount, wPCMP.CommentsCount,
+		wPCMP.MonitoringAll, wPCMP.UsersIDsForMonitoring, wPCMP.UsersNamesForMonitoring,
+		wPCMP.AttachmentsTypesForMonitoring, wPCMP.UsersIDsForIgnore, wPCMP.Interval,
+		wPCMP.SendTo, wPCMP.Filter, wPCMP.LastDate, wPCMP.KeywordsForMonitoring,
+		wPCMP.SmallCommentsForMonitoring, wPCMP.DigitsCountForCardNumberMonitoring,
+		wPCMP.DigitsCountForPhoneNumberMonitoring, wPCMP.MonitorByCommunity)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SelectDBWallPostCommentMonitorParam извлекает поля из таблицы wall_post_comment_monitor

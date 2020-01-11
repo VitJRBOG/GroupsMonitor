@@ -32,6 +32,12 @@ func ListenUserCommands(threads []*Thread) error {
 		case "stop":
 			stopThreads(threads)
 
+		// команда на добавление нового субъекта
+		case "add_subj":
+			if err := addSubject(); err != nil {
+				return err
+			}
+
 		// команда на принудительное завершение работы
 		case "quit":
 			forceQuit()
@@ -151,6 +157,14 @@ func stopThreads(threads []*Thread) {
 
 	// принудительное завершение работы, если дело дошло до этой строки
 	forceQuit()
+}
+
+func addSubject() error {
+	err := CreateMonitors()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func forceQuit() {

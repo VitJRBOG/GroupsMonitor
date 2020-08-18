@@ -5,8 +5,7 @@ import (
 	"strconv"
 )
 
-// CollectionMethodData
-//собирает данные обо всех используемых в данном мониторе методах vk api
+// CollectionMethodData собирает данные обо всех используемых в данном мониторе методах vk api
 func CollectionMethodData(monitor *Monitor) (*[]Method, error) {
 	var methods []Method
 

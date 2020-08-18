@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -142,12 +142,11 @@ func SendVKAPIQuery(sender string, methodName string,
 		case "skip error":
 			return response, nil
 
-		// выход, если неизвестная ошибка
+		// если пойманная ошибка не обрабатывается, то возвращаем ее стандартным путем
 		default:
-			message := fmt.Sprintf("UNKNOWN ERROR: %v. Exit...",
-				errorItem.(map[string]interface{})["error_msg"].(string))
-			OutputMessage(sender, message)
-			runtime.Goexit()
+			// но сначала представляем в необходимом формате
+			err := errors.New(errorItem.(map[string]interface{})["error_msg"].(string))
+			return response, err
 		}
 
 	}

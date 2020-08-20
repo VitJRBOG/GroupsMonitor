@@ -79,6 +79,26 @@ type AccessToken struct {
 	Value string
 }
 
+// InsertDBAccessToken добавляет новое поле в таблицу access_token
+func InsertDBAccessToken(accessToken AccessToken) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// добавляем новое поле в таблицу
+	query := fmt.Sprintf(`INSERT INTO access_token (name, value) VALUES ('%v', '%v')`,
+		accessToken.Name, accessToken.Value)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // SelectDBAccessTokens извлекает поля из таблицы access_token
 func SelectDBAccessTokens() ([]AccessToken, error) {
 	// получаем ссылку на db

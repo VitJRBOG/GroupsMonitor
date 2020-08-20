@@ -38,6 +38,12 @@ func ListenUserCommands(threads []*Thread) error {
 				return err
 			}
 
+		// команда на добавление нового токена доступа
+		case "add_at":
+			if err := addAccessToken(); err != nil {
+				return err
+			}
+
 		// команда на принудительное завершение работы
 		case "quit":
 			forceQuit()
@@ -161,6 +167,14 @@ func stopThreads(threads []*Thread) {
 
 func addSubject() error {
 	err := CreateMonitors()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func addAccessToken() error {
+	err := CreateAccessToken()
 	if err != nil {
 		return err
 	}

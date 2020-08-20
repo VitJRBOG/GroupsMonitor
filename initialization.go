@@ -51,6 +51,13 @@ func checkDBFileExistence() error {
 	if _, err := os.Stat(path + "groupsmonitor_db.db"); os.IsNotExist(err) {
 		// если файл БД отсутствует, создаем
 		InitDB()
+		sender := "Initialization"
+		message := "Database has been created."
+		OutputMessage(sender, message)
+		message = "Database is empty. Need to create new access token and new subject for monitoring."
+		OutputMessage(sender, message)
+		message = "Enter command \"add_at\" to create new access token and command \"add_subj\" to create new subject."
+		OutputMessage(sender, message)
 	}
 
 	return nil

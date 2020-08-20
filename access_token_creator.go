@@ -27,7 +27,7 @@ func CreateAccessToken() error {
 	}
 
 	// сообщаем пользователю о том, что токен доступа создан
-	sender := "> [Create access token]: "
+	sender := "Create access token"
 	message := "Access token has been successfully created."
 	OutputMessage(sender, message)
 

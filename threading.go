@@ -165,6 +165,11 @@ func MakeThreads() ([]*Thread, error) {
 
 	}
 
+	if len(threads) == 0 {
+		message = "WARNING! No thread has been started."
+		OutputMessage(sender, message)
+	}
+
 	// проверяем количество созданных потоков
 	if len(threads) > 0 {
 

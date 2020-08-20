@@ -7,11 +7,15 @@ import (
 )
 
 func main() {
+	err := CheckFiles()
+	if err != nil {
+		errorHandler(err)
+	}
 	threads, err := MakeThreads()
 	if err != nil {
 		errorHandler(err)
 	}
-	if err := ListenUserCommands(threads); err != nil {
+	if err = ListenUserCommands(threads); err != nil {
 		errorHandler(err)
 	}
 }

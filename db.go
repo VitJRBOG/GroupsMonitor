@@ -1020,3 +1020,149 @@ func UpdateDBWallPostCommentMonitorLastDate(subjectID int, newLastDate int) erro
 
 	return nil
 }
+
+// InitDB создает таблицы и связи в базе данных (желательно, пустой)
+func InitDB() error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// формируем запрос на создание таблиц и связей в БД
+	query := fmt.Sprintf(`BEGIN TRANSACTION;
+		CREATE TABLE IF NOT EXISTS "access_token" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"name"	TEXT,
+			"value"	TEXT,
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "wall_post_monitor" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"subject_id"	INTEGER NOT NULL,
+			"need_monitoring"	INTEGER NOT NULL DEFAULT 0,
+			"interval"	INTEGER,
+			"send_to"	INTEGER,
+			"filter"	TEXT,
+			"last_date"	INTEGER,
+			"posts_count"	INTEGER,
+			"keywords_for_monitoring"	TEXT,
+			"users_ids_for_ignore"	TEXT,
+			FOREIGN KEY("subject_id") REFERENCES "subject"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "video_comment_monitor" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"subject_id"	INTEGER NOT NULL,
+			"need_monitoring"	INTEGER NOT NULL DEFAULT 0,
+			"videos_count"	INTEGER,
+			"interval"	INTEGER,
+			"comments_count"	INTEGER,
+			"send_to"	INTEGER,
+			"last_date"	INTEGER,
+			FOREIGN KEY("subject_id") REFERENCES "subject"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "photo_comment_monitor" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"subject_id"	INTEGER NOT NULL,
+			"need_monitoring"	INTEGER NOT NULL DEFAULT 0,
+			"comments_count"	INTEGER,
+			"last_date"	INTEGER,
+			"interval"	INTEGER,
+			"send_to"	INTEGER,
+			FOREIGN KEY("subject_id") REFERENCES "subject"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "album_photo_monitor" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"subject_id"	INTEGER NOT NULL,
+			"need_monitoring"	INTEGER NOT NULL DEFAULT 0,
+			"send_to"	INTEGER,
+			"interval"	INTEGER,
+			"last_date"	INTEGER,
+			"photos_count"	INTEGER,
+			FOREIGN KEY("subject_id") REFERENCES "subject"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "subject" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"subject_id"	INTEGER,
+			"name"	TEXT,
+			"backup_wikipage"	TEXT,
+			"last_backup"	INTEGER,
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "monitor" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"name"	TEXT,
+			"subject_id"	INTEGER NOT NULL,
+			FOREIGN KEY("subject_id") REFERENCES "subject"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "method" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"name"	TEXT,
+			"subject_id"	INTEGER NOT NULL,
+			"access_token_id"	INTEGER NOT NULL,
+			"monitor_id"	INTEGER,
+			FOREIGN KEY("monitor_id") REFERENCES "monitor"("id"),
+			FOREIGN KEY("access_token_id") REFERENCES "access_token"("id"),
+			FOREIGN KEY("subject_id") REFERENCES "subject"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "video_monitor" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"subject_id"	INTEGER NOT NULL,
+			"need_monitoring"	INTEGER NOT NULL DEFAULT 0,
+			"send_to"	INTEGER,
+			"video_count"	INTEGER,
+			"last_date"	INTEGER,
+			"interval"	INTEGER,
+			FOREIGN KEY("subject_id") REFERENCES "subject"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "topic_monitor" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"subject_id"	INTEGER NOT NULL,
+			"need_monitoring"	INTEGER NOT NULL DEFAULT 0,
+			"topics_count"	INTEGER,
+			"comments_count"	INTEGER,
+			"interval"	INTEGER,
+			"send_to"	INTEGER,
+			"last_date"	INTEGER,
+			FOREIGN KEY("subject_id") REFERENCES "subject"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "wall_post_comment_monitor" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"subject_id"	INTEGER NOT NULL,
+			"need_monitoring"	INTEGER NOT NULL DEFAULT 0,
+			"posts_count"	INTEGER,
+			"comments_count"	INTEGER,
+			"monitoring_all"	INTEGER,
+			"users_ids_for_monitoring"	TEXT,
+			"users_names_for_monitoring"	TEXT,
+			"attachments_types_for_monitoring"	TEXT,
+			"users_ids_for_ignore"	TEXT,
+			"interval"	INTEGER,
+			"send_to"	INTEGER,
+			"filter"	TEXT,
+			"last_date"	INTEGER,
+			"keywords_for_monitoring"	TEXT,
+			"small_comments_for_monitoring"	TEXT,
+			"digits_count_for_card_number_monitoring"	INTEGER,
+			"digits_count_for_phone_number_monitoring"	INTEGER,
+			"monitor_by_community"	INTEGER,
+			FOREIGN KEY("subject_id") REFERENCES "subject"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		COMMIT;`)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -12,8 +12,10 @@ func ReadPathFile() (string, error) {
 		return "", err
 	}
 
-	if string(path[len(path)-1]) != "/" {
-		path += "/"
+	if len(path) > 0 {
+		if string(path[len(path)-1]) != "/" {
+			path += "/"
+		}
 	}
 
 	return path, nil

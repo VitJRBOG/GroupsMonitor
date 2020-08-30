@@ -50,7 +50,10 @@ func checkDBFileExistence() error {
 	// проверяем
 	if _, err := os.Stat(path + "groupsmonitor_db.db"); os.IsNotExist(err) {
 		// если файл БД отсутствует, создаем
-		InitDB()
+		err = InitDB()
+		if err != nil {
+			return err
+		}
 		sender := "Initialization"
 		message := "Database has been created."
 		OutputMessage(sender, message)

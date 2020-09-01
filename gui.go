@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/andlabs/ui"
+	_ "github.com/andlabs/ui/winmanifest"
 )
 
 // RunGui запускает собранный GUI

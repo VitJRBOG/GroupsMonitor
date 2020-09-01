@@ -25,12 +25,17 @@ func ListenUserCommands(threads []*Thread) error {
 				return err
 			}
 
+		// команда на запуск модулей мониторинга
+		case "start":
+			StartThreads(threads)
+
+		// команда на перезапуск модулей мониторинга
 		case "restart":
-			restartThreads(threads)
+			RestartThreads(threads)
 
 		// команда на нормальную остановку потоков
 		case "stop":
-			stopThreads(threads)
+			StopThreads(threads)
 
 		// команда на добавление нового субъекта
 		case "add_subj":
@@ -77,7 +82,25 @@ func updateAccessToken() error {
 	return nil
 }
 
-func restartThreads(threads []*Thread) {
+// StartThreads запускает потоки, находящиеся в режиме ожидания после запуска программы
+func StartThreads(threads []*Thread) {
+	// сообщаем пользователю о начале операции запуска потоков
+	sender := "Core"
+	message := "Starting threads. Please stand by..."
+	OutputMessage(sender, message)
+
+	// пробегаем по всем потокам и снимаем статус ожидания
+	for _, thread := range threads {
+		if thread != nil {
+			thread.Status = "alive"
+		}
+	}
+
+	return
+}
+
+// RestartThreads перезапускает потоки, которые были запущены при старте программы
+func RestartThreads(threads []*Thread) {
 
 	// сообщаем пользователю о перезапуске алгоритмов мониторинга
 	sender := "Core"
@@ -90,9 +113,12 @@ func restartThreads(threads []*Thread) {
 			thread.StopFlag = 2
 		}
 	}
+
+	return
 }
 
-func stopThreads(threads []*Thread) {
+// StopThreads останавливает все потоки
+func StopThreads(threads []*Thread) {
 
 	// сообщаем пользователю о начале операции по остановке потоков
 	sender := "Core"
@@ -130,7 +156,7 @@ func stopThreads(threads []*Thread) {
 				sender := "Core"
 				message := "All threads is stopped. Quit..."
 				OutputMessage(sender, message)
-				os.Exit(0)
+				return
 			}
 		}
 
@@ -161,8 +187,7 @@ func stopThreads(threads []*Thread) {
 		}
 	}
 
-	// принудительное завершение работы, если дело дошло до этой строки
-	forceQuit()
+	return
 }
 
 func addSubject() error {

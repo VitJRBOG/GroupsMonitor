@@ -11,13 +11,12 @@ func main() {
 	if err != nil {
 		errorHandler(err)
 	}
-	threads, err := MakeThreads()
-	if err != nil {
-		errorHandler(err)
-	}
-	if err = ListenUserCommands(threads); err != nil {
-		errorHandler(err)
-	}
+
+	RunGui()
+
+	// if err = ListenUserCommands(threads); err != nil {
+	// 	errorHandler(err)
+	// }
 }
 
 // errorHandler обработчик ошибок

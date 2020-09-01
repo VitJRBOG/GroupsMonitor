@@ -16,11 +16,6 @@ type Thread struct {
 func MakeThreads() ([]*Thread, error) {
 	var threads []*Thread
 
-	// сообщаем пользователю о начале операции запуска потоков
-	sender := "Core"
-	message := "Starting threads. Please stand by..."
-	OutputMessage(sender, message)
-
 	// получаем из БД список субъектов
 	subjects, err := SelectDBSubjects()
 	if err != nil {
@@ -42,7 +37,7 @@ func MakeThreads() ([]*Thread, error) {
 			// создаем структуру с данными о потоке и наполняем ее данными
 			var thread Thread
 			thread.Name = fmt.Sprintf("%v's wall post monitoring", subject.Name)
-			thread.Status = "alive"
+			thread.Status = "waiting"
 
 			// запускаем поток
 			go wallPostMonitoring(&thread, subject)
@@ -61,7 +56,7 @@ func MakeThreads() ([]*Thread, error) {
 			// создаем структуру с данными о потоке и наполняем ее данными
 			var thread Thread
 			thread.Name = fmt.Sprintf("%v's album photo monitoring", subject.Name)
-			thread.Status = "alive"
+			thread.Status = "waiting"
 
 			// запускаем поток
 			go albumPhotoMonitoring(&thread, subject)
@@ -80,7 +75,7 @@ func MakeThreads() ([]*Thread, error) {
 			// создаем структуру с данными о потоке и наполняем ее данными
 			var thread Thread
 			thread.Name = fmt.Sprintf("%v's video monitoring", subject.Name)
-			thread.Status = "alive"
+			thread.Status = "waiting"
 
 			// запускаем поток
 			go videoMonitoring(&thread, subject)
@@ -99,7 +94,7 @@ func MakeThreads() ([]*Thread, error) {
 			// создаем структуру с данными о потоке и наполняем ее данными
 			var thread Thread
 			thread.Name = fmt.Sprintf("%v's photo comment monitoring", subject.Name)
-			thread.Status = "alive"
+			thread.Status = "waiting"
 
 			// запускаем поток
 			go photoCommentMonitoring(&thread, subject)
@@ -118,7 +113,7 @@ func MakeThreads() ([]*Thread, error) {
 			// создаем структуру с данными о потоке и наполняем ее данными
 			var thread Thread
 			thread.Name = fmt.Sprintf("%v's video comment monitoring", subject.Name)
-			thread.Status = "alive"
+			thread.Status = "waiting"
 
 			// запускаем поток
 			go videoCommentMonitoring(&thread, subject)
@@ -137,7 +132,7 @@ func MakeThreads() ([]*Thread, error) {
 			// создаем структуру с данными о потоке и наполняем ее данными
 			var thread Thread
 			thread.Name = fmt.Sprintf("%v's topic monitoring", subject.Name)
-			thread.Status = "alive"
+			thread.Status = "waiting"
 
 			// запускаем поток
 			go topicMonitoring(&thread, subject)
@@ -156,7 +151,7 @@ func MakeThreads() ([]*Thread, error) {
 			// создаем структуру с данными о потоке и наполняем ее данными
 			var thread Thread
 			thread.Name = fmt.Sprintf("%v's wall post comment monitoring", subject.Name)
-			thread.Status = "alive"
+			thread.Status = "waiting"
 
 			// запускаем поток
 			go wallPostCommentMonitoring(&thread, subject)
@@ -166,7 +161,8 @@ func MakeThreads() ([]*Thread, error) {
 	}
 
 	if len(threads) == 0 {
-		message = "WARNING! No thread has been started."
+		sender := "Core"
+		message := "WARNING! No thread has been created."
 		OutputMessage(sender, message)
 	}
 
@@ -199,6 +195,18 @@ func threadsStatusMonitoring(threads []*Thread) {
 }
 
 func wallPostMonitoring(threadData *Thread, subject Subject) {
+
+	// включаем режим ожидания команды запуска
+	needWaiting := true
+	for needWaiting {
+		// если статус - ожидание, то ждем
+		if threadData.Status == "waiting" {
+			time.Sleep(1 * time.Second)
+		} else {
+			// если нет, то выходим из цикла
+			needWaiting = false
+		}
+	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
@@ -274,6 +282,18 @@ func wallPostMonitoring(threadData *Thread, subject Subject) {
 
 func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 
+	// включаем режим ожидания команды запуска
+	needWaiting := true
+	for needWaiting {
+		// если статус - ожидание, то ждем
+		if threadData.Status == "waiting" {
+			time.Sleep(1 * time.Second)
+		} else {
+			// если нет, то выходим из цикла
+			needWaiting = false
+		}
+	}
+
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
 	message := "Started..."
@@ -347,6 +367,18 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 }
 
 func videoMonitoring(threadData *Thread, subject Subject) {
+
+	// включаем режим ожидания команды запуска
+	needWaiting := true
+	for needWaiting {
+		// если статус - ожидание, то ждем
+		if threadData.Status == "waiting" {
+			time.Sleep(1 * time.Second)
+		} else {
+			// если нет, то выходим из цикла
+			needWaiting = false
+		}
+	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
@@ -424,6 +456,18 @@ func videoMonitoring(threadData *Thread, subject Subject) {
 
 func photoCommentMonitoring(threadData *Thread, subject Subject) {
 
+	// включаем режим ожидания команды запуска
+	needWaiting := true
+	for needWaiting {
+		// если статус - ожидание, то ждем
+		if threadData.Status == "waiting" {
+			time.Sleep(1 * time.Second)
+		} else {
+			// если нет, то выходим из цикла
+			needWaiting = false
+		}
+	}
+
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
 	message := "Started..."
@@ -499,6 +543,18 @@ func photoCommentMonitoring(threadData *Thread, subject Subject) {
 }
 
 func videoCommentMonitoring(threadData *Thread, subject Subject) {
+
+	// включаем режим ожидания команды запуска
+	needWaiting := true
+	for needWaiting {
+		// если статус - ожидание, то ждем
+		if threadData.Status == "waiting" {
+			time.Sleep(1 * time.Second)
+		} else {
+			// если нет, то выходим из цикла
+			needWaiting = false
+		}
+	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
@@ -576,6 +632,18 @@ func videoCommentMonitoring(threadData *Thread, subject Subject) {
 
 func topicMonitoring(threadData *Thread, subject Subject) {
 
+	// включаем режим ожидания команды запуска
+	needWaiting := true
+	for needWaiting {
+		// если статус - ожидание, то ждем
+		if threadData.Status == "waiting" {
+			time.Sleep(1 * time.Second)
+		} else {
+			// если нет, то выходим из цикла
+			needWaiting = false
+		}
+	}
+
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
 	message := "Started..."
@@ -649,6 +717,18 @@ func topicMonitoring(threadData *Thread, subject Subject) {
 }
 
 func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
+
+	// включаем режим ожидания команды запуска
+	needWaiting := true
+	for needWaiting {
+		// если статус - ожидание, то ждем
+		if threadData.Status == "waiting" {
+			time.Sleep(1 * time.Second)
+		} else {
+			// если нет, то выходим из цикла
+			needWaiting = false
+		}
+	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name

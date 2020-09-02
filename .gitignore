@@ -2,4 +2,6 @@
 .vscode/
 db/
 path.txt
+build_for_win.sh
 GroupsMonitor
+GroupsMonitor.exe

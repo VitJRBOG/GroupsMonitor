@@ -15,12 +15,8 @@ func RunGui() {
 }
 
 func initGui() {
-	// запускаем функцию создания потоков с модулями проверки
-	threads, err := MakeThreads()
-	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
-	}
+	// получаем список со ссылками на потоки
+	threads := createThreads()
 
 	// описываем главное окно GUI
 	wndMain := ui.NewWindow("GroupsMonitor", 255, 160, true)
@@ -40,25 +36,52 @@ func initGui() {
 	// и добавляем ее на главное окно
 	wndMain.SetChild(boxMain)
 
+	// описываем группу для нижней панели окна
+	groupBottom := ui.NewGroup("")
+	groupBottom.SetMargined(true)
+
+	// получаем коробку с основными кнопками
+	boxGeneral := makeGeneralBox(threads)
+	// и сразу добавляем ее в группу
+	groupBottom.SetChild(boxGeneral)
+	groupBottom.SetTitle("General")
+
+	// получаем коробку для управления потоками
+	boxThreadControl := makeThreadControlBox()
+
+	// получаем коробку с настройками мониторинга
+	boxSettings := makeSettingsBox()
+
+	// получаем коробку с переключателями панелей
+	boxSelection := makeSelectionBox(groupBottom, boxGeneral, boxThreadControl, boxSettings)
+
+	// в конце добавляем на главную коробку коробку с кнопками-переключателями
+	boxMain.Append(boxSelection, false)
+	// а затем группу
+	boxMain.Append(groupBottom, false)
+
+	// отображаем главное окно
+	wndMain.Show()
+}
+
+func makeSelectionBox(groupBottom *ui.Group, boxGeneral *ui.Box, boxThreadControl *ui.Box, boxSettings *ui.Box) *ui.Box {
 	// описываем верхнюю коробку
-	boxUpper := ui.NewHorizontalBox()
-	// и добавляем ее на главную коробку
-	boxMain.Append(boxUpper, false)
+	boxSelection := ui.NewHorizontalBox()
 
 	// описываем левую верхнюю коробку
-	boxUpperLeft := ui.NewHorizontalBox()
+	boxSelectionLeft := ui.NewHorizontalBox()
 	// и добавляем ее на верхнюю коробку
-	boxUpper.Append(boxUpperLeft, true)
+	boxSelection.Append(boxSelectionLeft, true)
 
 	// описываем коробку для кнопок переключения
 	boxSelectButton := ui.NewHorizontalBox()
 	// и добавляем ее на верхнюю коробку
-	boxUpper.Append(boxSelectButton, false)
+	boxSelection.Append(boxSelectButton, false)
 
 	// описываем правую верхнюю коробку
-	boxUpperRight := ui.NewHorizontalBox()
+	boxSelectionRight := ui.NewHorizontalBox()
 	// и добавляем ее на верхнюю коробку
-	boxUpper.Append(boxUpperRight, true)
+	boxSelection.Append(boxSelectionRight, true)
 
 	// описываем кнопки для переключения между коробками
 	btnGeneralBox := ui.NewButton("General")
@@ -71,25 +94,9 @@ func initGui() {
 	boxSelectButton.Append(btnThreadControlBox, false)
 	boxSelectButton.Append(btnSettings, false)
 
-	// описываем нижнюю коробку (для панели с основными кнопками)
-	boxBottom := ui.NewHorizontalBox()
-	// описываем группу для нижней панели окна
-	groupBottom := ui.NewGroup("Main")
-	groupBottom.SetMargined(true)
-	// и добавляем коробку в группу
-	groupBottom.SetChild(boxBottom)
-	// затем добавляем группу на главную коробку
-	boxMain.Append(groupBottom, false)
-
-	// описываем коробку для управления потоками
-	boxThreadControl := ui.NewVerticalBox()
-
-	// описываем коробку для управления настройками монитора
-	boxSettings := ui.NewVerticalBox()
-
 	// затем привязываем к каждой кнопке-переключателе коробок соответствующую процедуру
 	btnGeneralBox.OnClicked(func(*ui.Button) {
-		groupBottom.SetChild(boxBottom)
+		groupBottom.SetChild(boxGeneral)
 		groupBottom.SetTitle("General")
 		btnGeneralBox.Disable()
 		if !(btnThreadControlBox.Enabled()) {
@@ -122,16 +129,22 @@ func initGui() {
 		}
 	})
 
+	return boxSelection
+}
+
+func makeGeneralBox(threads []*Thread) *ui.Box {
+	boxGeneral := ui.NewHorizontalBox()
+
 	// описываем левую нижнюю коробку
 	boxBottomLeft := ui.NewHorizontalBox()
-	// и добавляем ее на нижнюю коробку
-	boxBottom.Append(boxBottomLeft, true)
+	// и добавляем ее на основную коробку
+	boxGeneral.Append(boxBottomLeft, true)
 
 	// описываем коробку для основных кнопок
 	buttonsBox := ui.NewVerticalBox()
 	buttonsBox.SetPadded(true)
-	// и добавляем ее на левую коробку
-	boxBottom.Append(buttonsBox, false)
+	// и добавляем ее на основную коробку
+	boxGeneral.Append(buttonsBox, false)
 
 	// описываем основные кнопки программы
 	btnStart := ui.NewButton("Start")
@@ -142,16 +155,16 @@ func initGui() {
 
 	// и привязываем к каждой соответствующую процедуру
 	btnStart.OnClicked(func(*ui.Button) {
-		btnStartFunction(threads)
+		StartThreads(threads)
 		btnStart.Disable()
 		btnRestart.Enable()
 		btnStop.Enable()
 	})
 	btnRestart.OnClicked(func(*ui.Button) {
-		btnRestartFunction(threads)
+		RestartThreads(threads)
 	})
 	btnStop.OnClicked(func(*ui.Button) {
-		btnStopFunction(threads)
+		StopThreads(threads)
 		btnRestart.Disable()
 		btnStop.Disable()
 	})
@@ -161,23 +174,37 @@ func initGui() {
 	buttonsBox.Append(btnRestart, false)
 	buttonsBox.Append(btnStop, false)
 
-	// описываем правую нижняя коробку
+	// описываем правую нижнюю коробку
 	boxBottomRight := ui.NewHorizontalBox()
 	// и добавляем ее на нижнюю коробку
-	boxBottom.Append(boxBottomRight, true)
+	boxGeneral.Append(boxBottomRight, true)
 
-	// отображаем главное окно
-	wndMain.Show()
+	return boxGeneral
 }
 
-func btnStartFunction(threads []*Thread) {
-	StartThreads(threads)
+func makeThreadControlBox() *ui.Box {
+	boxThreadControl := ui.NewVerticalBox()
+
+	// TODO
+
+	return boxThreadControl
 }
 
-func btnRestartFunction(threads []*Thread) {
-	RestartThreads(threads)
+func makeSettingsBox() *ui.Box {
+	boxSettings := ui.NewVerticalBox()
+
+	// TODO
+
+	return boxSettings
 }
 
-func btnStopFunction(threads []*Thread) {
-	StopThreads(threads)
+func createThreads() []*Thread {
+	// запускаем функцию создания потоков с модулями проверки
+	threads, err := MakeThreads()
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	return threads
 }

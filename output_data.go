@@ -16,13 +16,7 @@ func OutputMessage(sender string, message string) {
 func OutputToTextFile(sender string, message string) {
 	textToOutput := fmt.Sprintf("> [%v] [%v]: %v\n", UnixTimeStampToDate(int(time.Now().Unix())), sender, message)
 
-	path, err := ReadPathFile()
-	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
-	}
-
-	logText, err := ReadTextFile(path + "log.txt")
+	logText, err := ReadTextFile("log.txt")
 	if err != nil {
 		date := UnixTimeStampToDate(int(time.Now().Unix()))
 		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
@@ -30,7 +24,7 @@ func OutputToTextFile(sender string, message string) {
 
 	textToWrite := logText + textToOutput
 
-	err = WriteTextFile(path+"log.txt", textToWrite)
+	err = WriteTextFile("log.txt", textToWrite)
 	if err != nil {
 		date := UnixTimeStampToDate(int(time.Now().Unix()))
 		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))

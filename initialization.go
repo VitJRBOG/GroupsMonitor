@@ -7,14 +7,14 @@ import (
 
 // CheckFiles проверяет наличие файлов, необходимых для нормальной работы программы
 func CheckFiles() error {
-	// проверяем наличие файла, в котором хранится путь к остальным файлам
-	err := checkPathFileExistence()
+	// проверяем наличие файла, в котором хранится лог-вывод программы
+	err := checkLogFileExistence()
 	if err != nil {
 		return err
 	}
 
-	// проверяем наличие файла, в котором хранится лог-вывод программы
-	err = checkLogFileExistence()
+	// проверяем наличие файла, в котором хранится путь к остальным файлам
+	err = checkPathFileExistence()
 	if err != nil {
 		return err
 	}
@@ -23,6 +23,24 @@ func CheckFiles() error {
 	err = checkDBFileExistence()
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// checkLogFileExistence проверяет наличие файла, где хранится лог-вывод программы
+func checkLogFileExistence() error {
+	// проверяем
+	if _, err := os.Stat("log.txt"); os.IsNotExist(err) {
+
+		// если отсутствует, то создаем новый
+		err = WriteTextFile("log.txt", "")
+		if err != nil {
+			return err
+		}
+		sender := "Initialization"
+		message := "File \"log.txt\" has been created."
+		OutputMessage(sender, message)
 	}
 
 	return nil
@@ -41,28 +59,6 @@ func checkPathFileExistence() error {
 		}
 		sender := "Initialization"
 		message := "File \"path.txt\" has been created."
-		OutputMessage(sender, message)
-	}
-
-	return nil
-}
-
-// checkLogFileExistence проверяет наличие файла, где хранится лог-вывод программы
-func checkLogFileExistence() error {
-	path, err := ReadPathFile()
-	if err != nil {
-		return err
-	}
-	// проверяем
-	if _, err := os.Stat(path + "log.txt"); os.IsNotExist(err) {
-
-		// если отсутствует, то создаем новый
-		err = WriteTextFile(path+"log.txt", "")
-		if err != nil {
-			return err
-		}
-		sender := "Initialization"
-		message := "File \"log.txt\" has been created."
 		OutputMessage(sender, message)
 	}
 

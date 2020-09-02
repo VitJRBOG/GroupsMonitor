@@ -238,8 +238,8 @@ func wallPostMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус error
-				threadData.Status = "error"
+				// и ставим потоку статус waiting
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -250,8 +250,8 @@ func wallPostMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока error
-			if threadData.Status == "error" {
+			// если статус потока waiting
+			if threadData.Status == "waiting" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
 			}
@@ -324,8 +324,8 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус error
-				threadData.Status = "error"
+				// и ставим потоку статус waiting
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -336,8 +336,8 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока error
-			if threadData.Status == "error" {
+			// если статус потока waiting
+			if threadData.Status == "waiting" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
 			}
@@ -410,8 +410,8 @@ func videoMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус error
-				threadData.Status = "error"
+				// и ставим потоку статус waiting
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -424,8 +424,8 @@ func videoMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока error
-			if threadData.Status == "error" {
+			// если статус потока waiting
+			if threadData.Status == "waiting" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
 			}
@@ -498,8 +498,8 @@ func photoCommentMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус error
-				threadData.Status = "error"
+				// и ставим потоку статус waiting
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -512,8 +512,8 @@ func photoCommentMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока error
-			if threadData.Status == "error" {
+			// если статус потока waiting
+			if threadData.Status == "waiting" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
 			}
@@ -586,8 +586,8 @@ func videoCommentMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус error
-				threadData.Status = "error"
+				// и ставим потоку статус waiting
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -600,8 +600,8 @@ func videoCommentMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока error
-			if threadData.Status == "error" {
+			// если статус потока waiting
+			if threadData.Status == "waiting" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
 			}
@@ -674,8 +674,8 @@ func topicMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус error
-				threadData.Status = "error"
+				// и ставим потоку статус waiting
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -686,8 +686,8 @@ func topicMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока error
-			if threadData.Status == "error" {
+			// если статус потока waiting
+			if threadData.Status == "waiting" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
 			}
@@ -760,8 +760,8 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус error
-				threadData.Status = "error"
+				// и ставим потоку статус waiting
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -772,8 +772,8 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока error
-			if threadData.Status == "error" {
+			// если статус потока waiting
+			if threadData.Status == "waiting" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
 			}

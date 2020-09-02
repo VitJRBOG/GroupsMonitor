@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"io/ioutil"
 	"os"
 )
 
@@ -41,4 +42,15 @@ func ReadTextFile(path string) (string, error) {
 	}
 
 	return text, nil
+}
+
+// WriteTextFile сохраняет текст в текстовые файлы
+func WriteTextFile(path string, text string) error {
+	valuesBytes := []byte(text)
+	err := ioutil.WriteFile(path, valuesBytes, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

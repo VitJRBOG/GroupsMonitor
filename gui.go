@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/andlabs/ui"
@@ -47,7 +48,7 @@ func initGui() {
 	groupBottom.SetTitle("General")
 
 	// получаем коробку для управления потоками
-	boxThreadControl := makeThreadControlBox()
+	boxThreadControl := makeThreadControlBox(threads)
 
 	// получаем коробку с настройками мониторинга
 	boxSettings := makeSettingsBox()
@@ -182,12 +183,152 @@ func makeGeneralBox(threads []*Thread) *ui.Box {
 	return boxGeneral
 }
 
-func makeThreadControlBox() *ui.Box {
-	boxThreadControl := ui.NewVerticalBox()
+// SubjectBoxData хранит данные для коробок с управленем потоками
+type SubjectBoxData struct {
+	Title  string
+	Button *ui.Button
+	Box    *ui.Box
+}
 
-	// TODO
+func makeThreadControlBox(threads []*Thread) *ui.Box {
+	boxThreadControl := ui.NewHorizontalBox()
+	boxThreadControl.SetPadded(true)
+
+	var listSubjectBoxData []SubjectBoxData
+
+	boxSubjectsSelection := ui.NewVerticalBox()
+	groupSubject := ui.NewGroup("")
+
+	subjectsNames := getSubjectsNames()
+
+	if len(subjectsNames) == 0 {
+		labelNone := ui.NewLabel("Subjects not found")
+		boxThreadControl.Append(labelNone, true)
+	} else {
+		for _, subjectName := range subjectsNames {
+			var subjectBoxData SubjectBoxData
+
+			button := ui.NewButton(subjectName)
+			subjectBoxData.Title = subjectName
+			subjectBoxData.Button = button
+
+			listSubjectBoxData = append(listSubjectBoxData, subjectBoxData)
+		}
+
+		for i := 0; i < len(listSubjectBoxData); i++ {
+			buttonTitle := listSubjectBoxData[i].Title
+			button := listSubjectBoxData[i].Button
+			boxSubject := makeSubjectBox(buttonTitle, threads)
+
+			listSubjectBoxData[i].Box = boxThreadControl
+
+			listSubjectBoxData[i].Button.OnClicked(func(*ui.Button) {
+				groupSubject.SetChild(boxSubject)
+				groupSubject.SetTitle(buttonTitle)
+
+				for n := 0; n < len(listSubjectBoxData); n++ {
+					if !(listSubjectBoxData[n].Button.Enabled()) {
+						listSubjectBoxData[n].Button.Enable()
+					}
+				}
+
+				button.Disable()
+			})
+		}
+
+		for _, subjectBoxData := range listSubjectBoxData {
+			boxSubjectsSelection.Append(subjectBoxData.Button, false)
+		}
+
+		boxThreadControl.Append(boxSubjectsSelection, false)
+		boxThreadControl.Append(groupSubject, true)
+	}
 
 	return boxThreadControl
+}
+
+func getSubjectsNames() []string {
+	var subjectsNames []string
+
+	subjects, err := SelectDBSubjects()
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	for _, subject := range subjects {
+		subjectsNames = append(subjectsNames, subject.Name)
+	}
+
+	return subjectsNames
+}
+
+func makeSubjectBox(subjectName string, threads []*Thread) *ui.Box {
+	boxSubject := ui.NewVerticalBox()
+
+	monitorsNames := []string{"Wall post monitoring", "Album photo monitoring", "Video monitoring",
+		"Photo comment monitoring", "Video comment monitoring", "Topic monitoring",
+		"Wall post comment monitoring"}
+
+	var btnsMonitorControl []*ui.Button
+	var lblsMonitorControl []*ui.Label
+
+	for _, monitorName := range monitorsNames {
+		boxMonitorControl := ui.NewHorizontalBox()
+
+		boxBtnMonitorControl := ui.NewVerticalBox()
+		btnMonitorControl := ui.NewButton(monitorName)
+		boxBtnMonitorControl.Append(btnMonitorControl, false)
+		btnMonitorControl.Disable()
+		btnsMonitorControl = append(btnsMonitorControl, btnMonitorControl)
+		boxMonitorControl.Append(boxBtnMonitorControl, true)
+
+		boxLblMonitorControl := ui.NewVerticalBox()
+		lblMonitorControl := ui.NewLabel("stopped")
+		boxLblMonitorControl.Append(lblMonitorControl, false)
+		lblsMonitorControl = append(lblsMonitorControl, lblMonitorControl)
+		boxMonitorControl.Append(boxLblMonitorControl, true)
+
+		boxSubject.Append(boxMonitorControl, false)
+	}
+
+	for i, btnMonitorControl := range btnsMonitorControl {
+		btnTitle := btnMonitorControl.Text()
+
+		for _, threadData := range threads {
+
+			if strings.Contains(strings.ToLower(threadData.Name), strings.ToLower(subjectName)) {
+
+				if strings.ToLower(threadData.Name) == strings.ToLower(subjectName+"'s "+btnTitle) {
+					btnMonitorControl.OnClicked(func(*ui.Button) {
+						if threadData.Status == "waiting" {
+							threadData.Status = "alive"
+						} else {
+							if threadData.Status == "alive" {
+								threadData.Status = "waiting"
+							}
+						}
+					})
+					btnMonitorControl.Enable()
+
+					go threadStatusChecking(lblsMonitorControl[i], threadData)
+
+					break
+				}
+			}
+		}
+	}
+
+	return boxSubject
+}
+
+func threadStatusChecking(lblMonitorControl *ui.Label, threadData *Thread) {
+	for true {
+		if lblMonitorControl.Text() != threadData.Status {
+			lblMonitorControl.SetText(threadData.Status)
+		}
+		time.Sleep(1 * time.Second)
+	}
 }
 
 func makeSettingsBox() *ui.Box {

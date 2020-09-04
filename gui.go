@@ -392,12 +392,313 @@ func threadStatusChecking(lblMonitorControl *ui.Label, threadData *Thread) {
 	}
 }
 
-func makeSettingsBox() *ui.Box {
-	boxSettings := ui.NewVerticalBox()
+// GeneralBoxesData хранит коробки для основных установок
+type GeneralBoxesData struct {
+	AccessTokens *ui.Box
+	Subjects     *ui.Box
+}
 
-	// TODO
+// GroupsSettingsData хранит группы для установок
+type GroupsSettingsData struct {
+	Primary    *ui.Group
+	General    *ui.Group
+	Additional *ui.Group
+}
+
+func makeSettingsBox() *ui.Box {
+	boxSettings := ui.NewHorizontalBox()
+
+	// описываем три группы для отображения установок:
+	var groupsSettingsData GroupsSettingsData
+	// первичная
+	groupPrimarySettings := ui.NewGroup("")
+	groupsSettingsData.Primary = groupPrimarySettings
+	// общие
+	groupGeneralSettings := ui.NewGroup("")
+	groupsSettingsData.General = groupGeneralSettings
+	// дополнительная
+	groupAdditionalSettings := ui.NewGroup("")
+	groupsSettingsData.Additional = groupAdditionalSettings
+
+	var generalBoxesData GeneralBoxesData
+
+	// получаем коробку для установок токенов доступа
+	boxAccessTokensSettings := makeAccessTokensSettingsBox()
+	generalBoxesData.AccessTokens = boxAccessTokensSettings
+	// по умолчанию отображаем ее в группе общих настроек
+	groupGeneralSettings.SetTitle("Access tokens")
+	groupGeneralSettings.SetChild(boxAccessTokensSettings)
+	groupAdditionalSettings.SetChild(ui.NewLabel("Nothing to show here..."))
+
+	// получаем коробку для установок субъектов
+	boxSubjectsSettings := makeSubjectsSettingsBox(groupsSettingsData)
+	generalBoxesData.Subjects = boxSubjectsSettings
+
+	// получаем коробку для первичных установок
+	boxPrimarySettings := makePrimarySettingsBox(generalBoxesData, groupsSettingsData)
+	// и добавляем ее в соответствующую группу
+	groupPrimarySettings.SetChild(boxPrimarySettings)
+
+	// добавляем группы на коробку с настройками
+	boxSettings.Append(groupPrimarySettings, false)
+	boxSettings.Append(groupGeneralSettings, false)
+	boxSettings.Append(groupAdditionalSettings, false)
 
 	return boxSettings
+}
+
+func makeAccessTokensSettingsBox() *ui.Box {
+	// описываем коробку для установок токенов доступа
+	boxAccessTokensSettings := ui.NewVerticalBox()
+
+	// запрашиваем список токенов доступа из базы данных
+	accessTokens, err := SelectDBAccessTokens()
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	// перечисляем токены доступа
+	for i := 0; i < len(accessTokens); i++ {
+		accessTokenData := accessTokens[i]
+		// описываем коробку для отображения названия токена доступа и кнопки вызова настроек
+		boxAccessTokenSettings := ui.NewHorizontalBox()
+
+		// описываем метку для отображения названия токена доступа
+		lblAccessTokenName := ui.NewLabel(accessTokenData.Name)
+		// и добавляем ее в коробку (потом еще добавим кнопку)
+		boxAccessTokenSettings.Append(lblAccessTokenName, true)
+
+		// описываем кнопку для вызова настроек соответствующего токена доступа
+		btnAccessTokenSettings := ui.NewButton("Set...")
+		// и добавляем ее в коробку (сюда ранее добавили кнопку)
+		boxAccessTokenSettings.Append(btnAccessTokenSettings, true)
+
+		// привязываем кнопку к процедуре отображения окна с параметрами
+		btnAccessTokenSettings.OnClicked(func(*ui.Button) {
+			showAccessTokenSettingWindow(accessTokenData.ID)
+		})
+
+		// размещаем коробку с меткой и кнопкой на коробке для установок токенов доступа
+		boxAccessTokensSettings.Append(boxAccessTokenSettings, false)
+	}
+
+	return boxAccessTokensSettings
+}
+
+func showAccessTokenSettingWindow(IDAccessToken int) {
+	// описываем окно для отображения установок токена доступа
+	wndAccessTokenSettings := ui.NewWindow("", 300, 100, true)
+	wndAccessTokenSettings.OnClosing(func(*ui.Window) bool {
+		wndAccessTokenSettings.Disable()
+		return true
+	})
+	wndAccessTokenSettings.SetMargined(true)
+	boxWndMain := ui.NewVerticalBox()
+	wndAccessTokenSettings.SetChild(boxWndMain)
+
+	// запрашиваем список токенов доступа из базы данных
+	accessTokens, err := SelectDBAccessTokens()
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	// перечисляем токены доступа
+	for _, accessToken := range accessTokens {
+		// и ищем токен с подходящим идентификатором
+		if accessToken.ID == IDAccessToken {
+			// устанавливаем заголовок окна в соответствии с названием токена доступа
+			wndAccessTokenSettings.SetTitle("Settings of " + accessToken.Name + "'s access token")
+
+			boxWndAT := ui.NewVerticalBox()
+
+			// описываем коробку с меткой и полем для названия токена доступа
+			boxWndATName := ui.NewHorizontalBox()
+			boxWndATName.SetPadded(true)
+			lblWndATName := ui.NewLabel("Name")
+			boxWndATName.Append(lblWndATName, false)
+			entryWndATName := ui.NewEntry()
+			entryWndATName.SetText(accessToken.Name)
+			boxWndATName.Append(entryWndATName, true)
+
+			// описываем коробку с меткой и полем для значения токена доступа
+			boxWndATValue := ui.NewHorizontalBox()
+			boxWndATValue.SetPadded(true)
+			lblWndATValue := ui.NewLabel("Value")
+			boxWndATValue.Append(lblWndATValue, false)
+			entryWndATValue := ui.NewEntry()
+			entryWndATValue.SetText(accessToken.Value)
+			boxWndATValue.Append(entryWndATValue, true)
+
+			// описываем группу, в которой будут размещены элементы
+			groupWndAT := ui.NewGroup("")
+			groupWndAT.SetMargined(true)
+			boxWndAT.Append(boxWndATName, false)
+			boxWndAT.Append(boxWndATValue, false)
+			groupWndAT.SetChild(boxWndAT)
+
+			// добавляем группу в основную коробку окна
+			boxWndMain.Append(groupWndAT, false)
+
+			// описываем коробку с кнопками
+			boxWndATBtns := ui.NewHorizontalBox()
+			btnWndATApplyChanges := ui.NewButton("Apply")
+			btnwndATCancel := ui.NewButton("Cancel")
+			boxWndATBtns.Append(btnWndATApplyChanges, false)
+			boxWndATBtns.Append(btnwndATCancel, false)
+
+			// привязываем кнопки к соответствующим процедурам
+			btnWndATApplyChanges.OnClicked(func(*ui.Button) {
+				var updatedAccessToken AccessToken
+				updatedAccessToken.ID = accessToken.ID
+				updatedAccessToken.Name = entryWndATName.Text()
+				updatedAccessToken.Value = entryWndATValue.Text()
+
+				err := UpdateDBAccessToken(updatedAccessToken)
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+
+				// TODO: как-нибудь надо закрывать окно
+			})
+			btnwndATCancel.OnClicked(func(*ui.Button) {
+				// TODO: как-нибудь надо закрывать окно
+			})
+
+			// добавляем коробку с кнопками на основную коробку окна
+			boxWndMain.Append(boxWndATBtns, true)
+			break
+		}
+	}
+
+	wndAccessTokenSettings.Show()
+}
+
+func makeSubjectsSettingsBox(groupsSettingsData GroupsSettingsData) *ui.Box {
+	// описываем коробку для установок субъектов
+	boxSubjectsSettings := ui.NewVerticalBox()
+
+	// запрашиваем список субъектов из базы данных
+	subjects, err := SelectDBSubjects()
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	// в этом списке будут храниться ссылки на кнопки для отображения доп. настроек
+	var listBtnsSubjectSettings []*ui.Button
+
+	// перечисляем субъекты
+	for _, subjectData := range subjects {
+		// описываем кнопку для отображения доп. настроек соответствующего субъекта
+		btnSubjectSettings := ui.NewButton(subjectData.Name)
+		// и добавляем ее в коробку
+		boxSubjectsSettings.Append(btnSubjectSettings, false)
+		// добавляем кнопку в список
+		listBtnsSubjectSettings = append(listBtnsSubjectSettings, btnSubjectSettings)
+	}
+
+	// перечисляем кнопки для отображения доп. настроек
+	for i := 0; i < len(listBtnsSubjectSettings); i++ {
+		btnSubjectSettings := listBtnsSubjectSettings[i]
+		// еще раз перечисляем субъекты
+		for _, subjectData := range subjects {
+			// если название субъекта совпало с названием кнопки
+			if subjectData.Name == btnSubjectSettings.Text() {
+				// то получаем коробку для отображения кнопок для вызова доп. настроек
+				boxSubjectAdditionalSettingsBox := makeSubjectAdditionalSettingsBox(subjectData)
+				// и привязываем кнопку к процедуре отображения соответствующих доп. настроек
+				btnSubjectSettings.OnClicked(func(*ui.Button) {
+					groupsSettingsData.Additional.SetChild(boxSubjectAdditionalSettingsBox)
+					groupsSettingsData.Additional.SetTitle(subjectData.Name)
+
+					for n := 0; n < len(listBtnsSubjectSettings); n++ {
+						if !(listBtnsSubjectSettings[n].Enabled()) {
+							listBtnsSubjectSettings[n].Enable()
+						}
+					}
+
+					btnSubjectSettings.Disable()
+				})
+
+				break
+			}
+		}
+	}
+
+	return boxSubjectsSettings
+}
+
+func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
+	boxSubjectAdditionalSettingsBox := ui.NewVerticalBox()
+
+	// создаем список с названиями кнопок для вызова окна доп. с установками
+	btnsNames := []string{"General", "Wall post monitor", "Album photo monitor", "Video monitor",
+		"Photo comment monitor", "Video comment monitor", "Topic monitor",
+		"Wall post comment monitor"}
+
+	// перечисляем названия кнопок
+	for _, btnName := range btnsNames {
+		// описываем коробку для отображения метки с названием доп. установок и кнопкой
+		boxSettingsSection := ui.NewHorizontalBox()
+
+		// описываем коробку для метки с названием доп. установок
+		boxLblSettingsSection := ui.NewVerticalBox()
+		lblSettingsSection := ui.NewLabel(btnName)
+		boxLblSettingsSection.Append(lblSettingsSection, false)
+		boxSettingsSection.Append(boxLblSettingsSection, true)
+
+		// описываем коробку для кнопки вызова окна с доп. установками
+		boxBtnSettingsSection := ui.NewVerticalBox()
+		btnSettingsSection := ui.NewButton("Set...")
+		boxBtnSettingsSection.Append(btnSettingsSection, false)
+		boxSettingsSection.Append(boxBtnSettingsSection, true)
+
+		// TODO: привязываем к кнопке отображения окна с доп. установками соответствующую процедуру
+
+		boxSubjectAdditionalSettingsBox.Append(boxSettingsSection, false)
+	}
+
+	return boxSubjectAdditionalSettingsBox
+}
+
+func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsData GroupsSettingsData) *ui.Box {
+	// описываем коробку для первичных установок
+	boxPrimarySettings := ui.NewVerticalBox()
+
+	// описываем кнопку для отображения установок токенов доступа
+	btnAccessTokensSettings := ui.NewButton("Access tokens")
+	// по умолчанию делаем ее неактивной
+	btnAccessTokensSettings.Disable()
+	// описываем кнопку для отображения установок субъектов
+	btnSubjectsSettings := ui.NewButton("Subjects")
+
+	// привязываем кнопки к процедурам отображения соответствующих блоков настроек
+	btnAccessTokensSettings.OnClicked(func(*ui.Button) {
+		groupsSettingsData.Additional.SetChild(ui.NewLabel("Nothing to show here..."))
+		groupsSettingsData.General.SetTitle("Access tokens")
+		groupsSettingsData.General.SetChild(generalBoxesData.AccessTokens)
+		btnAccessTokensSettings.Disable()
+		if !(btnSubjectsSettings.Enabled()) {
+			btnSubjectsSettings.Enable()
+		}
+	})
+	btnSubjectsSettings.OnClicked(func(*ui.Button) {
+		groupsSettingsData.General.SetTitle("Subjects")
+		groupsSettingsData.General.SetChild(generalBoxesData.Subjects)
+		btnSubjectsSettings.Disable()
+		if !(btnAccessTokensSettings.Enabled()) {
+			btnAccessTokensSettings.Enable()
+		}
+	})
+
+	// добавляем кнопки на коробку для первичных установок
+	boxPrimarySettings.Append(btnAccessTokensSettings, false)
+	boxPrimarySettings.Append(btnSubjectsSettings, false)
+
+	return boxPrimarySettings
 }
 
 func createThreads() []*Thread {

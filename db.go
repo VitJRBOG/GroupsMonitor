@@ -184,7 +184,7 @@ func SelectDBAccessTokenByName(nameAccessToken string) (AccessToken, error) {
 	return accessToken, nil
 }
 
-// UpdateDBAccessToken обновляет значение в поле таблицы access_token
+// UpdateDBAccessToken обновляет значения в поле таблицы access_token
 func UpdateDBAccessToken(accessToken AccessToken) error {
 	// получаем ссылку на db
 	db, err := openDB()
@@ -194,7 +194,8 @@ func UpdateDBAccessToken(accessToken AccessToken) error {
 	}
 
 	// обновляем значения в конкретном поле
-	query := fmt.Sprintf(`UPDATE access_token SET value='%v' WHERE id=%d`, accessToken.Value, accessToken.ID)
+	query := fmt.Sprintf(`UPDATE access_token SET name='%v', value='%v' WHERE id=%d`,
+		accessToken.Name, accessToken.Value, accessToken.ID)
 	_, err = db.Exec(query)
 	if err != nil {
 		return err

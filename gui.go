@@ -187,7 +187,7 @@ func makeGeneralBox(threads []*Thread) *ui.Box {
 type SubjectBoxData struct {
 	Title  string
 	Button *ui.Button
-	Box    *ui.Box // лишний параметр, нигде не участвует
+	Box    *ui.Box
 }
 
 func makeThreadControlBox(threads []*Thread) *ui.Box {
@@ -234,7 +234,7 @@ func makeThreadControlBox(threads []*Thread) *ui.Box {
 			// получаем получаем коробку, ориентированную на данный конкретный субъект
 			boxSubject := makeSubjectBox(buttonTitle, threads)
 
-			listSubjectBoxData[i].Box = boxThreadControl // лишняя строчка, нигде не участвует
+			listSubjectBoxData[i].Box = boxSubject
 
 			// привязываем к кнопке отображения коробки управления субъекта соответствующую процедуру
 			listSubjectBoxData[i].Button.OnClicked(func(*ui.Button) {
@@ -256,11 +256,23 @@ func makeThreadControlBox(threads []*Thread) *ui.Box {
 			boxSubjectsSelection.Append(subjectBoxData.Button, false)
 		}
 
+		// для выравнивания расположения кнопок относительно коробки управления потоками
+		// создаем группу для кнопок переключения между субъектами
+		groupSubjectsSelection := ui.NewGroup("")
+		// и добавляем на нее коробку с кнопками
+		groupSubjectsSelection.SetChild(boxSubjectsSelection)
+
 		// добавляем на коробку для управления потоками
-		// коробку с кнопками для переключения между субъектами
-		boxThreadControl.Append(boxSubjectsSelection, false)
+		// группу с кнопками для переключения между субъектами
+		boxThreadControl.Append(groupSubjectsSelection, false)
 		// и группу с коробками управления субъектами
 		boxThreadControl.Append(groupSubject, true)
+
+		// по умолчанию отображаем коробку первого в списке субъекта
+		groupSubject.SetChild(listSubjectBoxData[0].Box)
+		groupSubject.SetTitle(listSubjectBoxData[0].Title)
+		// и делаем неактивной кнопку отображения коробки этого субъекта
+		listSubjectBoxData[0].Button.Disable()
 	}
 
 	return boxThreadControl
@@ -317,8 +329,8 @@ func makeSubjectBox(subjectName string, threads []*Thread) *ui.Box {
 
 		// описываем коробку для метки для статуса
 		boxLblMonitorControl := ui.NewVerticalBox()
-		// по умолчанию ставим статус stopped (менять статус будем потом)
-		lblMonitorControl := ui.NewLabel("stopped")
+		// по умолчанию ставим статус inactive (менять статус будем потом)
+		lblMonitorControl := ui.NewLabel("inactive")
 		// затем добавляем на коробку для метки
 		boxLblMonitorControl.Append(lblMonitorControl, false)
 		// добавляем метку в списко для меток

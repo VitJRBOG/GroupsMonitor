@@ -495,6 +495,7 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 	})
 	wndAccessTokenSettings.SetMargined(true)
 	boxWndMain := ui.NewVerticalBox()
+	boxWndMain.SetPadded(true)
 	wndAccessTokenSettings.SetChild(boxWndMain)
 
 	// запрашиваем список токенов доступа из базы данных
@@ -541,13 +542,27 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 			// добавляем группу в основную коробку окна
 			boxWndMain.Append(groupWndAT, false)
 
-			// описываем коробку с кнопками
+			// описываем коробку для кнопок
 			boxWndATBtns := ui.NewHorizontalBox()
-			btnWndATApplyChanges := ui.NewButton("Apply")
+			boxWndATBtns.SetPadded(true)
+			// и несколько коробок для выравнивания кнопок
+			btnWndATBtnsLeft := ui.NewHorizontalBox()
+			btnWndATBtnsCenter := ui.NewHorizontalBox()
+			btnWndATBtnsRight := ui.NewHorizontalBox()
+			btnWndATBtnsRight.SetPadded(true)
+			// а затем сами кнопки
 			btnwndATCancel := ui.NewButton("Cancel")
-			boxWndATBtns.Append(btnWndATApplyChanges, false)
-			boxWndATBtns.Append(btnwndATCancel, false)
+			btnWndATBtnsRight.Append(btnwndATCancel, false)
+			btnWndATApplyChanges := ui.NewButton("Apply")
+			btnWndATBtnsRight.Append(btnWndATApplyChanges, false)
+			// и добавляем их в коробку для кнопок
+			boxWndATBtns.Append(btnWndATBtnsLeft, false)
+			boxWndATBtns.Append(btnWndATBtnsCenter, false)
+			boxWndATBtns.Append(btnWndATBtnsRight, false)
 
+			btnwndATCancel.OnClicked(func(*ui.Button) {
+				// TODO: как-нибудь надо закрывать окно
+			})
 			// привязываем кнопки к соответствующим процедурам
 			btnWndATApplyChanges.OnClicked(func(*ui.Button) {
 				var updatedAccessToken AccessToken
@@ -563,12 +578,12 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 
 				// TODO: как-нибудь надо закрывать окно
 			})
-			btnwndATCancel.OnClicked(func(*ui.Button) {
-				// TODO: как-нибудь надо закрывать окно
-			})
 
 			// добавляем коробку с кнопками на основную коробку окна
 			boxWndMain.Append(boxWndATBtns, true)
+			// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
+			boxWndATBottom := ui.NewHorizontalBox()
+			boxWndMain.Append(boxWndATBottom, false)
 			break
 		}
 	}

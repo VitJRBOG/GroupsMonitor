@@ -678,6 +678,16 @@ func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
 			btnSettingsSection.OnClicked(func(*ui.Button) {
 				showSubjectGeneralSettingWindow(subjectData.ID, btnName)
 			})
+		case "Wall post monitor":
+			btnSettingsSection.OnClicked(func(*ui.Button) {
+				showSubjectWallPostSettingWindow(subjectData.ID, subjectData.Name, btnName)
+			})
+			// case "Album photo monitor":
+			// case "Video monitor":
+			// case "Photo comment monitor":
+			// case "Video comment monitor":
+			// case "Topic monitor":
+			// case "Wall post comment monitor":
 		}
 
 		boxSubjectAdditionalSettingsBox.Append(boxSettingsSection, false)
@@ -798,6 +808,189 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 	}
 
 	wndSubjectGeneralSettings.Show()
+}
+
+func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string) {
+	// описываем окно для отображения общих установок субъекта
+	wndSubjectWallPostSettings := ui.NewWindow("", 300, 100, true)
+	wndSubjectWallPostSettings.OnClosing(func(*ui.Window) bool {
+		wndSubjectWallPostSettings.Disable()
+		return true
+	})
+	wndSubjectWallPostSettings.SetMargined(true)
+	boxWndMain := ui.NewVerticalBox()
+	boxWndMain.SetPadded(true)
+	wndSubjectWallPostSettings.SetChild(boxWndMain)
+
+	// запрашиваем параметры мониторинга из базы данных
+	wallPostMonitorParam, err := SelectDBWallPostMonitorParam(IDSubject)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	// устанавливаем заголовок окна в соответствии с названием субъекта и назначением установок
+	wndTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	wndSubjectWallPostSettings.SetTitle(wndTitle)
+
+	boxWndWP := ui.NewVerticalBox()
+
+	// описываем коробку с меткой и чекбоксом для флага необходимости активировать модуль мониторинга
+	boxWndWPMonitoring := ui.NewHorizontalBox()
+	boxWndWPMonitoring.SetPadded(true)
+	lblWndWPMonitoring := ui.NewLabel("Need monitoring")
+	boxWndWPMonitoring.Append(lblWndWPMonitoring, true)
+	cboxWndWPNeedMonitoring := ui.NewCheckbox("")
+	if wallPostMonitorParam.NeedMonitoring == 1 {
+		cboxWndWPNeedMonitoring.SetChecked(true)
+	} else {
+		cboxWndWPNeedMonitoring.SetChecked(false)
+	}
+	boxWndWPMonitoring.Append(cboxWndWPNeedMonitoring, true)
+
+	// описываем коробку с меткой и спинбоксом для интервала между запусками функции мониторинга
+	boxWndWPInterval := ui.NewHorizontalBox()
+	boxWndWPInterval.SetPadded(true)
+	lblWndWPInterval := ui.NewLabel("Interval")
+	boxWndWPInterval.Append(lblWndWPInterval, true)
+	sboxWndWPInterval := ui.NewSpinbox(5, 21600)
+	sboxWndWPInterval.SetValue(wallPostMonitorParam.Interval)
+	boxWndWPInterval.Append(sboxWndWPInterval, true)
+
+	// описываем коробку с меткой и полем для идентификатора получателя сообщений
+	boxWndWPSendTo := ui.NewHorizontalBox()
+	boxWndWPSendTo.SetPadded(true)
+	lblWndWPSendTo := ui.NewLabel("Send to")
+	boxWndWPSendTo.Append(lblWndWPSendTo, true)
+	entryWndWPSendTo := ui.NewEntry()
+	entryWndWPSendTo.SetText(strconv.Itoa(wallPostMonitorParam.SendTo))
+	boxWndWPSendTo.Append(entryWndWPSendTo, true)
+
+	// описываем коробку с меткой и выпадающим списком для названия фильтра постов
+	boxWndWPFilter := ui.NewHorizontalBox()
+	boxWndWPFilter.SetPadded(true)
+	lblWndWPFilter := ui.NewLabel("Filter")
+	boxWndWPFilter.Append(lblWndWPFilter, true)
+	comboboxWndWPFilter := ui.NewCombobox()
+	listPostsFilters := []string{"all", "others", "owner", "suggests"}
+	var slctd int
+	for i, postFilter := range listPostsFilters {
+		comboboxWndWPFilter.Append(postFilter)
+		if wallPostMonitorParam.Filter == postFilter {
+			slctd = i
+		}
+	}
+	comboboxWndWPFilter.SetSelected(slctd)
+	boxWndWPFilter.Append(comboboxWndWPFilter, true)
+
+	// описываем коробку с меткой и спинбоксом для количества проверяемых постов
+	boxWndWPPostsCount := ui.NewHorizontalBox()
+	boxWndWPPostsCount.SetPadded(true)
+	lblWndWPPostsCount := ui.NewLabel("Posts cound")
+	boxWndWPPostsCount.Append(lblWndWPPostsCount, true)
+	sboxWndWPPostsCount := ui.NewSpinbox(1, 50)
+	sboxWndWPPostsCount.SetValue(wallPostMonitorParam.PostsCount)
+	boxWndWPPostsCount.Append(sboxWndWPPostsCount, true)
+
+	// описываем коробку с меткой и полем для списка ключевых слов для поиска постов
+	boxWndWPKwrdsForMntrng := ui.NewHorizontalBox()
+	boxWndWPKwrdsForMntrng.SetPadded(true)
+	lblWndWPKwrdsForMntrng := ui.NewLabel("Keywords")
+	boxWndWPKwrdsForMntrng.Append(lblWndWPKwrdsForMntrng, true)
+	entryWndWPKwrdsForMntrng := ui.NewEntry()
+	listKwrdsForMntrng, err := MakeParamList(wallPostMonitorParam.KeywordsForMonitoring)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+	if len(listKwrdsForMntrng.List) > 0 {
+		var kwrdsForMntrng string
+		for i, keyword := range listKwrdsForMntrng.List {
+			if i > 0 {
+				kwrdsForMntrng += ", "
+			}
+			kwrdsForMntrng += fmt.Sprintf("\"%v\"", keyword)
+		}
+		entryWndWPKwrdsForMntrng.SetText(kwrdsForMntrng)
+	}
+	boxWndWPKwrdsForMntrng.Append(entryWndWPKwrdsForMntrng, true)
+
+	// описываем группу, в которой будут размещены элементы
+	groupWndWP := ui.NewGroup("")
+	groupWndWP.SetMargined(true)
+	boxWndWP.Append(boxWndWPMonitoring, false)
+	boxWndWP.Append(boxWndWPInterval, false)
+	boxWndWP.Append(boxWndWPSendTo, false)
+	boxWndWP.Append(boxWndWPFilter, false)
+	boxWndWP.Append(boxWndWPPostsCount, false)
+	boxWndWP.Append(boxWndWPKwrdsForMntrng, false)
+	groupWndWP.SetChild(boxWndWP)
+
+	// добавляем группу в основную коробку окна
+	boxWndMain.Append(groupWndWP, false)
+
+	// описываем коробку для кнопок
+	boxWndWPBtns := ui.NewHorizontalBox()
+	boxWndWPBtns.SetPadded(true)
+	// и несколько коробок для выравнивания кнопок
+	btnWndWPBtnsLeft := ui.NewHorizontalBox()
+	btnWndWPBtnsCenter := ui.NewHorizontalBox()
+	btnWndWPBtnsRight := ui.NewHorizontalBox()
+	btnWndWPBtnsRight.SetPadded(true)
+	// а затем сами кнопки
+	btnWndWPCancel := ui.NewButton("Cancel")
+	btnWndWPBtnsRight.Append(btnWndWPCancel, false)
+	btnWndWPApplyChanges := ui.NewButton("Apply")
+	btnWndWPBtnsRight.Append(btnWndWPApplyChanges, false)
+	// и добавляем их в коробку для кнопок
+	boxWndWPBtns.Append(btnWndWPBtnsLeft, false)
+	boxWndWPBtns.Append(btnWndWPBtnsCenter, false)
+	boxWndWPBtns.Append(btnWndWPBtnsRight, false)
+
+	// привязываем к кнопкам соответствующие процедуры
+	btnWndWPCancel.OnClicked(func(*ui.Button) {
+		// TODO: как-нибудь надо закрывать окно
+	})
+	// привязываем кнопки к соответствующим процедурам
+	btnWndWPApplyChanges.OnClicked(func(*ui.Button) {
+		var updatedWallPostMonitorParam WallPostMonitorParam
+		updatedWallPostMonitorParam.ID = wallPostMonitorParam.ID
+		updatedWallPostMonitorParam.SubjectID = wallPostMonitorParam.SubjectID
+		if cboxWndWPNeedMonitoring.Checked() {
+			updatedWallPostMonitorParam.NeedMonitoring = 1
+		} else {
+			updatedWallPostMonitorParam.NeedMonitoring = 0
+		}
+		updatedWallPostMonitorParam.Interval = sboxWndWPInterval.Value()
+		updatedWallPostMonitorParam.SendTo, err = strconv.Atoi(entryWndWPSendTo.Text())
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+		listPostsFilters := []string{"all", "others", "owner", "suggests"}
+		updatedWallPostMonitorParam.Filter = listPostsFilters[comboboxWndWPFilter.Selected()]
+		updatedWallPostMonitorParam.LastDate = wallPostMonitorParam.LastDate
+		updatedWallPostMonitorParam.PostsCount = sboxWndWPPostsCount.Value()
+		jsonDump := fmt.Sprintf("{\"list\":[%v]}", entryWndWPKwrdsForMntrng.Text())
+		updatedWallPostMonitorParam.KeywordsForMonitoring = jsonDump
+		updatedWallPostMonitorParam.UsersIDsForIgnore = wallPostMonitorParam.UsersIDsForIgnore
+
+		err = UpdateDBWallPostMonitor(updatedWallPostMonitorParam)
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+
+		// TODO: как-нибудь надо закрывать окно
+	})
+
+	// добавляем коробку с кнопками на основную коробку окна
+	boxWndMain.Append(boxWndWPBtns, true)
+	// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
+	boxWndWPBottom := ui.NewHorizontalBox()
+	boxWndMain.Append(boxWndWPBottom, false)
+
+	wndSubjectWallPostSettings.Show()
 }
 
 func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsData GroupsSettingsData) *ui.Box {

@@ -493,6 +493,32 @@ func UpdateDBWallPostMonitorLastDate(subjectID int, newLastDate int,
 	return nil
 }
 
+// UpdateDBWallPostMonitor обновляет значения в поле таблицы wall_post_monitor
+func UpdateDBWallPostMonitor(wallPostMonitorParam WallPostMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE wall_post_monitor 
+		SET subject_id='%d', need_monitoring='%d', interval='%d', send_to='%d', filter='%v', 
+		last_date='%d', posts_count='%d', keywords_for_monitoring='%v',
+		users_ids_for_ignore='%v' WHERE id=%d`,
+		wallPostMonitorParam.SubjectID, wallPostMonitorParam.NeedMonitoring,
+		wallPostMonitorParam.Interval, wallPostMonitorParam.SendTo, wallPostMonitorParam.Filter,
+		wallPostMonitorParam.LastDate, wallPostMonitorParam.PostsCount, wallPostMonitorParam.KeywordsForMonitoring,
+		wallPostMonitorParam.UsersIDsForIgnore, wallPostMonitorParam.ID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // AlbumPhotoMonitorParam - структура для полей из таблицы album_photo_monitor
 type AlbumPhotoMonitorParam struct {
 	ID             int `json:"id"`

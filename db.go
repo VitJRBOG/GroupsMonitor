@@ -264,6 +264,27 @@ func SelectDBSubjects() ([]Subject, error) {
 	return subjects, nil
 }
 
+// UpdateDBSubject обновляет значения в поле таблицы subject
+func UpdateDBSubject(subject Subject) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE subject 
+		SET subject_id='%d', name='%v', backup_wikipage='%v', last_backup='%d' WHERE id=%d`,
+		subject.SubjectID, subject.Name, subject.BackupWikipage, subject.LastBackup, subject.ID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Monitor - структура для полей из таблицы monitor
 type Monitor struct {
 	ID        int

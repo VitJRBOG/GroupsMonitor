@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -671,12 +672,132 @@ func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
 		boxBtnSettingsSection.Append(btnSettingsSection, false)
 		boxSettingsSection.Append(boxBtnSettingsSection, true)
 
-		// TODO: привязываем к кнопке отображения окна с доп. установками соответствующую процедуру
+		// привязываем к кнопке отображения окна с доп. установками соответствующую процедуру
+		switch btnName {
+		case "General":
+			btnSettingsSection.OnClicked(func(*ui.Button) {
+				showSubjectGeneralSettingWindow(subjectData.ID, btnName)
+			})
+		}
 
 		boxSubjectAdditionalSettingsBox.Append(boxSettingsSection, false)
 	}
 
 	return boxSubjectAdditionalSettingsBox
+}
+
+func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
+	// описываем окно для отображения общих установок субъекта
+	wndSubjectGeneralSettings := ui.NewWindow("", 300, 100, true)
+	wndSubjectGeneralSettings.OnClosing(func(*ui.Window) bool {
+		wndSubjectGeneralSettings.Disable()
+		return true
+	})
+	wndSubjectGeneralSettings.SetMargined(true)
+	boxWndMain := ui.NewVerticalBox()
+	boxWndMain.SetPadded(true)
+	wndSubjectGeneralSettings.SetChild(boxWndMain)
+
+	// запрашиваем список субъектов из базы данных
+	subjects, err := SelectDBSubjects()
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	// перечисляем субъекты
+	for _, subject := range subjects {
+		// ищем субъект с подходящим идентификатором
+		if subject.ID == IDSubject {
+			// устанавливаем заголовок окна в соответствии с названием субъекта и назначением установок
+			wndTitle := fmt.Sprintf("%v settings for %v", btnName, subject.Name)
+			wndSubjectGeneralSettings.SetTitle(wndTitle)
+
+			boxWndS := ui.NewVerticalBox()
+
+			// описываем коробку с меткой и полем для названия субъекта
+			boxWndSName := ui.NewHorizontalBox()
+			boxWndSName.SetPadded(true)
+			lblWndSName := ui.NewLabel("Name")
+			boxWndSName.Append(lblWndSName, true)
+			entryWndSName := ui.NewEntry()
+			entryWndSName.SetText(subject.Name)
+			boxWndSName.Append(entryWndSName, true)
+
+			// описываем коробку с меткой и полем для идентификатора субъекта в базе ВК
+			boxWndSSubjectID := ui.NewHorizontalBox()
+			boxWndSSubjectID.SetPadded(true)
+			lblWndSSubjectID := ui.NewLabel("Subject ID")
+			boxWndSSubjectID.Append(lblWndSSubjectID, true)
+			entryWndSSubjectID := ui.NewEntry()
+			entryWndSSubjectID.SetText(strconv.Itoa(subject.SubjectID))
+			boxWndSSubjectID.Append(entryWndSSubjectID, true)
+
+			// описываем группу, в которой будут размещены элементы
+			groupWndS := ui.NewGroup("")
+			groupWndS.SetMargined(true)
+			boxWndS.Append(boxWndSName, false)
+			boxWndS.Append(boxWndSSubjectID, false)
+			groupWndS.SetChild(boxWndS)
+
+			// добавляем группу в основную коробку окна
+			boxWndMain.Append(groupWndS, false)
+
+			// описываем коробку для кнопок
+			boxWndSBtns := ui.NewHorizontalBox()
+			boxWndSBtns.SetPadded(true)
+			// и несколько коробок для выравнивания кнопок
+			btnWndSBtnsLeft := ui.NewHorizontalBox()
+			btnWndSBtnsCenter := ui.NewHorizontalBox()
+			btnWndSBtnsRight := ui.NewHorizontalBox()
+			btnWndSBtnsRight.SetPadded(true)
+			// а затем сами кнопки
+			btnWndSCancel := ui.NewButton("Cancel")
+			btnWndSBtnsRight.Append(btnWndSCancel, false)
+			btnWndSApplyChanges := ui.NewButton("Apply")
+			btnWndSBtnsRight.Append(btnWndSApplyChanges, false)
+			// и добавляем их в коробку для кнопок
+			boxWndSBtns.Append(btnWndSBtnsLeft, false)
+			boxWndSBtns.Append(btnWndSBtnsCenter, false)
+			boxWndSBtns.Append(btnWndSBtnsRight, false)
+
+			// привязываем к кнопкам соответствующие процедуры
+			btnWndSCancel.OnClicked(func(*ui.Button) {
+				// TODO: как-нибудь надо закрывать окно
+			})
+			// привязываем кнопки к соответствующим процедурам
+			btnWndSApplyChanges.OnClicked(func(*ui.Button) {
+				var updatedSubject Subject
+				updatedSubject.ID = subject.ID
+				updatedSubject.SubjectID, err = strconv.Atoi(entryWndSSubjectID.Text())
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+				updatedSubject.Name = entryWndSName.Text()
+				updatedSubject.BackupWikipage = subject.BackupWikipage
+				updatedSubject.LastBackup = subject.LastBackup
+
+				err := UpdateDBSubject(updatedSubject)
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+
+				// TODO: как-нибудь надо закрывать окно
+			})
+
+			// добавляем коробку с кнопками на основную коробку окна
+			boxWndMain.Append(boxWndSBtns, true)
+			// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
+			boxWndSBottom := ui.NewHorizontalBox()
+			boxWndMain.Append(boxWndSBottom, false)
+
+			break
+		}
+	}
+
+	wndSubjectGeneralSettings.Show()
 }
 
 func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsData GroupsSettingsData) *ui.Box {

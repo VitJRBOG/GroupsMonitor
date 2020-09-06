@@ -815,7 +815,7 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 }
 
 func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string) {
-	// описываем окно для отображения общих установок субъекта
+	// описываем окно для отображения установок модуля мониторинга постов на стене
 	wndSubjectWallPostSettings := ui.NewWindow("", 300, 100, true)
 	wndSubjectWallPostSettings.OnClosing(func(*ui.Window) bool {
 		wndSubjectWallPostSettings.Disable()
@@ -998,7 +998,7 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 }
 
 func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName string) {
-	// описываем окно для отображения общих установок субъекта
+	// описываем окно для отображения установок модуля мониторинга фотографий
 	wndSubjectAlbumPhotoSettings := ui.NewWindow("", 300, 100, true)
 	wndSubjectAlbumPhotoSettings.OnClosing(func(*ui.Window) bool {
 		wndSubjectAlbumPhotoSettings.Disable()
@@ -1053,7 +1053,7 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 	entryWndAPSendTo.SetText(strconv.Itoa(albumPhotoMonitorParam.SendTo))
 	boxWndAPSendTo.Append(entryWndAPSendTo, true)
 
-	// описываем коробку с меткой и спинбоксом для количества проверяемых постов
+	// описываем коробку с меткой и спинбоксом для количества проверяемых фотографий
 	boxWndAPPhotosCount := ui.NewHorizontalBox()
 	boxWndAPPhotosCount.SetPadded(true)
 	lblWndAPPhotosCount := ui.NewLabel("Photos count")

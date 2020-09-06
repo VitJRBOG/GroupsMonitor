@@ -826,6 +826,31 @@ func UpdateDBPhotoCommentMonitorLastDate(subjectID int, newLastDate int) error {
 	return nil
 }
 
+// UpdateDBPhotoCommentMonitor обновляет значения в поле таблицы photo_comment_monitor
+func UpdateDBPhotoCommentMonitor(photoCommentMonitorParam PhotoCommentMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE photo_comment_monitor 
+		SET subject_id='%d', need_monitoring='%d', send_to='%d', 
+		comments_count='%d', last_date='%d', interval='%d'
+		WHERE id=%d`,
+		photoCommentMonitorParam.SubjectID, photoCommentMonitorParam.NeedMonitoring, photoCommentMonitorParam.SendTo,
+		photoCommentMonitorParam.CommentsCount, photoCommentMonitorParam.LastDate, photoCommentMonitorParam.Interval,
+		photoCommentMonitorParam.ID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // VideoCommentMonitorParam - структура для полей из таблицы video_comment_monitor
 type VideoCommentMonitorParam struct {
 	ID             int `json:"id"`

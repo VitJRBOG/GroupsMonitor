@@ -606,6 +606,31 @@ func UpdateDBAlbumPhotoMonitorLastDate(subjectID int, newLastDate int,
 	return nil
 }
 
+// UpdateDBAlbumPhotoMonitor обновляет значения в поле таблицы album_photo_monitor
+func UpdateDBAlbumPhotoMonitor(albumPhotoMonitorParam AlbumPhotoMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE album_photo_monitor 
+		SET subject_id='%d', need_monitoring='%d', send_to='%d', 
+		interval='%d', last_date='%d', photos_count='%d'
+		WHERE id=%d`,
+		albumPhotoMonitorParam.SubjectID, albumPhotoMonitorParam.NeedMonitoring, albumPhotoMonitorParam.SendTo,
+		albumPhotoMonitorParam.Interval, albumPhotoMonitorParam.LastDate, albumPhotoMonitorParam.PhotosCount,
+		albumPhotoMonitorParam.ID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // VideoMonitorParam - структура для полей из таблицы video_monitor
 type VideoMonitorParam struct {
 	ID             int `json:"id"`

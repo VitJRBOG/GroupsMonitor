@@ -716,6 +716,31 @@ func UpdateDBVideoMonitorLastDate(subjectID int, newLastDate int) error {
 	return nil
 }
 
+// UpdateDBVideoMonitor обновляет значения в поле таблицы video_monitor
+func UpdateDBVideoMonitor(videoMonitorParam VideoMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE video_monitor 
+		SET subject_id='%d', need_monitoring='%d', send_to='%d', 
+		video_count='%d', last_date='%d', interval='%d'
+		WHERE id=%d`,
+		videoMonitorParam.SubjectID, videoMonitorParam.NeedMonitoring, videoMonitorParam.SendTo,
+		videoMonitorParam.VideoCount, videoMonitorParam.LastDate, videoMonitorParam.Interval,
+		videoMonitorParam.ID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // PhotoCommentMonitorParam - структура для полей из таблицы photo_comment_monitor
 type PhotoCommentMonitorParam struct {
 	ID             int `json:"id"`

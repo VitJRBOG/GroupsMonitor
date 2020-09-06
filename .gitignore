@@ -1,6 +1,7 @@
 .DS_Store
 .vscode/
 db/
+res/
 path.txt
 log.txt
 build_for_win.sh

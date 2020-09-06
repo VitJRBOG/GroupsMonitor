@@ -691,7 +691,10 @@ func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
 			btnSettingsSection.OnClicked(func(*ui.Button) {
 				showSubjectVideoSettingWindow(subjectData.ID, subjectData.Name, btnName)
 			})
-			// case "Photo comment monitor":
+		case "Photo comment monitor":
+			btnSettingsSection.OnClicked(func(*ui.Button) {
+				showSubjectPhotoCommentSettingWindow(subjectData.ID, subjectData.Name, btnName)
+			})
 			// case "Video comment monitor":
 			// case "Topic monitor":
 			// case "Wall post comment monitor":
@@ -1270,6 +1273,142 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 	boxWndMain.Append(boxWndVBottom, false)
 
 	wndSubjectVideoSettings.Show()
+}
+
+func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName string) {
+	// описываем окно для отображения установок модуля мониторинга комментариев под фотографиями
+	wndSubjectPhotoCommentSettings := ui.NewWindow("", 300, 100, true)
+	wndSubjectPhotoCommentSettings.OnClosing(func(*ui.Window) bool {
+		wndSubjectPhotoCommentSettings.Disable()
+		return true
+	})
+	wndSubjectPhotoCommentSettings.SetMargined(true)
+	boxWndMain := ui.NewVerticalBox()
+	boxWndMain.SetPadded(true)
+	wndSubjectPhotoCommentSettings.SetChild(boxWndMain)
+
+	// запрашиваем параметры мониторинга из базы данных
+	photoCommentMonitorParam, err := SelectDBPhotoCommentMonitorParam(IDSubject)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	// устанавливаем заголовок окна в соответствии с названием субъекта и назначением установок
+	wndTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	wndSubjectPhotoCommentSettings.SetTitle(wndTitle)
+
+	boxWndPC := ui.NewVerticalBox()
+
+	// описываем коробку с меткой и чекбоксом для флага необходимости активировать модуль мониторинга
+	boxWndPCMonitoring := ui.NewHorizontalBox()
+	boxWndPCMonitoring.SetPadded(true)
+	lblWndPCMonitoring := ui.NewLabel("Need monitoring")
+	boxWndPCMonitoring.Append(lblWndPCMonitoring, true)
+	cboxWndPCNeedMonitoring := ui.NewCheckbox("")
+	if photoCommentMonitorParam.NeedMonitoring == 1 {
+		cboxWndPCNeedMonitoring.SetChecked(true)
+	} else {
+		cboxWndPCNeedMonitoring.SetChecked(false)
+	}
+	boxWndPCMonitoring.Append(cboxWndPCNeedMonitoring, true)
+
+	// описываем коробку с меткой и спинбоксом для интервала между запусками функции мониторинга
+	boxWndPCInterval := ui.NewHorizontalBox()
+	boxWndPCInterval.SetPadded(true)
+	lblWndPCInterval := ui.NewLabel("Interval")
+	boxWndPCInterval.Append(lblWndPCInterval, true)
+	sboxWndPCInterval := ui.NewSpinbox(5, 21600)
+	sboxWndPCInterval.SetValue(photoCommentMonitorParam.Interval)
+	boxWndPCInterval.Append(sboxWndPCInterval, true)
+
+	// описываем коробку с меткой и полем для идентификатора получателя сообщений
+	boxWndPCSendTo := ui.NewHorizontalBox()
+	boxWndPCSendTo.SetPadded(true)
+	lblWndPCSendTo := ui.NewLabel("Send to")
+	boxWndPCSendTo.Append(lblWndPCSendTo, true)
+	entryWndPCSendTo := ui.NewEntry()
+	entryWndPCSendTo.SetText(strconv.Itoa(photoCommentMonitorParam.SendTo))
+	boxWndPCSendTo.Append(entryWndPCSendTo, true)
+
+	// описываем коробку с меткой и спинбоксом для количества проверяемых фотографий
+	boxWndPCCommentsCount := ui.NewHorizontalBox()
+	boxWndPCCommentsCount.SetPadded(true)
+	lblWndPCCommentsCount := ui.NewLabel("Comments count")
+	boxWndPCCommentsCount.Append(lblWndPCCommentsCount, true)
+	sboxWndPCCommentsCount := ui.NewSpinbox(1, 1000)
+	sboxWndPCCommentsCount.SetValue(photoCommentMonitorParam.CommentsCount)
+	boxWndPCCommentsCount.Append(sboxWndPCCommentsCount, true)
+
+	// описываем группу, в которой будут размещены элементы
+	groupWndAP := ui.NewGroup("")
+	groupWndAP.SetMargined(true)
+	boxWndPC.Append(boxWndPCMonitoring, false)
+	boxWndPC.Append(boxWndPCInterval, false)
+	boxWndPC.Append(boxWndPCSendTo, false)
+	boxWndPC.Append(boxWndPCCommentsCount, false)
+	groupWndAP.SetChild(boxWndPC)
+
+	// добавляем группу в основную коробку окна
+	boxWndMain.Append(groupWndAP, false)
+
+	// описываем коробку для кнопок
+	boxWndPCBtns := ui.NewHorizontalBox()
+	boxWndPCBtns.SetPadded(true)
+	// и несколько коробок для выравнивания кнопок
+	btnWndPCBtnsLeft := ui.NewHorizontalBox()
+	btnWndPCBtnsCenter := ui.NewHorizontalBox()
+	btnWndPCBtnsRight := ui.NewHorizontalBox()
+	btnWndPCBtnsRight.SetPadded(true)
+	// а затем сами кнопки
+	btnWndPCCancel := ui.NewButton("Cancel")
+	btnWndPCBtnsRight.Append(btnWndPCCancel, false)
+	btnWndPCApplyChanges := ui.NewButton("Apply")
+	btnWndPCBtnsRight.Append(btnWndPCApplyChanges, false)
+	// и добавляем их в коробку для кнопок
+	boxWndPCBtns.Append(btnWndPCBtnsLeft, false)
+	boxWndPCBtns.Append(btnWndPCBtnsCenter, false)
+	boxWndPCBtns.Append(btnWndPCBtnsRight, false)
+
+	// привязываем к кнопкам соответствующие процедуры
+	btnWndPCCancel.OnClicked(func(*ui.Button) {
+		// TODO: как-нибудь надо закрывать окно
+	})
+	// привязываем кнопки к соответствующим процедурам
+	btnWndPCApplyChanges.OnClicked(func(*ui.Button) {
+		var updatedPhotoCommentMonitorParam PhotoCommentMonitorParam
+		updatedPhotoCommentMonitorParam.ID = photoCommentMonitorParam.ID
+		updatedPhotoCommentMonitorParam.SubjectID = photoCommentMonitorParam.SubjectID
+		if cboxWndPCNeedMonitoring.Checked() {
+			updatedPhotoCommentMonitorParam.NeedMonitoring = 1
+		} else {
+			updatedPhotoCommentMonitorParam.NeedMonitoring = 0
+		}
+		updatedPhotoCommentMonitorParam.SendTo, err = strconv.Atoi(entryWndPCSendTo.Text())
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+		updatedPhotoCommentMonitorParam.Interval = sboxWndPCInterval.Value()
+		updatedPhotoCommentMonitorParam.LastDate = photoCommentMonitorParam.LastDate
+		updatedPhotoCommentMonitorParam.CommentsCount = sboxWndPCCommentsCount.Value()
+
+		err = UpdateDBPhotoCommentMonitor(updatedPhotoCommentMonitorParam)
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+
+		// TODO: как-нибудь надо закрывать окно
+	})
+
+	// добавляем коробку с кнопками на основную коробку окна
+	boxWndMain.Append(boxWndPCBtns, true)
+	// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
+	boxWndPCBottom := ui.NewHorizontalBox()
+	boxWndMain.Append(boxWndPCBottom, false)
+
+	wndSubjectPhotoCommentSettings.Show()
 }
 
 func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsData GroupsSettingsData) *ui.Box {

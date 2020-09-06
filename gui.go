@@ -687,7 +687,10 @@ func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
 			btnSettingsSection.OnClicked(func(*ui.Button) {
 				showSubjectAlbumPhotoSettingWindow(subjectData.ID, subjectData.Name, btnName)
 			})
-			// case "Video monitor":
+		case "Video monitor":
+			btnSettingsSection.OnClicked(func(*ui.Button) {
+				showSubjectVideoSettingWindow(subjectData.ID, subjectData.Name, btnName)
+			})
 			// case "Photo comment monitor":
 			// case "Video comment monitor":
 			// case "Topic monitor":
@@ -1131,6 +1134,142 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 	boxWndMain.Append(boxWndAPBottom, false)
 
 	wndSubjectAlbumPhotoSettings.Show()
+}
+
+func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
+	// описываем окно для отображения установок модуля мониторинга видео
+	wndSubjectVideoSettings := ui.NewWindow("", 300, 100, true)
+	wndSubjectVideoSettings.OnClosing(func(*ui.Window) bool {
+		wndSubjectVideoSettings.Disable()
+		return true
+	})
+	wndSubjectVideoSettings.SetMargined(true)
+	boxWndMain := ui.NewVerticalBox()
+	boxWndMain.SetPadded(true)
+	wndSubjectVideoSettings.SetChild(boxWndMain)
+
+	// запрашиваем параметры мониторинга из базы данных
+	videoMonitorParam, err := SelectDBVideoMonitorParam(IDSubject)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	// устанавливаем заголовок окна в соответствии с названием субъекта и назначением установок
+	wndTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	wndSubjectVideoSettings.SetTitle(wndTitle)
+
+	boxWndV := ui.NewVerticalBox()
+
+	// описываем коробку с меткой и чекбоксом для флага необходимости активировать модуль мониторинга
+	boxWndVMonitoring := ui.NewHorizontalBox()
+	boxWndVMonitoring.SetPadded(true)
+	lblWndVMonitoring := ui.NewLabel("Need monitoring")
+	boxWndVMonitoring.Append(lblWndVMonitoring, true)
+	cboxWndVNeedMonitoring := ui.NewCheckbox("")
+	if videoMonitorParam.NeedMonitoring == 1 {
+		cboxWndVNeedMonitoring.SetChecked(true)
+	} else {
+		cboxWndVNeedMonitoring.SetChecked(false)
+	}
+	boxWndVMonitoring.Append(cboxWndVNeedMonitoring, true)
+
+	// описываем коробку с меткой и спинбоксом для интервала между запусками функции мониторинга
+	boxWndVInterval := ui.NewHorizontalBox()
+	boxWndVInterval.SetPadded(true)
+	lblWndVInterval := ui.NewLabel("Interval")
+	boxWndVInterval.Append(lblWndVInterval, true)
+	sboxWndVInterval := ui.NewSpinbox(5, 21600)
+	sboxWndVInterval.SetValue(videoMonitorParam.Interval)
+	boxWndVInterval.Append(sboxWndVInterval, true)
+
+	// описываем коробку с меткой и полем для идентификатора получателя сообщений
+	boxWndVSendTo := ui.NewHorizontalBox()
+	boxWndVSendTo.SetPadded(true)
+	lblWndVSendTo := ui.NewLabel("Send to")
+	boxWndVSendTo.Append(lblWndVSendTo, true)
+	entryWndVSendTo := ui.NewEntry()
+	entryWndVSendTo.SetText(strconv.Itoa(videoMonitorParam.SendTo))
+	boxWndVSendTo.Append(entryWndVSendTo, true)
+
+	// описываем коробку с меткой и спинбоксом для количества проверяемых видео
+	boxWndVVideoCount := ui.NewHorizontalBox()
+	boxWndVVideoCount.SetPadded(true)
+	lblWndVVideoCount := ui.NewLabel("Video count")
+	boxWndVVideoCount.Append(lblWndVVideoCount, true)
+	sboxWndVVideoCount := ui.NewSpinbox(1, 1000)
+	sboxWndVVideoCount.SetValue(videoMonitorParam.VideoCount)
+	boxWndVVideoCount.Append(sboxWndVVideoCount, true)
+
+	// описываем группу, в которой будут размещены элементы
+	groupWndV := ui.NewGroup("")
+	groupWndV.SetMargined(true)
+	boxWndV.Append(boxWndVMonitoring, false)
+	boxWndV.Append(boxWndVInterval, false)
+	boxWndV.Append(boxWndVSendTo, false)
+	boxWndV.Append(boxWndVVideoCount, false)
+	groupWndV.SetChild(boxWndV)
+
+	// добавляем группу в основную коробку окна
+	boxWndMain.Append(groupWndV, false)
+
+	// описываем коробку для кнопок
+	boxWndVBtns := ui.NewHorizontalBox()
+	boxWndVBtns.SetPadded(true)
+	// и несколько коробок для выравнивания кнопок
+	btnWndVBtnsLeft := ui.NewHorizontalBox()
+	btnWndVBtnsCenter := ui.NewHorizontalBox()
+	btnWndVBtnsRight := ui.NewHorizontalBox()
+	btnWndVBtnsRight.SetPadded(true)
+	// а затем сами кнопки
+	btnWndVCancel := ui.NewButton("Cancel")
+	btnWndVBtnsRight.Append(btnWndVCancel, false)
+	btnWndVApplyChanges := ui.NewButton("Apply")
+	btnWndVBtnsRight.Append(btnWndVApplyChanges, false)
+	// и добавляем их в коробку для кнопок
+	boxWndVBtns.Append(btnWndVBtnsLeft, false)
+	boxWndVBtns.Append(btnWndVBtnsCenter, false)
+	boxWndVBtns.Append(btnWndVBtnsRight, false)
+
+	// привязываем к кнопкам соответствующие процедуры
+	btnWndVCancel.OnClicked(func(*ui.Button) {
+		// TODO: как-нибудь надо закрывать окно
+	})
+	// привязываем кнопки к соответствующим процедурам
+	btnWndVApplyChanges.OnClicked(func(*ui.Button) {
+		var updatedVideoMonitorParam VideoMonitorParam
+		updatedVideoMonitorParam.ID = videoMonitorParam.ID
+		updatedVideoMonitorParam.SubjectID = videoMonitorParam.SubjectID
+		if cboxWndVNeedMonitoring.Checked() {
+			updatedVideoMonitorParam.NeedMonitoring = 1
+		} else {
+			updatedVideoMonitorParam.NeedMonitoring = 0
+		}
+		updatedVideoMonitorParam.SendTo, err = strconv.Atoi(entryWndVSendTo.Text())
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+		updatedVideoMonitorParam.Interval = sboxWndVInterval.Value()
+		updatedVideoMonitorParam.LastDate = videoMonitorParam.LastDate
+		updatedVideoMonitorParam.VideoCount = sboxWndVVideoCount.Value()
+
+		err = UpdateDBVideoMonitor(updatedVideoMonitorParam)
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+
+		// TODO: как-нибудь надо закрывать окно
+	})
+
+	// добавляем коробку с кнопками на основную коробку окна
+	boxWndMain.Append(boxWndVBtns, true)
+	// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
+	boxWndVBottom := ui.NewHorizontalBox()
+	boxWndMain.Append(boxWndVBottom, false)
+
+	wndSubjectVideoSettings.Show()
 }
 
 func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsData GroupsSettingsData) *ui.Box {

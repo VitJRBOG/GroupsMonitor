@@ -656,7 +656,8 @@ func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
 		"Wall post comment monitor"}
 
 	// перечисляем названия кнопок
-	for _, btnName := range btnsNames {
+	for i := 0; i < len(btnsNames); i++ {
+		btnName := btnsNames[i]
 		// описываем коробку для отображения метки с названием доп. установок и кнопкой
 		boxSettingsSection := ui.NewHorizontalBox()
 

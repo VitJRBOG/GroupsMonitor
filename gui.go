@@ -683,7 +683,10 @@ func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
 			btnSettingsSection.OnClicked(func(*ui.Button) {
 				showSubjectWallPostSettingWindow(subjectData.ID, subjectData.Name, btnName)
 			})
-			// case "Album photo monitor":
+		case "Album photo monitor":
+			btnSettingsSection.OnClicked(func(*ui.Button) {
+				showSubjectAlbumPhotoSettingWindow(subjectData.ID, subjectData.Name, btnName)
+			})
 			// case "Video monitor":
 			// case "Photo comment monitor":
 			// case "Video comment monitor":
@@ -992,6 +995,142 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 	boxWndMain.Append(boxWndWPBottom, false)
 
 	wndSubjectWallPostSettings.Show()
+}
+
+func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName string) {
+	// описываем окно для отображения общих установок субъекта
+	wndSubjectAlbumPhotoSettings := ui.NewWindow("", 300, 100, true)
+	wndSubjectAlbumPhotoSettings.OnClosing(func(*ui.Window) bool {
+		wndSubjectAlbumPhotoSettings.Disable()
+		return true
+	})
+	wndSubjectAlbumPhotoSettings.SetMargined(true)
+	boxWndMain := ui.NewVerticalBox()
+	boxWndMain.SetPadded(true)
+	wndSubjectAlbumPhotoSettings.SetChild(boxWndMain)
+
+	// запрашиваем параметры мониторинга из базы данных
+	albumPhotoMonitorParam, err := SelectDBAlbumPhotoMonitorParam(IDSubject)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	// устанавливаем заголовок окна в соответствии с названием субъекта и назначением установок
+	wndTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	wndSubjectAlbumPhotoSettings.SetTitle(wndTitle)
+
+	boxWndAP := ui.NewVerticalBox()
+
+	// описываем коробку с меткой и чекбоксом для флага необходимости активировать модуль мониторинга
+	boxWndAPMonitoring := ui.NewHorizontalBox()
+	boxWndAPMonitoring.SetPadded(true)
+	lblWndAPMonitoring := ui.NewLabel("Need monitoring")
+	boxWndAPMonitoring.Append(lblWndAPMonitoring, true)
+	cboxWndAPNeedMonitoring := ui.NewCheckbox("")
+	if albumPhotoMonitorParam.NeedMonitoring == 1 {
+		cboxWndAPNeedMonitoring.SetChecked(true)
+	} else {
+		cboxWndAPNeedMonitoring.SetChecked(false)
+	}
+	boxWndAPMonitoring.Append(cboxWndAPNeedMonitoring, true)
+
+	// описываем коробку с меткой и спинбоксом для интервала между запусками функции мониторинга
+	boxWndAPInterval := ui.NewHorizontalBox()
+	boxWndAPInterval.SetPadded(true)
+	lblWndAPInterval := ui.NewLabel("Interval")
+	boxWndAPInterval.Append(lblWndAPInterval, true)
+	sboxWndAPInterval := ui.NewSpinbox(5, 21600)
+	sboxWndAPInterval.SetValue(albumPhotoMonitorParam.Interval)
+	boxWndAPInterval.Append(sboxWndAPInterval, true)
+
+	// описываем коробку с меткой и полем для идентификатора получателя сообщений
+	boxWndAPSendTo := ui.NewHorizontalBox()
+	boxWndAPSendTo.SetPadded(true)
+	lblWndAPSendTo := ui.NewLabel("Send to")
+	boxWndAPSendTo.Append(lblWndAPSendTo, true)
+	entryWndAPSendTo := ui.NewEntry()
+	entryWndAPSendTo.SetText(strconv.Itoa(albumPhotoMonitorParam.SendTo))
+	boxWndAPSendTo.Append(entryWndAPSendTo, true)
+
+	// описываем коробку с меткой и спинбоксом для количества проверяемых постов
+	boxWndAPPhotosCount := ui.NewHorizontalBox()
+	boxWndAPPhotosCount.SetPadded(true)
+	lblWndAPPhotosCount := ui.NewLabel("Photos count")
+	boxWndAPPhotosCount.Append(lblWndAPPhotosCount, true)
+	sboxWndAPPhotosCount := ui.NewSpinbox(1, 1000)
+	sboxWndAPPhotosCount.SetValue(albumPhotoMonitorParam.PhotosCount)
+	boxWndAPPhotosCount.Append(sboxWndAPPhotosCount, true)
+
+	// описываем группу, в которой будут размещены элементы
+	groupWndAP := ui.NewGroup("")
+	groupWndAP.SetMargined(true)
+	boxWndAP.Append(boxWndAPMonitoring, false)
+	boxWndAP.Append(boxWndAPInterval, false)
+	boxWndAP.Append(boxWndAPSendTo, false)
+	boxWndAP.Append(boxWndAPPhotosCount, false)
+	groupWndAP.SetChild(boxWndAP)
+
+	// добавляем группу в основную коробку окна
+	boxWndMain.Append(groupWndAP, false)
+
+	// описываем коробку для кнопок
+	boxWndAPBtns := ui.NewHorizontalBox()
+	boxWndAPBtns.SetPadded(true)
+	// и несколько коробок для выравнивания кнопок
+	btnWndAPBtnsLeft := ui.NewHorizontalBox()
+	btnWndAPBtnsCenter := ui.NewHorizontalBox()
+	btnWndAPBtnsRight := ui.NewHorizontalBox()
+	btnWndAPBtnsRight.SetPadded(true)
+	// а затем сами кнопки
+	btnWndAPCancel := ui.NewButton("Cancel")
+	btnWndAPBtnsRight.Append(btnWndAPCancel, false)
+	btnWndAPApplyChanges := ui.NewButton("Apply")
+	btnWndAPBtnsRight.Append(btnWndAPApplyChanges, false)
+	// и добавляем их в коробку для кнопок
+	boxWndAPBtns.Append(btnWndAPBtnsLeft, false)
+	boxWndAPBtns.Append(btnWndAPBtnsCenter, false)
+	boxWndAPBtns.Append(btnWndAPBtnsRight, false)
+
+	// привязываем к кнопкам соответствующие процедуры
+	btnWndAPCancel.OnClicked(func(*ui.Button) {
+		// TODO: как-нибудь надо закрывать окно
+	})
+	// привязываем кнопки к соответствующим процедурам
+	btnWndAPApplyChanges.OnClicked(func(*ui.Button) {
+		var updatedAlbumPhotoMonitorParam AlbumPhotoMonitorParam
+		updatedAlbumPhotoMonitorParam.ID = albumPhotoMonitorParam.ID
+		updatedAlbumPhotoMonitorParam.SubjectID = albumPhotoMonitorParam.SubjectID
+		if cboxWndAPNeedMonitoring.Checked() {
+			updatedAlbumPhotoMonitorParam.NeedMonitoring = 1
+		} else {
+			updatedAlbumPhotoMonitorParam.NeedMonitoring = 0
+		}
+		updatedAlbumPhotoMonitorParam.SendTo, err = strconv.Atoi(entryWndAPSendTo.Text())
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+		updatedAlbumPhotoMonitorParam.Interval = sboxWndAPInterval.Value()
+		updatedAlbumPhotoMonitorParam.LastDate = albumPhotoMonitorParam.LastDate
+		updatedAlbumPhotoMonitorParam.PhotosCount = sboxWndAPPhotosCount.Value()
+
+		err = UpdateDBAlbumPhotoMonitor(updatedAlbumPhotoMonitorParam)
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+
+		// TODO: как-нибудь надо закрывать окно
+	})
+
+	// добавляем коробку с кнопками на основную коробку окна
+	boxWndMain.Append(boxWndAPBtns, true)
+	// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
+	boxWndAPBottom := ui.NewHorizontalBox()
+	boxWndMain.Append(boxWndAPBottom, false)
+
+	wndSubjectAlbumPhotoSettings.Show()
 }
 
 func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsData GroupsSettingsData) *ui.Box {

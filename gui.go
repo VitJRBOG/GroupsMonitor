@@ -703,7 +703,10 @@ func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
 			btnSettingsSection.OnClicked(func(*ui.Button) {
 				showSubjectTopicSettingWindow(subjectData.ID, subjectData.Name, btnName)
 			})
-			// case "Wall post comment monitor":
+		case "Wall post comment monitor":
+			btnSettingsSection.OnClicked(func(*ui.Button) {
+				showSubjectWallPostCommentSettings(subjectData.ID, subjectData.Name, btnName)
+			})
 		}
 
 		boxSubjectAdditionalSettingsBox.Append(boxSettingsSection, false)
@@ -1299,6 +1302,148 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 	kitWindowTopicSettings.Box.Append(boxWndTBottom, false)
 
 	kitWindowTopicSettings.Window.Show()
+}
+
+func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName string) {
+	wallPostCommentMonitorParam, err := SelectDBWallPostCommentMonitorParam(IDSubject)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	kitWindowWallPostCommentSettings := makeSettingWindowKit(btnName, nameSubject, 300, 100)
+
+	boxWndWPC := ui.NewVerticalBox()
+
+	// получаем набор для флага необходимости активировать модуль мониторинга
+	kitWndWPCMonitoring := makeSettingCheckboxKit("Need monitoring", wallPostCommentMonitorParam.NeedMonitoring)
+
+	// получаем набор для интервала между запусками функции мониторинга
+	kitWndWPCInterval := makeSettingSpinboxKit("Interval", 5, 21600, wallPostCommentMonitorParam.Interval)
+
+	// получаем набор для идентификатора получателя сообщений
+	kitWndWPCSendTo := makeSettingEntryKit("Send to", strconv.Itoa(wallPostCommentMonitorParam.SendTo))
+
+	// получаем набор для количества проверяемых постов
+	kitWndWPCPostsCount := makeSettingSpinboxKit("Posts count", 1, 100, wallPostCommentMonitorParam.PostsCount)
+
+	// получаем набор для количества проверяемых комментариев
+	kitWndWPCCommentsCount := makeSettingSpinboxKit("Comments count", 1, 100, wallPostCommentMonitorParam.CommentsCount)
+
+	// получаем набор для фильтров постов для проверки комментариев
+	listPostsFilters := []string{"all", "others", "owner"}
+	kitWndWPCFilter := makeSettingComboboxKit("Filter", listPostsFilters, wallPostCommentMonitorParam.Filter)
+
+	// получаем набор для флага необходимости проверять все комментарии без исключения
+	kitWndWPCMonitoringAll := makeSettingCheckboxKit("Monitoring all", wallPostCommentMonitorParam.MonitoringAll)
+
+	// получаем набор для флага необходимости проверять комментарии от сообществ
+	kitWndWPCMonitorByCommunity := makeSettingCheckboxKit("Monitor by community", wallPostCommentMonitorParam.MonitorByCommunity)
+
+	// получаем набор для списка ключевых слов для поиска комментариев
+	kitWndWPCKeywordsForMonitoring := makeSettingEntryListKit("Keywords for monitoring", wallPostCommentMonitorParam.KeywordsForMonitoring)
+
+	// получаем набор для списка комментариев для поиска
+	kitWndWPCSmallCommentsForMonitoring := makeSettingEntryListKit("Small comments for monitoring", wallPostCommentMonitorParam.SmallCommentsForMonitoring)
+
+	// получаем набор для списка имен и фамилий авторов комментариев для поиска комментариев
+	kitWndWPCUsersNamesForMonitoring := makeSettingEntryListKit("Users names for monitoring", wallPostCommentMonitorParam.UsersNamesForMonitoring)
+
+	// получаем набор для списка идентификаторов авторов комментариев для поиска комментариев
+	kitWndWPCUsersIdsForMonitoring := makeSettingEntryListKit("Users IDs for monitoring", wallPostCommentMonitorParam.UsersIDsForMonitoring)
+
+	// получаем набор для списка идентификаторов авторов комментариев для их игнорирования при проверке комментариев
+	kitWndWPCUsersIdsForIgnore := makeSettingEntryListKit("Users IDs for ignore", wallPostCommentMonitorParam.UsersIDsForIgnore)
+
+	// описываем группу, в которой будут размещены элементы
+	groupWndWPC := ui.NewGroup("")
+	groupWndWPC.SetMargined(true)
+	boxWndWPC.Append(kitWndWPCMonitoring.Box, false)
+	boxWndWPC.Append(kitWndWPCInterval.Box, false)
+	boxWndWPC.Append(kitWndWPCSendTo.Box, false)
+	boxWndWPC.Append(kitWndWPCPostsCount.Box, false)
+	boxWndWPC.Append(kitWndWPCCommentsCount.Box, false)
+	boxWndWPC.Append(kitWndWPCFilter.Box, false)
+	boxWndWPC.Append(kitWndWPCMonitoringAll.Box, false)
+	boxWndWPC.Append(kitWndWPCMonitorByCommunity.Box, false)
+	boxWndWPC.Append(kitWndWPCKeywordsForMonitoring.Box, false)
+	boxWndWPC.Append(kitWndWPCSmallCommentsForMonitoring.Box, false)
+	boxWndWPC.Append(kitWndWPCUsersNamesForMonitoring.Box, false)
+	boxWndWPC.Append(kitWndWPCUsersIdsForMonitoring.Box, false)
+	boxWndWPC.Append(kitWndWPCUsersIdsForIgnore.Box, false)
+	groupWndWPC.SetChild(boxWndWPC)
+
+	// добавляем группу в основную коробку окна
+	kitWindowWallPostCommentSettings.Box.Append(groupWndWPC, false)
+
+	// получаем набор для кнопок принятия и отмены изменений
+	kitButtonsWPC := makeSettingButtonsKit()
+
+	// привязываем к кнопкам соответствующие процедуры
+	kitButtonsWPC.ButtonCancel.OnClicked(func(*ui.Button) {
+		// TODO: как-нибудь надо закрывать окно
+	})
+	// привязываем кнопки к соответствующим процедурам
+	kitButtonsWPC.ButtonApply.OnClicked(func(*ui.Button) {
+		var updatedWallPostCommentMonitorParam WallPostCommentMonitorParam
+
+		updatedWallPostCommentMonitorParam.ID = wallPostCommentMonitorParam.ID
+		updatedWallPostCommentMonitorParam.SubjectID = wallPostCommentMonitorParam.SubjectID
+		if kitWndWPCMonitoring.CheckBox.Checked() {
+			updatedWallPostCommentMonitorParam.NeedMonitoring = 1
+		} else {
+			updatedWallPostCommentMonitorParam.NeedMonitoring = 0
+		}
+		updatedWallPostCommentMonitorParam.PostsCount = kitWndWPCPostsCount.Spinbox.Value()
+		updatedWallPostCommentMonitorParam.CommentsCount = kitWndWPCCommentsCount.Spinbox.Value()
+		if kitWndWPCMonitoringAll.CheckBox.Checked() {
+			updatedWallPostCommentMonitorParam.MonitoringAll = 1
+		} else {
+			updatedWallPostCommentMonitorParam.MonitoringAll = 0
+		}
+		jsonDump := fmt.Sprintf("{\"list\":[%v]}", kitWndWPCUsersIdsForMonitoring.Entry.Text())
+		updatedWallPostCommentMonitorParam.UsersIDsForMonitoring = jsonDump
+		jsonDump = fmt.Sprintf("{\"list\":[%v]}", kitWndWPCUsersNamesForMonitoring.Entry.Text())
+		updatedWallPostCommentMonitorParam.UsersNamesForMonitoring = jsonDump
+		updatedWallPostCommentMonitorParam.AttachmentsTypesForMonitoring = wallPostCommentMonitorParam.AttachmentsTypesForMonitoring
+		jsonDump = fmt.Sprintf("{\"list\":[%v]}", kitWndWPCUsersIdsForIgnore.Entry.Text())
+		updatedWallPostCommentMonitorParam.UsersIDsForIgnore = jsonDump
+		updatedWallPostCommentMonitorParam.PostsCount = kitWndWPCInterval.Spinbox.Value()
+		updatedWallPostCommentMonitorParam.SendTo, err = strconv.Atoi(kitWndWPCSendTo.Entry.Text())
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+		listPostsFilters := []string{"all", "others", "owner"}
+		updatedWallPostCommentMonitorParam.Filter = listPostsFilters[kitWndWPCFilter.Combobox.Selected()]
+		updatedWallPostCommentMonitorParam.LastDate = wallPostCommentMonitorParam.LastDate
+		jsonDump = fmt.Sprintf("{\"list\":[%v]}", kitWndWPCKeywordsForMonitoring.Entry.Text())
+		updatedWallPostCommentMonitorParam.KeywordsForMonitoring = jsonDump
+		jsonDump = fmt.Sprintf("{\"list\":[%v]}", kitWndWPCSmallCommentsForMonitoring.Entry.Text())
+		updatedWallPostCommentMonitorParam.SmallCommentsForMonitoring = jsonDump
+		updatedWallPostCommentMonitorParam.DigitsCountForCardNumberMonitoring = wallPostCommentMonitorParam.DigitsCountForCardNumberMonitoring
+		updatedWallPostCommentMonitorParam.DigitsCountForPhoneNumberMonitoring = wallPostCommentMonitorParam.DigitsCountForPhoneNumberMonitoring
+		if kitWndWPCMonitorByCommunity.CheckBox.Checked() {
+			updatedWallPostCommentMonitorParam.MonitorByCommunity = 1
+		} else {
+			updatedWallPostCommentMonitorParam.MonitorByCommunity = 0
+		}
+
+		err = UpdateDBWallPostCommentMonitor(updatedWallPostCommentMonitorParam)
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+		// TODO: как-нибудь надо закрывать окно
+	})
+
+	// добавляем коробку с кнопками на основную коробку окна
+	kitWindowWallPostCommentSettings.Box.Append(kitButtonsWPC.Box, true)
+	// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
+	boxWndWPCBottom := ui.NewHorizontalBox()
+	kitWindowWallPostCommentSettings.Box.Append(boxWndWPCBottom, false)
+
+	kitWindowWallPostCommentSettings.Window.Show()
 }
 
 // WindowSettingsKit хранит ссылки на объекты окна с установками модулей мониторинга

@@ -1151,7 +1151,7 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	// получаем набор для идентификатора получателя сообщений
 	kitWndVCSendTo := makeSettingEntryKit("Send to", strconv.Itoa(videoCommentMonitorParam.SendTo))
 
-	// получаем набор для количества проверяемых топиков обсуждений
+	// получаем набор для количества проверяемых видео
 	kitWndVCVideosCount := makeSettingSpinboxKit("Videos count", 1, 200, videoCommentMonitorParam.VideosCount)
 
 	// получаем набор для количества проверяемых комментариев
@@ -1235,7 +1235,7 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 	kitWndTInterval := makeSettingSpinboxKit("Interval", 5, 21600, topicMonitorParam.Interval)
 
 	// получаем набор для идентификатора получателя сообщений
-	kitSettingEntry := makeSettingEntryKit("Send to", strconv.Itoa(topicMonitorParam.SendTo))
+	kitWndTSendTo := makeSettingEntryKit("Send to", strconv.Itoa(topicMonitorParam.SendTo))
 
 	// получаем набор для количества проверяемых топиков обсуждений
 	kitWndTTopicsCount := makeSettingSpinboxKit("Topics count", 1, 100, topicMonitorParam.TopicsCount)
@@ -1247,7 +1247,7 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 	groupWndT := ui.NewGroup("")
 	groupWndT.SetMargined(true)
 	boxWndT.Append(kitWndTMonitoring.Box, false)
-	boxWndT.Append(kitSettingEntry.Box, false)
+	boxWndT.Append(kitWndTSendTo.Box, false)
 	boxWndT.Append(kitWndTInterval.Box, false)
 	boxWndT.Append(kitWndTTopicsCount.Box, false)
 	boxWndT.Append(kitWndTCommentsCount.Box, false)
@@ -1273,7 +1273,7 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 		} else {
 			updatedTopicMonitorParam.NeedMonitoring = 0
 		}
-		updatedTopicMonitorParam.SendTo, err = strconv.Atoi(kitSettingEntry.Entry.Text())
+		updatedTopicMonitorParam.SendTo, err = strconv.Atoi(kitWndTSendTo.Entry.Text())
 		if err != nil {
 			date := UnixTimeStampToDate(int(time.Now().Unix()))
 			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))

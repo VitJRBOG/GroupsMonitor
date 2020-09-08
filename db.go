@@ -1051,6 +1051,31 @@ func UpdateDBTopicMonitorLastDate(subjectID int, newLastDate int) error {
 	return nil
 }
 
+// UpdateDBTopicMonitor обновляет значения в поле таблицы topic_monitor
+func UpdateDBTopicMonitor(topicMonitorParam TopicMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE topic_monitor 
+		SET subject_id='%d', need_monitoring='%d', send_to='%d', 
+		comments_count='%d', last_date='%d', interval='%d',
+		topics_count='%d' WHERE id=%d`,
+		topicMonitorParam.SubjectID, topicMonitorParam.NeedMonitoring, topicMonitorParam.SendTo,
+		topicMonitorParam.CommentsCount, topicMonitorParam.LastDate, topicMonitorParam.Interval,
+		topicMonitorParam.TopicsCount, topicMonitorParam.ID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // WallPostCommentMonitorParam - структура для полей из таблицы wall_post_comment_monitor
 type WallPostCommentMonitorParam struct {
 	ID                                  int    `json:"id"`

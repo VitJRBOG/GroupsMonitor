@@ -699,7 +699,10 @@ func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
 			btnSettingsSection.OnClicked(func(*ui.Button) {
 				showSubjectVideoCommentSettingWindow(subjectData.ID, subjectData.Name, btnName)
 			})
-			// case "Topic monitor":
+		case "Topic monitor":
+			btnSettingsSection.OnClicked(func(*ui.Button) {
+				showSubjectTopicSettingWindow(subjectData.ID, subjectData.Name, btnName)
+			})
 			// case "Wall post comment monitor":
 		}
 
@@ -1559,6 +1562,153 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	boxWndMain.Append(boxWndVCBottom, false)
 
 	wndSubjectVideoCommentSettings.Show()
+}
+
+func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
+	// описываем окно для отображения установок модуля мониторинга комментариев в обсуждениях
+	wndSubjectTopicSettings := ui.NewWindow("", 300, 100, true)
+	wndSubjectTopicSettings.OnClosing(func(*ui.Window) bool {
+		wndSubjectTopicSettings.Disable()
+		return true
+	})
+	wndSubjectTopicSettings.SetMargined(true)
+	boxWndMain := ui.NewVerticalBox()
+	boxWndMain.SetPadded(true)
+	wndSubjectTopicSettings.SetChild(boxWndMain)
+
+	// запрашиваем параметры мониторинга из базы данных
+	topicMonitorParam, err := SelectDBTopicMonitorParam(IDSubject)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	// устанавливаем заголовок окна в соответствии с названием субъекта и назначением установок
+	wndTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	wndSubjectTopicSettings.SetTitle(wndTitle)
+
+	boxWndT := ui.NewVerticalBox()
+
+	// описываем коробку с меткой и чекбоксом для флага необходимости активировать модуль мониторинга
+	boxWndTMonitoring := ui.NewHorizontalBox()
+	boxWndTMonitoring.SetPadded(true)
+	lblWndTMonitoring := ui.NewLabel("Need monitoring")
+	boxWndTMonitoring.Append(lblWndTMonitoring, true)
+	cboxWndTNeedMonitoring := ui.NewCheckbox("")
+	if topicMonitorParam.NeedMonitoring == 1 {
+		cboxWndTNeedMonitoring.SetChecked(true)
+	} else {
+		cboxWndTNeedMonitoring.SetChecked(false)
+	}
+	boxWndTMonitoring.Append(cboxWndTNeedMonitoring, true)
+
+	// описываем коробку с меткой и спинбоксом для интервала между запусками функции мониторинга
+	boxWndTInterval := ui.NewHorizontalBox()
+	boxWndTInterval.SetPadded(true)
+	lblWndTInterval := ui.NewLabel("Interval")
+	boxWndTInterval.Append(lblWndTInterval, true)
+	sboxWndTInterval := ui.NewSpinbox(5, 21600)
+	sboxWndTInterval.SetValue(topicMonitorParam.Interval)
+	boxWndTInterval.Append(sboxWndTInterval, true)
+
+	// описываем коробку с меткой и полем для идентификатора получателя сообщений
+	boxWndTSendTo := ui.NewHorizontalBox()
+	boxWndTSendTo.SetPadded(true)
+	lblWndTSendTo := ui.NewLabel("Send to")
+	boxWndTSendTo.Append(lblWndTSendTo, true)
+	entryWndTSendTo := ui.NewEntry()
+	entryWndTSendTo.SetText(strconv.Itoa(topicMonitorParam.SendTo))
+	boxWndTSendTo.Append(entryWndTSendTo, true)
+
+	// описываем коробку с меткой и спинбоксом для количества проверяемых топиков обсуждений
+	boxWndTTopicsCount := ui.NewHorizontalBox()
+	boxWndTTopicsCount.SetPadded(true)
+	lblWndTTopicsCount := ui.NewLabel("Topics count")
+	boxWndTTopicsCount.Append(lblWndTTopicsCount, true)
+	sboxWndTTopicsCount := ui.NewSpinbox(1, 100)
+	sboxWndTTopicsCount.SetValue(topicMonitorParam.TopicsCount)
+	boxWndTTopicsCount.Append(sboxWndTTopicsCount, true)
+
+	// описываем коробку с меткой и спинбоксом для количества проверяемых комментариев
+	boxWndTCommentsCount := ui.NewHorizontalBox()
+	boxWndTCommentsCount.SetPadded(true)
+	lblWndTCommentsCount := ui.NewLabel("Comments count")
+	boxWndTCommentsCount.Append(lblWndTCommentsCount, true)
+	sboxWndTCommentsCount := ui.NewSpinbox(1, 100)
+	sboxWndTCommentsCount.SetValue(topicMonitorParam.CommentsCount)
+	boxWndTCommentsCount.Append(sboxWndTCommentsCount, true)
+
+	// описываем группу, в которой будут размещены элементы
+	groupWndT := ui.NewGroup("")
+	groupWndT.SetMargined(true)
+	boxWndT.Append(boxWndTMonitoring, false)
+	boxWndT.Append(boxWndTSendTo, false)
+	boxWndT.Append(boxWndTInterval, false)
+	boxWndT.Append(boxWndTTopicsCount, false)
+	boxWndT.Append(boxWndTCommentsCount, false)
+	groupWndT.SetChild(boxWndT)
+
+	// добавляем группу в основную коробку окна
+	boxWndMain.Append(groupWndT, false)
+
+	// описываем коробку для кнопок
+	boxWndTBtns := ui.NewHorizontalBox()
+	boxWndTBtns.SetPadded(true)
+	// и несколько коробок для выравнивания кнопок
+	btnWndTBtnsLeft := ui.NewHorizontalBox()
+	btnWndTBtnsCenter := ui.NewHorizontalBox()
+	btnWndTBtnsRight := ui.NewHorizontalBox()
+	btnWndTBtnsRight.SetPadded(true)
+	// а затем сами кнопки
+	btnWndTCancel := ui.NewButton("Cancel")
+	btnWndTBtnsRight.Append(btnWndTCancel, false)
+	btnWndTApplyChanges := ui.NewButton("Apply")
+	btnWndTBtnsRight.Append(btnWndTApplyChanges, false)
+	// и добавляем их в коробку для кнопок
+	boxWndTBtns.Append(btnWndTBtnsLeft, false)
+	boxWndTBtns.Append(btnWndTBtnsCenter, false)
+	boxWndTBtns.Append(btnWndTBtnsRight, false)
+
+	// привязываем к кнопкам соответствующие процедуры
+	btnWndTCancel.OnClicked(func(*ui.Button) {
+		// TODO: как-нибудь надо закрывать окно
+	})
+	// привязываем кнопки к соответствующим процедурам
+	btnWndTApplyChanges.OnClicked(func(*ui.Button) {
+		var updatedTopicMonitorParam TopicMonitorParam
+		updatedTopicMonitorParam.ID = topicMonitorParam.ID
+		updatedTopicMonitorParam.SubjectID = topicMonitorParam.SubjectID
+		if cboxWndTNeedMonitoring.Checked() {
+			updatedTopicMonitorParam.NeedMonitoring = 1
+		} else {
+			updatedTopicMonitorParam.NeedMonitoring = 0
+		}
+		updatedTopicMonitorParam.SendTo, err = strconv.Atoi(entryWndTSendTo.Text())
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+		updatedTopicMonitorParam.Interval = sboxWndTInterval.Value()
+		updatedTopicMonitorParam.LastDate = topicMonitorParam.LastDate
+		updatedTopicMonitorParam.CommentsCount = sboxWndTCommentsCount.Value()
+		updatedTopicMonitorParam.TopicsCount = sboxWndTTopicsCount.Value()
+
+		err = UpdateDBTopicMonitor(updatedTopicMonitorParam)
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+
+		// TODO: как-нибудь надо закрывать окно
+	})
+
+	// добавляем коробку с кнопками на основную коробку окна
+	boxWndMain.Append(boxWndTBtns, true)
+	// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
+	boxWndTBottom := ui.NewHorizontalBox()
+	boxWndMain.Append(boxWndTBottom, false)
+
+	wndSubjectTopicSettings.Show()
 }
 
 func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsData GroupsSettingsData) *ui.Box {

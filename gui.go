@@ -695,7 +695,10 @@ func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
 			btnSettingsSection.OnClicked(func(*ui.Button) {
 				showSubjectPhotoCommentSettingWindow(subjectData.ID, subjectData.Name, btnName)
 			})
-			// case "Video comment monitor":
+		case "Video comment monitor":
+			btnSettingsSection.OnClicked(func(*ui.Button) {
+				showSubjectVideoCommentSettingWindow(subjectData.ID, subjectData.Name, btnName)
+			})
 			// case "Topic monitor":
 			// case "Wall post comment monitor":
 		}
@@ -1409,6 +1412,153 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	boxWndMain.Append(boxWndPCBottom, false)
 
 	wndSubjectPhotoCommentSettings.Show()
+}
+
+func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName string) {
+	// описываем окно для отображения установок модуля мониторинга комментариев под видео
+	wndSubjectVideoCommentSettings := ui.NewWindow("", 300, 100, true)
+	wndSubjectVideoCommentSettings.OnClosing(func(*ui.Window) bool {
+		wndSubjectVideoCommentSettings.Disable()
+		return true
+	})
+	wndSubjectVideoCommentSettings.SetMargined(true)
+	boxWndMain := ui.NewVerticalBox()
+	boxWndMain.SetPadded(true)
+	wndSubjectVideoCommentSettings.SetChild(boxWndMain)
+
+	// запрашиваем параметры мониторинга из базы данных
+	videoCommentMonitorParam, err := SelectDBVideoCommentMonitorParam(IDSubject)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+
+	// устанавливаем заголовок окна в соответствии с названием субъекта и назначением установок
+	wndTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	wndSubjectVideoCommentSettings.SetTitle(wndTitle)
+
+	boxWndVC := ui.NewVerticalBox()
+
+	// описываем коробку с меткой и чекбоксом для флага необходимости активировать модуль мониторинга
+	boxWndVCMonitoring := ui.NewHorizontalBox()
+	boxWndVCMonitoring.SetPadded(true)
+	lblWndVCMonitoring := ui.NewLabel("Need monitoring")
+	boxWndVCMonitoring.Append(lblWndVCMonitoring, true)
+	cboxWndVCNeedMonitoring := ui.NewCheckbox("")
+	if videoCommentMonitorParam.NeedMonitoring == 1 {
+		cboxWndVCNeedMonitoring.SetChecked(true)
+	} else {
+		cboxWndVCNeedMonitoring.SetChecked(false)
+	}
+	boxWndVCMonitoring.Append(cboxWndVCNeedMonitoring, true)
+
+	// описываем коробку с меткой и спинбоксом для интервала между запусками функции мониторинга
+	boxWndVCInterval := ui.NewHorizontalBox()
+	boxWndVCInterval.SetPadded(true)
+	lblWndVCInterval := ui.NewLabel("Interval")
+	boxWndVCInterval.Append(lblWndVCInterval, true)
+	sboxWndVCInterval := ui.NewSpinbox(5, 21600)
+	sboxWndVCInterval.SetValue(videoCommentMonitorParam.Interval)
+	boxWndVCInterval.Append(sboxWndVCInterval, true)
+
+	// описываем коробку с меткой и полем для идентификатора получателя сообщений
+	boxWndVCSendTo := ui.NewHorizontalBox()
+	boxWndVCSendTo.SetPadded(true)
+	lblWndVCSendTo := ui.NewLabel("Send to")
+	boxWndVCSendTo.Append(lblWndVCSendTo, true)
+	entryWndVCSendTo := ui.NewEntry()
+	entryWndVCSendTo.SetText(strconv.Itoa(videoCommentMonitorParam.SendTo))
+	boxWndVCSendTo.Append(entryWndVCSendTo, true)
+
+	// описываем коробку с меткой и спинбоксом для количества проверяемых видео
+	boxWndVCVideosCount := ui.NewHorizontalBox()
+	boxWndVCVideosCount.SetPadded(true)
+	lblWndVCVideosCount := ui.NewLabel("Videos count")
+	boxWndVCVideosCount.Append(lblWndVCVideosCount, true)
+	sboxWndVCVideosCount := ui.NewSpinbox(1, 200)
+	sboxWndVCVideosCount.SetValue(videoCommentMonitorParam.VideosCount)
+	boxWndVCVideosCount.Append(sboxWndVCVideosCount, true)
+
+	// описываем коробку с меткой и спинбоксом для количества проверяемых комментариев
+	boxWndVCCommentsCount := ui.NewHorizontalBox()
+	boxWndVCCommentsCount.SetPadded(true)
+	lblWndVCCommentsCount := ui.NewLabel("Comments count")
+	boxWndVCCommentsCount.Append(lblWndVCCommentsCount, true)
+	sboxWndVCCommentsCount := ui.NewSpinbox(1, 100)
+	sboxWndVCCommentsCount.SetValue(videoCommentMonitorParam.CommentsCount)
+	boxWndVCCommentsCount.Append(sboxWndVCCommentsCount, true)
+
+	// описываем группу, в которой будут размещены элементы
+	groupWndVP := ui.NewGroup("")
+	groupWndVP.SetMargined(true)
+	boxWndVC.Append(boxWndVCMonitoring, false)
+	boxWndVC.Append(boxWndVCSendTo, false)
+	boxWndVC.Append(boxWndVCInterval, false)
+	boxWndVC.Append(boxWndVCVideosCount, false)
+	boxWndVC.Append(boxWndVCCommentsCount, false)
+	groupWndVP.SetChild(boxWndVC)
+
+	// добавляем группу в основную коробку окна
+	boxWndMain.Append(groupWndVP, false)
+
+	// описываем коробку для кнопок
+	boxWndVCBtns := ui.NewHorizontalBox()
+	boxWndVCBtns.SetPadded(true)
+	// и несколько коробок для выравнивания кнопок
+	btnWndVCBtnsLeft := ui.NewHorizontalBox()
+	btnWndVCBtnsCenter := ui.NewHorizontalBox()
+	btnWndVCBtnsRight := ui.NewHorizontalBox()
+	btnWndVCBtnsRight.SetPadded(true)
+	// а затем сами кнопки
+	btnWndVCCancel := ui.NewButton("Cancel")
+	btnWndVCBtnsRight.Append(btnWndVCCancel, false)
+	btnWndVCApplyChanges := ui.NewButton("Apply")
+	btnWndVCBtnsRight.Append(btnWndVCApplyChanges, false)
+	// и добавляем их в коробку для кнопок
+	boxWndVCBtns.Append(btnWndVCBtnsLeft, false)
+	boxWndVCBtns.Append(btnWndVCBtnsCenter, false)
+	boxWndVCBtns.Append(btnWndVCBtnsRight, false)
+
+	// привязываем к кнопкам соответствующие процедуры
+	btnWndVCCancel.OnClicked(func(*ui.Button) {
+		// TODO: как-нибудь надо закрывать окно
+	})
+	// привязываем кнопки к соответствующим процедурам
+	btnWndVCApplyChanges.OnClicked(func(*ui.Button) {
+		var updatedVideoCommentMonitorParam VideoCommentMonitorParam
+		updatedVideoCommentMonitorParam.ID = videoCommentMonitorParam.ID
+		updatedVideoCommentMonitorParam.SubjectID = videoCommentMonitorParam.SubjectID
+		if cboxWndVCNeedMonitoring.Checked() {
+			updatedVideoCommentMonitorParam.NeedMonitoring = 1
+		} else {
+			updatedVideoCommentMonitorParam.NeedMonitoring = 0
+		}
+		updatedVideoCommentMonitorParam.SendTo, err = strconv.Atoi(entryWndVCSendTo.Text())
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+		updatedVideoCommentMonitorParam.Interval = sboxWndVCInterval.Value()
+		updatedVideoCommentMonitorParam.LastDate = videoCommentMonitorParam.LastDate
+		updatedVideoCommentMonitorParam.CommentsCount = sboxWndVCCommentsCount.Value()
+		updatedVideoCommentMonitorParam.VideosCount = sboxWndVCVideosCount.Value()
+
+		err = UpdateDBVideoCommentMonitor(updatedVideoCommentMonitorParam)
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+
+		// TODO: как-нибудь надо закрывать окно
+	})
+
+	// добавляем коробку с кнопками на основную коробку окна
+	boxWndMain.Append(boxWndVCBtns, true)
+	// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
+	boxWndVCBottom := ui.NewHorizontalBox()
+	boxWndMain.Append(boxWndVCBottom, false)
+
+	wndSubjectVideoCommentSettings.Show()
 }
 
 func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsData GroupsSettingsData) *ui.Box {

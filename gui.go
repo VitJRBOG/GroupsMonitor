@@ -1331,7 +1331,7 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	entryWndPCSendTo.SetText(strconv.Itoa(photoCommentMonitorParam.SendTo))
 	boxWndPCSendTo.Append(entryWndPCSendTo, true)
 
-	// описываем коробку с меткой и спинбоксом для количества проверяемых фотографий
+	// описываем коробку с меткой и спинбоксом для количества проверяемых комментариев
 	boxWndPCCommentsCount := ui.NewHorizontalBox()
 	boxWndPCCommentsCount.SetPadded(true)
 	lblWndPCCommentsCount := ui.NewLabel("Comments count")
@@ -1341,16 +1341,16 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	boxWndPCCommentsCount.Append(sboxWndPCCommentsCount, true)
 
 	// описываем группу, в которой будут размещены элементы
-	groupWndAP := ui.NewGroup("")
-	groupWndAP.SetMargined(true)
+	groupWndPC := ui.NewGroup("")
+	groupWndPC.SetMargined(true)
 	boxWndPC.Append(boxWndPCMonitoring, false)
 	boxWndPC.Append(boxWndPCInterval, false)
 	boxWndPC.Append(boxWndPCSendTo, false)
 	boxWndPC.Append(boxWndPCCommentsCount, false)
-	groupWndAP.SetChild(boxWndPC)
+	groupWndPC.SetChild(boxWndPC)
 
 	// добавляем группу в основную коробку окна
-	boxWndMain.Append(groupWndAP, false)
+	boxWndMain.Append(groupWndPC, false)
 
 	// описываем коробку для кнопок
 	boxWndPCBtns := ui.NewHorizontalBox()

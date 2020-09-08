@@ -1194,6 +1194,40 @@ func UpdateDBWallPostCommentMonitorLastDate(subjectID int, newLastDate int) erro
 	return nil
 }
 
+// UpdateDBWallPostCommentMonitor обновляет значения в поле таблицы wall_post_comment_monitor
+func UpdateDBWallPostCommentMonitor(wPCMP WallPostCommentMonitorParam) error {
+	// получаем ссылку на db
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE wall_post_comment_monitor SET subject_id='%d', need_monitoring='%d',
+		posts_count='%d', comments_count='%d', monitoring_all='%d', users_ids_for_monitoring='%v',
+		users_names_for_monitoring='%v', attachments_types_for_monitoring='%v',
+		users_ids_for_ignore='%v', interval='%d', send_to='%d', filter='%v',
+		last_date='%d', keywords_for_monitoring='%v', small_comments_for_monitoring='%v',
+		digits_count_for_card_number_monitoring='%v', digits_count_for_phone_number_monitoring='%v', 
+		monitor_by_community='%d'
+		WHERE id=%d`,
+		wPCMP.SubjectID, wPCMP.NeedMonitoring,
+		wPCMP.PostsCount, wPCMP.CommentsCount, wPCMP.MonitoringAll, wPCMP.UsersIDsForMonitoring,
+		wPCMP.UsersNamesForMonitoring, wPCMP.AttachmentsTypesForMonitoring,
+		wPCMP.UsersIDsForIgnore, wPCMP.Interval, wPCMP.SendTo, wPCMP.Filter,
+		wPCMP.LastDate, wPCMP.KeywordsForMonitoring, wPCMP.SmallCommentsForMonitoring,
+		wPCMP.DigitsCountForCardNumberMonitoring, wPCMP.DigitsCountForPhoneNumberMonitoring,
+		wPCMP.MonitorByCommunity,
+		wPCMP.ID)
+	_, err = db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // InitDB создает таблицы и связи в базе данных (желательно, пустой)
 func InitDB() error {
 	// получаем ссылку на db

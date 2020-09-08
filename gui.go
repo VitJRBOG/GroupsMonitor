@@ -1489,17 +1489,17 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	boxWndVCCommentsCount.Append(sboxWndVCCommentsCount, true)
 
 	// описываем группу, в которой будут размещены элементы
-	groupWndVP := ui.NewGroup("")
-	groupWndVP.SetMargined(true)
+	groupWndVC := ui.NewGroup("")
+	groupWndVC.SetMargined(true)
 	boxWndVC.Append(boxWndVCMonitoring, false)
 	boxWndVC.Append(boxWndVCSendTo, false)
 	boxWndVC.Append(boxWndVCInterval, false)
 	boxWndVC.Append(boxWndVCVideosCount, false)
 	boxWndVC.Append(boxWndVCCommentsCount, false)
-	groupWndVP.SetChild(boxWndVC)
+	groupWndVC.SetChild(boxWndVC)
 
 	// добавляем группу в основную коробку окна
-	boxWndMain.Append(groupWndVP, false)
+	boxWndMain.Append(groupWndVC, false)
 
 	// описываем коробку для кнопок
 	boxWndVCBtns := ui.NewHorizontalBox()

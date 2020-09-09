@@ -565,17 +565,6 @@ func showAccessTokenAdditionWindow() {
 }
 
 func showAccessTokenSettingWindow(IDAccessToken int) {
-	// описываем окно для отображения установок токена доступа
-	wndAccessTokenSettings := ui.NewWindow("", 300, 100, true)
-	wndAccessTokenSettings.OnClosing(func(*ui.Window) bool {
-		wndAccessTokenSettings.Disable()
-		return true
-	})
-	wndAccessTokenSettings.SetMargined(true)
-	boxWndMain := ui.NewVerticalBox()
-	boxWndMain.SetPadded(true)
-	wndAccessTokenSettings.SetChild(boxWndMain)
-
 	// запрашиваем список токенов доступа из базы данных
 	accessTokens, err := SelectDBAccessTokens()
 	if err != nil {
@@ -583,70 +572,47 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
 	}
 
+	// получаем набор для окна отображения установок токена доступа
+	kitWindowAccessTokenSettings := makeSettingWindowKit("", 300, 100)
+
 	// перечисляем токены доступа
 	for _, accessToken := range accessTokens {
 		// и ищем токен с подходящим идентификатором
 		if accessToken.ID == IDAccessToken {
 			// устанавливаем заголовок окна в соответствии с названием токена доступа
-			wndAccessTokenSettings.SetTitle("Settings of " + accessToken.Name + "'s access token")
+			windowTitle := "Settings of " + accessToken.Name + "'s access token"
+			kitWindowAccessTokenSettings.Window.SetTitle(windowTitle)
 
 			boxWndAT := ui.NewVerticalBox()
 
-			// описываем коробку с меткой и полем для названия токена доступа
-			boxWndATName := ui.NewHorizontalBox()
-			boxWndATName.SetPadded(true)
-			lblWndATName := ui.NewLabel("Name")
-			boxWndATName.Append(lblWndATName, false)
-			entryWndATName := ui.NewEntry()
-			entryWndATName.SetText(accessToken.Name)
-			boxWndATName.Append(entryWndATName, true)
+			// получаем набор для названия токена доступа
+			kitWndATName := makeSettingEntryKit("Name", accessToken.Name)
 
-			// описываем коробку с меткой и полем для значения токена доступа
-			boxWndATValue := ui.NewHorizontalBox()
-			boxWndATValue.SetPadded(true)
-			lblWndATValue := ui.NewLabel("Value")
-			boxWndATValue.Append(lblWndATValue, false)
-			entryWndATValue := ui.NewEntry()
-			entryWndATValue.SetText(accessToken.Value)
-			boxWndATValue.Append(entryWndATValue, true)
+			// получаем набор для значения токена доступа
+			kitWndATValue := makeSettingEntryKit("Value", accessToken.Value)
 
 			// описываем группу, в которой будут размещены элементы
 			groupWndAT := ui.NewGroup("")
 			groupWndAT.SetMargined(true)
-			boxWndAT.Append(boxWndATName, false)
-			boxWndAT.Append(boxWndATValue, false)
+			boxWndAT.Append(kitWndATName.Box, false)
+			boxWndAT.Append(kitWndATValue.Box, false)
 			groupWndAT.SetChild(boxWndAT)
 
 			// добавляем группу в основную коробку окна
-			boxWndMain.Append(groupWndAT, false)
+			kitWindowAccessTokenSettings.Box.Append(groupWndAT, false)
 
-			// описываем коробку для кнопок
-			boxWndATBtns := ui.NewHorizontalBox()
-			boxWndATBtns.SetPadded(true)
-			// и несколько коробок для выравнивания кнопок
-			btnWndATBtnsLeft := ui.NewHorizontalBox()
-			btnWndATBtnsCenter := ui.NewHorizontalBox()
-			btnWndATBtnsRight := ui.NewHorizontalBox()
-			btnWndATBtnsRight.SetPadded(true)
-			// а затем сами кнопки
-			btnwndATCancel := ui.NewButton("Cancel")
-			btnWndATBtnsRight.Append(btnwndATCancel, false)
-			btnWndATApplyChanges := ui.NewButton("Apply")
-			btnWndATBtnsRight.Append(btnWndATApplyChanges, false)
-			// и добавляем их в коробку для кнопок
-			boxWndATBtns.Append(btnWndATBtnsLeft, false)
-			boxWndATBtns.Append(btnWndATBtnsCenter, false)
-			boxWndATBtns.Append(btnWndATBtnsRight, false)
+			// получаем набор для кнопок принятия и отмены изменений
+			kitButtonsAT := makeSettingButtonsKit()
 
-			btnwndATCancel.OnClicked(func(*ui.Button) {
+			kitButtonsAT.ButtonCancel.OnClicked(func(*ui.Button) {
 				// TODO: как-нибудь надо закрывать окно
 			})
 			// привязываем кнопки к соответствующим процедурам
-			btnWndATApplyChanges.OnClicked(func(*ui.Button) {
+			kitButtonsAT.ButtonApply.OnClicked(func(*ui.Button) {
 				var updatedAccessToken AccessToken
 				updatedAccessToken.ID = accessToken.ID
-				updatedAccessToken.Name = entryWndATName.Text()
-				updatedAccessToken.Value = entryWndATValue.Text()
+				updatedAccessToken.Name = kitWndATName.Entry.Text()
+				updatedAccessToken.Value = kitWndATValue.Entry.Text()
 
 				err := UpdateDBAccessToken(updatedAccessToken)
 				if err != nil {
@@ -658,15 +624,15 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 			})
 
 			// добавляем коробку с кнопками на основную коробку окна
-			boxWndMain.Append(boxWndATBtns, true)
+			kitWindowAccessTokenSettings.Box.Append(kitButtonsAT.Box, true)
 			// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
 			boxWndATBottom := ui.NewHorizontalBox()
-			boxWndMain.Append(boxWndATBottom, false)
+			kitWindowAccessTokenSettings.Box.Append(boxWndATBottom, false)
 			break
 		}
 	}
 
-	wndAccessTokenSettings.Show()
+	kitWindowAccessTokenSettings.Window.Show()
 }
 
 func makeSubjectsSettingsBox(groupsSettingsData GroupsSettingsData) *ui.Box {

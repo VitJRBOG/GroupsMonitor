@@ -512,7 +512,8 @@ func makeAccessTokensSettingsBox() *ui.Box {
 
 func showAccessTokenAdditionWindow() {
 	// получаем набор для отображения окна для добавления нового токена доступа
-	kitWindowAccessTokenAddition := makeSettingWindowKit("New access token addition", "", 300, 100)
+	windowTitle := fmt.Sprintf("New access token addition")
+	kitWindowAccessTokenAddition := makeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndATAddition := ui.NewVerticalBox()
 
@@ -800,15 +801,15 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 	}
 
 	// получаем набор для отображения общих установок субъекта мониторинга
-	kitWindowGeneralSettings := makeSettingWindowKit("", "", 300, 100)
+	kitWindowGeneralSettings := makeSettingWindowKit("", 300, 100)
 
 	// перечисляем субъекты
 	for _, subject := range subjects {
 		// ищем субъект с подходящим идентификатором
 		if subject.ID == IDSubject {
 			// устанавливаем заголовок окна в соответствии с названием субъекта и назначением установок
-			wndTitle := fmt.Sprintf("%v settings for %v", btnName, subject.Name)
-			kitWindowGeneralSettings.Window.SetTitle(wndTitle)
+			windowTitle := fmt.Sprintf("%v settings for %v", btnName, subject.Name)
+			kitWindowGeneralSettings.Window.SetTitle(windowTitle)
 
 			boxWndS := ui.NewVerticalBox()
 
@@ -879,7 +880,8 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 	}
 
 	// получаем набор для отображения установок модуля мониторинга постов на стене
-	kitWindowWallPostSettings := makeSettingWindowKit(btnName, nameSubject, 300, 100)
+	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	kitWindowWallPostSettings := makeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndWP := ui.NewVerticalBox()
 
@@ -974,7 +976,8 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 	}
 
 	// получаем набор для отображения установок модуля мониторинга фотографий в альбомах
-	kitWindowAlbumPhotoSettings := makeSettingWindowKit(btnName, nameSubject, 300, 100)
+	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	kitWindowAlbumPhotoSettings := makeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndAP := ui.NewVerticalBox()
 
@@ -1055,7 +1058,8 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 	}
 
 	// получаем набор для отображения установок модуля мониторинга видео
-	kitWindowVideoSettings := makeSettingWindowKit(btnName, nameSubject, 300, 100)
+	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	kitWindowVideoSettings := makeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndV := ui.NewVerticalBox()
 
@@ -1136,7 +1140,8 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	}
 
 	// получаем набор для отображения установок модуля мониторинга комментариев под фотками
-	kitWindowPhotoCommentSettings := makeSettingWindowKit(btnName, nameSubject, 300, 100)
+	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	kitWindowPhotoCommentSettings := makeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndPC := ui.NewVerticalBox()
 
@@ -1217,7 +1222,8 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	}
 
 	// получаем набор для отображения установок модуля мониторинга комментариев в обсуждениях
-	kitWindowVideoCommentSettings := makeSettingWindowKit(btnName, nameSubject, 300, 100)
+	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	kitWindowVideoCommentSettings := makeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndVC := ui.NewVerticalBox()
 
@@ -1303,7 +1309,8 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 	}
 
 	// получаем набор для отображения установок модуля мониторинга комментариев в обсуждениях
-	kitWindowTopicSettings := makeSettingWindowKit(btnName, nameSubject, 300, 100)
+	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	kitWindowTopicSettings := makeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndT := ui.NewVerticalBox()
 
@@ -1381,13 +1388,16 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 }
 
 func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName string) {
+	// запрашиваем параметры мониторинга из базы данных
 	wallPostCommentMonitorParam, err := SelectDBWallPostCommentMonitorParam(IDSubject)
 	if err != nil {
 		date := UnixTimeStampToDate(int(time.Now().Unix()))
 		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
 	}
 
-	kitWindowWallPostCommentSettings := makeSettingWindowKit(btnName, nameSubject, 300, 100)
+	// получаем набор для отображения установок модуля мониторинга комментариев под постами
+	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
+	kitWindowWallPostCommentSettings := makeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndWPC := ui.NewVerticalBox()
 
@@ -1528,10 +1538,9 @@ type WindowSettingsKit struct {
 	Box    *ui.Box
 }
 
-func makeSettingWindowKit(settingsName, subjectName string, width, height int) WindowSettingsKit {
+func makeSettingWindowKit(windowTitle string, width, height int) WindowSettingsKit {
 	var windowSettingsKit WindowSettingsKit
 
-	windowTitle := fmt.Sprintf("%v settings for %v", settingsName, subjectName)
 	windowSettingsKit.Window = ui.NewWindow(windowTitle, width, height, true)
 	windowSettingsKit.Window.OnClosing(func(*ui.Window) bool {
 		windowSettingsKit.Window.Disable()

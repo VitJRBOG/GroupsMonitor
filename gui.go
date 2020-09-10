@@ -1632,7 +1632,7 @@ func makeSettingComboboxKit(labelTitle string, comboboxValues []string, currentV
 	labelObj := ui.NewLabel(labelTitle)
 	comboboxKit.Box.Append(labelObj, true)
 	comboboxKit.Combobox = ui.NewCombobox()
-	var slctd int
+	slctd := -1
 	for i, item := range comboboxValues {
 		comboboxKit.Combobox.Append(item)
 		if currentValue == item {

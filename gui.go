@@ -646,6 +646,8 @@ func makeSubjectsSettingsBox(groupsSettingsData GroupsSettingsData) *ui.Box {
 		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
 	}
 
+	boxSUpper := ui.NewVerticalBox()
+
 	// в этом списке будут храниться ссылки на кнопки для отображения доп. настроек
 	var listBtnsSubjectSettings []*ui.Button
 
@@ -654,7 +656,7 @@ func makeSubjectsSettingsBox(groupsSettingsData GroupsSettingsData) *ui.Box {
 		// описываем кнопку для отображения доп. настроек соответствующего субъекта
 		btnSubjectSettings := ui.NewButton(subjectData.Name)
 		// и добавляем ее в коробку
-		boxSubjectsSettings.Append(btnSubjectSettings, false)
+		boxSUpper.Append(btnSubjectSettings, false)
 		// добавляем кнопку в список
 		listBtnsSubjectSettings = append(listBtnsSubjectSettings, btnSubjectSettings)
 	}
@@ -687,7 +689,852 @@ func makeSubjectsSettingsBox(groupsSettingsData GroupsSettingsData) *ui.Box {
 		}
 	}
 
+	// описываем коробку для кнопки добавления нового токена доступа
+	boxSBottom := ui.NewHorizontalBox()
+
+	// описываем кнопку для добавления нового токена и декоративную кнопку для выравнивания
+	btnAddNewSubject := ui.NewButton("＋")
+	btnDecorative := ui.NewButton("")
+	btnDecorative.Disable()
+
+	// привязываем к кнопке для добавления соответствующую процедуру
+	btnAddNewSubject.OnClicked(func(*ui.Button) {
+		showSubjectAdditionWindow()
+	})
+
+	// добавляем кнопки на коробку для кнопок
+	boxSBottom.Append(btnAddNewSubject, false)
+	boxSBottom.Append(btnDecorative, true)
+
+	// добавляем обе коробки на основную коробку
+	boxSubjectsSettings.Append(boxSUpper, false)
+	boxSubjectsSettings.Append(boxSBottom, false)
+
 	return boxSubjectsSettings
+}
+
+func showSubjectAdditionWindow() {
+	// запрашиваем список токенов доступа из базы данных
+	accessTokens, err := SelectDBAccessTokens()
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+	// формируем список с названиями токенов доступа
+	var accessTokensNames []string
+	for _, accessToken := range accessTokens {
+		accessTokensNames = append(accessTokensNames, accessToken.Name)
+	}
+
+	// получаем набор для отображения окна для добавления нового субъекта мониторинга
+	windowTitle := fmt.Sprintf("New subject addition")
+	kitWindowSubjectAddition := makeSettingWindowKit(windowTitle, 300, 100)
+
+	boxWndSAddition := ui.NewHorizontalBox()
+	boxWndSAddition.SetPadded(true)
+
+	boxWndSAdditionLeft := ui.NewVerticalBox()
+	boxWndSAdditionLeft.SetPadded(true)
+	boxWndSAdditionRight := ui.NewVerticalBox()
+	boxWndSAdditionRight.SetPadded(true)
+
+	// получаем набор для ввода названия нового субъекта
+	kitSAdditionName := makeSettingEntryKit("Name", "")
+
+	// получаем набор для ввода идентификатора субъекта в базе данных ВК
+	kitSAdditionSubjectID := makeSettingEntryKit("Subject ID", "")
+
+	// описываем группу для общих установок субъекта
+	groupSAdditionGeneral := ui.NewGroup("General")
+	groupSAdditionGeneral.SetMargined(true)
+	boxSAdditionGeneral := ui.NewVerticalBox()
+	boxSAdditionGeneral.Append(kitSAdditionName.Box, false)
+	boxSAdditionGeneral.Append(kitSAdditionSubjectID.Box, false)
+	groupSAdditionGeneral.SetChild(boxSAdditionGeneral)
+
+	// получаем набор для ввода идентификатора получателя сообщений в модуле wall_post_monitor
+	kitSAdditionSendToinWPM := makeSettingEntryKit("Send to", "")
+
+	// получаем набор для выбора токена доступа для метода wall.get в модуле wall_post_monitor
+	kitSAdditionWGinWPM := makeSettingComboboxKit("Access token for \"wall.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода users.get в модуле wall_post_monitor
+	kitSAdditionUGinWPM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода groups.getById в модуле wall_post_monitor
+	kitSAdditionGGBIinWPM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода messages.send в модуле wall_post_monitor
+	kitSAdditionMSinWPM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+
+	// описываем группу для установок модуля wall_post_monitor субъекта
+	groupSAdditionWPM := ui.NewGroup("Wall post monitor")
+	groupSAdditionWPM.SetMargined(true)
+	boxSAdditionWPM := ui.NewVerticalBox()
+	boxSAdditionWPM.Append(kitSAdditionSendToinWPM.Box, false)
+	boxSAdditionWPM.Append(kitSAdditionWGinWPM.Box, false)
+	boxSAdditionWPM.Append(kitSAdditionUGinWPM.Box, false)
+	boxSAdditionWPM.Append(kitSAdditionGGBIinWPM.Box, false)
+	boxSAdditionWPM.Append(kitSAdditionMSinWPM.Box, false)
+	groupSAdditionWPM.SetChild(boxSAdditionWPM)
+
+	// получаем набор для ввода идентификатора получателя сообщений в модуле album_photo_monitor
+	kitSAdditionSendToinAPM := makeSettingEntryKit("Send to", "")
+
+	// получаем набор для выбора токена доступа для метода photos.get в модуле album_photo_monitor
+	kitSAdditionPGinAPM := makeSettingComboboxKit("Access token for \"photos.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода photos.getAlbums в модуле album_photo_monitor
+	kitSAdditionPGAinAPM := makeSettingComboboxKit("Access token for \"photos.getAlbums\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода users.get в модуле album_photo_monitor
+	kitSAdditionUGinAPM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода groups.getById в модуле album_photo_monitor
+	kitSAdditionGGBIinAPM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода messages.send в модуле album_photo_monitor
+	kitSAdditionMSinAPM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+
+	// описываем группу для установок модуля album_photo_monitor субъекта
+	groupSAdditionAPM := ui.NewGroup("Album photo monitor")
+	groupSAdditionAPM.SetMargined(true)
+	boxSAdditionAPM := ui.NewVerticalBox()
+	boxSAdditionAPM.Append(kitSAdditionSendToinAPM.Box, false)
+	boxSAdditionAPM.Append(kitSAdditionPGinAPM.Box, false)
+	boxSAdditionAPM.Append(kitSAdditionPGAinAPM.Box, false)
+	boxSAdditionAPM.Append(kitSAdditionUGinAPM.Box, false)
+	boxSAdditionAPM.Append(kitSAdditionGGBIinAPM.Box, false)
+	boxSAdditionAPM.Append(kitSAdditionMSinAPM.Box, false)
+	groupSAdditionAPM.SetChild(boxSAdditionAPM)
+
+	// получаем набор для ввода идентификатора получателя сообщений в модуле video_monitor
+	kitSAdditionSendToinVM := makeSettingEntryKit("Send to", "")
+
+	// получаем набор для выбора токена доступа для метода video.get в модуле video_monitor
+	kitSAdditionVGinVM := makeSettingComboboxKit("Access token for \"video.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода users.get в модуле video_monitor
+	kitSAdditionUGinVM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода groups.getById в модуле video_monitor
+	kitSAdditionGGBIinVM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода messages.send в модуле video_monitor
+	kitSAdditionMSinVM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+
+	// описываем группу для установок модуля video_monitor субъекта
+	groupSAdditionVM := ui.NewGroup("Video monitor")
+	groupSAdditionVM.SetMargined(true)
+	boxSAdditionVM := ui.NewVerticalBox()
+	boxSAdditionVM.Append(kitSAdditionSendToinVM.Box, false)
+	boxSAdditionVM.Append(kitSAdditionVGinVM.Box, false)
+	boxSAdditionVM.Append(kitSAdditionUGinVM.Box, false)
+	boxSAdditionVM.Append(kitSAdditionGGBIinVM.Box, false)
+	boxSAdditionVM.Append(kitSAdditionMSinVM.Box, false)
+	groupSAdditionVM.SetChild(boxSAdditionVM)
+
+	// получаем набор для ввода идентификатора получателя сообщений в модуле photo_comment_monitor
+	kitSAdditionSendToinPCM := makeSettingEntryKit("Send to", "")
+
+	// получаем набор для выбора токена доступа для метода photos.getAllComments в модуле photo_comment_monitor
+	kitSAdditionPGACinPCM := makeSettingComboboxKit("Access token for \"photos.getAllComments\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода users.get в модуле photo_comment_monitor
+	kitSAdditionUGinPCM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода groups.getById в модуле photo_comment_monitor
+	kitSAdditionGGBIinPCM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода messages.send в модуле photo_comment_monitor
+	kitSAdditionMSinPCM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+
+	// описываем группу для установок модуля photo_comment_monitor субъекта
+	groupSAdditionPCM := ui.NewGroup("Photo comment monitor")
+	groupSAdditionPCM.SetMargined(true)
+	boxSAdditionPCM := ui.NewVerticalBox()
+	boxSAdditionPCM.Append(kitSAdditionSendToinPCM.Box, false)
+	boxSAdditionPCM.Append(kitSAdditionPGACinPCM.Box, false)
+	boxSAdditionPCM.Append(kitSAdditionUGinPCM.Box, false)
+	boxSAdditionPCM.Append(kitSAdditionGGBIinPCM.Box, false)
+	boxSAdditionPCM.Append(kitSAdditionMSinPCM.Box, false)
+	groupSAdditionPCM.SetChild(boxSAdditionPCM)
+
+	// получаем набор для ввода идентификатора получателя сообщений в модуле video_comment_monitor
+	kitSAdditionSendToinVCM := makeSettingEntryKit("Send to", "")
+
+	// получаем набор для выбора токена доступа для метода video.getComments в модуле video_comment_monitor
+	kitSAdditionVGCinVCM := makeSettingComboboxKit("Access token for \"video.getComments\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода users.get в модуле video_comment_monitor
+	kitSAdditionUGinVCM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода groups.getById в модуле video_comment_monitor
+	kitSAdditionGGBIinVCM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода video.get в модуле video_comment_monitor
+	kitSAdditionVGinVCM := makeSettingComboboxKit("Access token for \"video.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода messages.send в модуле video_comment_monitor
+	kitSAdditionMSinVCM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+
+	// описываем группу для установок модуля video_comment_monitor субъекта
+	groupSAdditionVCM := ui.NewGroup("Video comment monitor")
+	groupSAdditionVCM.SetMargined(true)
+	boxSAdditionVCM := ui.NewVerticalBox()
+	boxSAdditionVCM.Append(kitSAdditionSendToinVCM.Box, false)
+	boxSAdditionVCM.Append(kitSAdditionVGCinVCM.Box, false)
+	boxSAdditionVCM.Append(kitSAdditionUGinVCM.Box, false)
+	boxSAdditionVCM.Append(kitSAdditionGGBIinVCM.Box, false)
+	boxSAdditionVCM.Append(kitSAdditionVGinVCM.Box, false)
+	boxSAdditionVCM.Append(kitSAdditionMSinVCM.Box, false)
+	groupSAdditionVCM.SetChild(boxSAdditionVCM)
+
+	// получаем набор для ввода идентификатора получателя сообщений в модуле topic_monitor
+	kitSAdditionSendToinTM := makeSettingEntryKit("Send to", "")
+
+	// получаем набор для выбора токена доступа для метода board.getComments в модуле topic_monitor
+	kitSAdditionBGCinTM := makeSettingComboboxKit("Access token for \"board.getComments\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода board.getTopics в модуле topic_monitor
+	kitSAdditionBGTinTM := makeSettingComboboxKit("Access token for \"board.getTopics\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода users.get в модуле topic_monitor
+	kitSAdditionUGinTM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода groups.getById в модуле topic_monitor
+	kitSAdditionGGBIinTM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода messages.send в модуле topic_monitor
+	kitSAdditionMSinTM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+
+	// описываем группу для установок модуля topic_monitor субъекта
+	groupSAdditionTM := ui.NewGroup("Topic monitor")
+	groupSAdditionTM.SetMargined(true)
+	boxSAdditionTM := ui.NewVerticalBox()
+	boxSAdditionTM.Append(kitSAdditionSendToinTM.Box, false)
+	boxSAdditionTM.Append(kitSAdditionBGCinTM.Box, false)
+	boxSAdditionTM.Append(kitSAdditionBGTinTM.Box, false)
+	boxSAdditionTM.Append(kitSAdditionUGinTM.Box, false)
+	boxSAdditionTM.Append(kitSAdditionGGBIinTM.Box, false)
+	boxSAdditionTM.Append(kitSAdditionMSinTM.Box, false)
+	groupSAdditionTM.SetChild(boxSAdditionTM)
+
+	// получаем набор для ввода идентификатора получателя сообщений в модуле wall_post_comment_monitor
+	kitSAdditionSendToinWPCM := makeSettingEntryKit("Send to", "")
+
+	// получаем набор для выбора токена доступа для метода wall.getComments в модуле wall_post_comment_monitor
+	kitSAdditionWGCsinWPCM := makeSettingComboboxKit("Access token for \"wall.getComments\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода users.get в модуле wall_post_comment_monitor
+	kitSAdditionUGinWPCM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода groups.getById в модуле wall_post_comment_monitor
+	kitSAdditionGGBIinWPCM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода wall.get в модуле wall_post_comment_monitor
+	kitSAdditionWGinWPCM := makeSettingComboboxKit("Access token for \"wall.get\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода wall.getComment в модуле wall_post_comment_monitor
+	kitSAdditionWGCinWPCM := makeSettingComboboxKit("Access token for \"wall.getComment\"", accessTokensNames, "")
+
+	// получаем набор для выбора токена доступа для метода messages.send в модуле wall_post_comment_monitor
+	kitSAdditionMSinWPCM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+
+	// описываем группу для установок модуля wall_post_comment_monitor субъекта
+	groupSAdditionWPCM := ui.NewGroup("Wall post comment monitor")
+	groupSAdditionWPCM.SetMargined(true)
+	boxSAdditionWPCM := ui.NewVerticalBox()
+	boxSAdditionWPCM.Append(kitSAdditionSendToinWPCM.Box, false)
+	boxSAdditionWPCM.Append(kitSAdditionWGCsinWPCM.Box, false)
+	boxSAdditionWPCM.Append(kitSAdditionUGinWPCM.Box, false)
+	boxSAdditionWPCM.Append(kitSAdditionGGBIinWPCM.Box, false)
+	boxSAdditionWPCM.Append(kitSAdditionWGinWPCM.Box, false)
+	boxSAdditionWPCM.Append(kitSAdditionWGCinWPCM.Box, false)
+	boxSAdditionWPCM.Append(kitSAdditionMSinWPCM.Box, false)
+	groupSAdditionWPCM.SetChild(boxSAdditionWPCM)
+
+	// добавляем все заполненные группы на
+	// левую коробку
+	boxWndSAdditionLeft.Append(groupSAdditionGeneral, false)
+	boxWndSAdditionLeft.Append(groupSAdditionWPM, false)
+	boxWndSAdditionLeft.Append(groupSAdditionAPM, false)
+	boxWndSAdditionLeft.Append(groupSAdditionVM, false)
+
+	// и правую коробку (для экономии места из-за отсутствия в данной библиотеке для gui скроллинга)
+	boxWndSAdditionRight.Append(groupSAdditionPCM, false)
+	boxWndSAdditionRight.Append(groupSAdditionVCM, false)
+	boxWndSAdditionRight.Append(groupSAdditionTM, false)
+	boxWndSAdditionRight.Append(groupSAdditionWPCM, false)
+
+	// затем добавляем левую и правую коробки на одну общую
+	boxWndSAddition.Append(boxWndSAdditionLeft, false)
+	boxWndSAddition.Append(boxWndSAdditionRight, false)
+
+	// добавляем коробку в основную коробку окна
+	kitWindowSubjectAddition.Box.Append(boxWndSAddition, false)
+
+	// получаем набор для кнопок принятия и отмены изменений
+	kitButtonsSAddition := makeSettingButtonsKit()
+
+	// привязываем кнопки к соответствующим процедурам
+	kitButtonsSAddition.ButtonCancel.OnClicked(func(*ui.Button) {
+		// TODO: как-нибудь надо закрывать окно
+	})
+	kitButtonsSAddition.ButtonApply.OnClicked(func(*ui.Button) {
+		subjectID, err := strconv.Atoi(kitSAdditionSubjectID.Entry.Text())
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+		additionNewSubject(subjectID, kitSAdditionName.Entry.Text())
+
+		subjects, err := SelectDBSubjects()
+		if err != nil {
+			date := UnixTimeStampToDate(int(time.Now().Unix()))
+			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		}
+		id := subjects[len(subjects)-1].ID
+
+		monitorsNames := []string{"wall_post_monitor", "album_photo_monitor", "video_monitor",
+			"photo_comment_monitor", "video_comment_monitor", "topic_monitor", "wall_post_comment_monitor"}
+
+		for _, monitorName := range monitorsNames {
+			switch monitorName {
+			case "wall_post_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+
+				accessTokenName := accessTokensNames[kitSAdditionWGinWPM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "wall.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionUGinWPM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionGGBIinWPM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionMSinWPM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+					}
+				}
+
+				sendTo, err := strconv.Atoi(kitSAdditionSendToinWPM.Entry.Text())
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+				additionNewWallPostMonitor(id, sendTo)
+
+			case "album_photo_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+
+				accessTokenName := accessTokensNames[kitSAdditionPGinAPM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "photos.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionPGAinAPM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "photos.getAlbums")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionUGinAPM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionGGBIinAPM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionMSinAPM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+					}
+				}
+
+				sendTo, err := strconv.Atoi(kitSAdditionSendToinAPM.Entry.Text())
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+				additionNewAlbumPhotoMonitor(id, sendTo)
+
+			case "video_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+
+				accessTokenName := accessTokensNames[kitSAdditionVGinVM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "video.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionUGinVM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionGGBIinVM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionMSinVM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+					}
+				}
+
+				sendTo, err := strconv.Atoi(kitSAdditionSendToinVM.Entry.Text())
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+				additionNewVideoMonitor(id, sendTo)
+
+			case "photo_comment_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+
+				accessTokenName := accessTokensNames[kitSAdditionPGACinPCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "photos.getAllComments")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionUGinPCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionGGBIinPCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionMSinPCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+					}
+				}
+
+				sendTo, err := strconv.Atoi(kitSAdditionSendToinPCM.Entry.Text())
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+				additionPhotoCommentMonitor(id, sendTo)
+
+			case "video_comment_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+
+				accessTokenName := accessTokensNames[kitSAdditionVGCinVCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "video.getComments")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionUGinVCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionGGBIinVCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionVGinVCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "video.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionMSinVCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+					}
+				}
+
+				sendTo, err := strconv.Atoi(kitSAdditionSendToinVCM.Entry.Text())
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+				additionVideoCommentMonitor(id, sendTo)
+
+			case "topic_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+
+				accessTokenName := accessTokensNames[kitSAdditionBGCinTM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "board.getComments")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionBGTinTM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "board.getTopics")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionUGinTM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionGGBIinTM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionMSinTM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+					}
+				}
+
+				sendTo, err := strconv.Atoi(kitSAdditionSendToinTM.Entry.Text())
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+				additionTopicMonitor(id, sendTo)
+
+			case "wall_post_comment_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+
+				accessTokenName := accessTokensNames[kitSAdditionWGCsinWPCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "wall.getComments")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionUGinWPCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionGGBIinWPCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionWGinWPCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "wall.get")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionWGCinWPCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "wall.getComment")
+					}
+				}
+
+				accessTokenName = accessTokensNames[kitSAdditionMSinWPCM.Combobox.Selected()]
+				for _, accessToken := range accessTokens {
+					if accessTokenName == accessToken.Name {
+						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+					}
+				}
+
+				sendTo, err := strconv.Atoi(kitSAdditionSendToinWPCM.Entry.Text())
+				if err != nil {
+					date := UnixTimeStampToDate(int(time.Now().Unix()))
+					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+				}
+				additionWallPostCommentMonitor(id, sendTo)
+			}
+		}
+
+		// TODO: как-нибудь надо закрывать окно
+	})
+
+	// добавляем коробку с кнопками на основную коробку окна
+	kitWindowSubjectAddition.Box.Append(kitButtonsSAddition.Box, true)
+	// затем еще одну коробку, для выравнивания расположения кнопок при растягивании окна
+	boxWndSAdditionBottom := ui.NewHorizontalBox()
+	kitWindowSubjectAddition.Box.Append(boxWndSAdditionBottom, false)
+
+	kitWindowSubjectAddition.Window.Show()
+}
+
+func additionNewSubject(subjectID int, subjectName string) {
+	var subject Subject
+
+	subject.Name = subjectName
+	subject.SubjectID = subjectID
+	subject.BackupWikipage = "-0_0" // этот параметр нигде не используется
+	subject.LastBackup = 0          // этот тоже
+
+	err := InsertDBSubject(subject)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+}
+
+func additionNewMonitor(monitorName string, subjectID int) {
+	var monitor Monitor
+
+	monitor.Name = monitorName
+	monitor.SubjectID = subjectID
+
+	err := InsertDBMonitor(monitor)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+}
+
+func additionNewMethod(subjectID, monitorID, accessTokenID int, methodName string) {
+	var method Method
+
+	method.Name = methodName
+	method.SubjectID = subjectID
+	method.AccessTokenID = accessTokenID
+	method.MonitorID = monitorID
+
+	err := InsertDBMethod(method)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+}
+
+func additionNewWallPostMonitor(subjectID, sendTo int) {
+	var wallPostMonitorParam WallPostMonitorParam
+
+	wallPostMonitorParam.SubjectID = subjectID
+	wallPostMonitorParam.NeedMonitoring = 0
+	wallPostMonitorParam.Interval = 60
+	wallPostMonitorParam.SendTo = sendTo
+	wallPostMonitorParam.Filter = "all"
+	wallPostMonitorParam.LastDate = 0
+	wallPostMonitorParam.PostsCount = 5
+	wallPostMonitorParam.KeywordsForMonitoring = "{\"list\":[]}"
+	wallPostMonitorParam.UsersIDsForIgnore = "{\"list\":[]}"
+
+	err := InsertDBWallPostMonitor(wallPostMonitorParam)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+}
+
+func additionNewAlbumPhotoMonitor(subjectID, sendTo int) {
+	var albumPhotoMonitorParam AlbumPhotoMonitorParam
+
+	albumPhotoMonitorParam.SubjectID = subjectID
+	albumPhotoMonitorParam.NeedMonitoring = 0
+	albumPhotoMonitorParam.SendTo = sendTo
+	albumPhotoMonitorParam.Interval = 60
+	albumPhotoMonitorParam.LastDate = 0
+	albumPhotoMonitorParam.PhotosCount = 5
+
+	err := InsertDBAlbumPhotoMonitor(albumPhotoMonitorParam)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+}
+
+func additionNewVideoMonitor(subjectID, sendTo int) {
+	var videoMonitorParam VideoMonitorParam
+
+	videoMonitorParam.SubjectID = subjectID
+	videoMonitorParam.NeedMonitoring = 0
+	videoMonitorParam.SendTo = sendTo
+	videoMonitorParam.VideoCount = 5
+	videoMonitorParam.LastDate = 0
+	videoMonitorParam.Interval = 60
+
+	err := InsertDBVideoMonitor(videoMonitorParam)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+}
+
+func additionPhotoCommentMonitor(subjectID, sendTo int) {
+	var photoCommentMonitorParam PhotoCommentMonitorParam
+
+	photoCommentMonitorParam.SubjectID = subjectID
+	photoCommentMonitorParam.NeedMonitoring = 0
+	photoCommentMonitorParam.CommentsCount = 5
+	photoCommentMonitorParam.LastDate = 0
+	photoCommentMonitorParam.Interval = 60
+	photoCommentMonitorParam.SendTo = sendTo
+
+	err := InsertDBPhotoCommentMonitor(photoCommentMonitorParam)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+}
+
+func additionVideoCommentMonitor(subjectID, sendTo int) {
+	var videoCommentMonitorParam VideoCommentMonitorParam
+
+	videoCommentMonitorParam.SubjectID = subjectID
+	videoCommentMonitorParam.NeedMonitoring = 0
+	videoCommentMonitorParam.VideosCount = 5
+	videoCommentMonitorParam.Interval = 60
+	videoCommentMonitorParam.CommentsCount = 5
+	videoCommentMonitorParam.SendTo = sendTo
+	videoCommentMonitorParam.LastDate = 0
+
+	err := InsertDBVideoCommentMonitor(videoCommentMonitorParam)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+}
+
+func additionTopicMonitor(subjectID, sendTo int) {
+	var topicMonitorParam TopicMonitorParam
+
+	topicMonitorParam.SubjectID = subjectID
+	topicMonitorParam.NeedMonitoring = 0
+	topicMonitorParam.TopicsCount = 5
+	topicMonitorParam.CommentsCount = 5
+	topicMonitorParam.Interval = 60
+	topicMonitorParam.SendTo = sendTo
+	topicMonitorParam.LastDate = 0
+
+	err := InsertDBTopicMonitor(topicMonitorParam)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
+}
+
+func additionWallPostCommentMonitor(subjectID, sendTo int) {
+	var wallPostCommentMonitorParam WallPostCommentMonitorParam
+
+	wallPostCommentMonitorParam.SubjectID = subjectID
+	wallPostCommentMonitorParam.NeedMonitoring = 0
+	wallPostCommentMonitorParam.PostsCount = 5
+	wallPostCommentMonitorParam.CommentsCount = 5
+	wallPostCommentMonitorParam.MonitoringAll = 1
+	wallPostCommentMonitorParam.UsersIDsForMonitoring = "{\"list\":[]}"
+	wallPostCommentMonitorParam.UsersNamesForMonitoring = "{\"list\":[]}"
+	wallPostCommentMonitorParam.AttachmentsTypesForMonitoring = "{\"list\":[\"photo\", \"video\", \"audio\", \"doc\", \"poll\", \"link\"]}"
+	wallPostCommentMonitorParam.UsersIDsForIgnore = "{\"list\":[]}"
+	wallPostCommentMonitorParam.Interval = 60
+	wallPostCommentMonitorParam.SendTo = sendTo
+	wallPostCommentMonitorParam.Filter = "all"
+	wallPostCommentMonitorParam.LastDate = 0
+	wallPostCommentMonitorParam.KeywordsForMonitoring = "{\"list\":[]}"
+	wallPostCommentMonitorParam.SmallCommentsForMonitoring = "{\"list\":[]}"
+	wallPostCommentMonitorParam.DigitsCountForCardNumberMonitoring = "{\"list\":[\"16\"]}"
+	wallPostCommentMonitorParam.DigitsCountForPhoneNumberMonitoring = "{\"list\":[\"6\",\"11\"]}"
+	wallPostCommentMonitorParam.MonitorByCommunity = 1
+
+	err := InsertDBWallPostCommentMonitor(wallPostCommentMonitorParam)
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
 }
 
 func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {

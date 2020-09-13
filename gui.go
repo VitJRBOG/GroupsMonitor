@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -743,6 +744,10 @@ func showSubjectAdditionWindow() {
 
 	// получаем набор для ввода идентификатора субъекта в базе данных ВК
 	kitSAdditionSubjectID := makeSettingEntryKit("Subject ID", "")
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitSAdditionSubjectID.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitSAdditionSubjectID.Entry)
+	})
 
 	// описываем группу для общих установок субъекта
 	groupSAdditionGeneral := ui.NewGroup("General")
@@ -754,6 +759,10 @@ func showSubjectAdditionWindow() {
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле wall_post_monitor
 	kitSAdditionSendToinWPM := makeSettingEntryKit("Send to", "")
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitSAdditionSendToinWPM.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitSAdditionSendToinWPM.Entry)
+	})
 
 	// получаем набор для выбора токена доступа для метода wall.get в модуле wall_post_monitor
 	kitSAdditionWGinWPM := makeSettingComboboxKit("Access token for \"wall.get\"", accessTokensNames, "")
@@ -780,6 +789,10 @@ func showSubjectAdditionWindow() {
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле album_photo_monitor
 	kitSAdditionSendToinAPM := makeSettingEntryKit("Send to", "")
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitSAdditionSendToinAPM.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitSAdditionSendToinAPM.Entry)
+	})
 
 	// получаем набор для выбора токена доступа для метода photos.get в модуле album_photo_monitor
 	kitSAdditionPGinAPM := makeSettingComboboxKit("Access token for \"photos.get\"", accessTokensNames, "")
@@ -810,6 +823,10 @@ func showSubjectAdditionWindow() {
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле video_monitor
 	kitSAdditionSendToinVM := makeSettingEntryKit("Send to", "")
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitSAdditionSendToinVM.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitSAdditionSendToinVM.Entry)
+	})
 
 	// получаем набор для выбора токена доступа для метода video.get в модуле video_monitor
 	kitSAdditionVGinVM := makeSettingComboboxKit("Access token for \"video.get\"", accessTokensNames, "")
@@ -836,6 +853,10 @@ func showSubjectAdditionWindow() {
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле photo_comment_monitor
 	kitSAdditionSendToinPCM := makeSettingEntryKit("Send to", "")
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitSAdditionSendToinPCM.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitSAdditionSendToinPCM.Entry)
+	})
 
 	// получаем набор для выбора токена доступа для метода photos.getAllComments в модуле photo_comment_monitor
 	kitSAdditionPGACinPCM := makeSettingComboboxKit("Access token for \"photos.getAllComments\"", accessTokensNames, "")
@@ -862,6 +883,10 @@ func showSubjectAdditionWindow() {
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле video_comment_monitor
 	kitSAdditionSendToinVCM := makeSettingEntryKit("Send to", "")
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitSAdditionSendToinVCM.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitSAdditionSendToinVCM.Entry)
+	})
 
 	// получаем набор для выбора токена доступа для метода video.getComments в модуле video_comment_monitor
 	kitSAdditionVGCinVCM := makeSettingComboboxKit("Access token for \"video.getComments\"", accessTokensNames, "")
@@ -892,6 +917,10 @@ func showSubjectAdditionWindow() {
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле topic_monitor
 	kitSAdditionSendToinTM := makeSettingEntryKit("Send to", "")
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitSAdditionSendToinTM.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitSAdditionSendToinTM.Entry)
+	})
 
 	// получаем набор для выбора токена доступа для метода board.getComments в модуле topic_monitor
 	kitSAdditionBGCinTM := makeSettingComboboxKit("Access token for \"board.getComments\"", accessTokensNames, "")
@@ -922,6 +951,10 @@ func showSubjectAdditionWindow() {
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле wall_post_comment_monitor
 	kitSAdditionSendToinWPCM := makeSettingEntryKit("Send to", "")
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitSAdditionSendToinWPCM.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitSAdditionSendToinWPCM.Entry)
+	})
 
 	// получаем набор для выбора токена доступа для метода wall.getComments в модуле wall_post_comment_monitor
 	kitSAdditionWGCsinWPCM := makeSettingComboboxKit("Access token for \"wall.getComments\"", accessTokensNames, "")
@@ -1631,6 +1664,10 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 
 			// получаем набор для идентификатора субъекта мониторинга в базе ВК
 			kitWndSSubjectID := makeSettingEntryKit("Subject ID", strconv.Itoa(subject.SubjectID))
+			// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+			kitWndSSubjectID.Entry.OnChanged(func(*ui.Entry) {
+				numericEntriesHandler(kitWndSSubjectID.Entry)
+			})
 
 			// описываем группу, в которой будут размещены элементы
 			groupWndS := ui.NewGroup("")
@@ -1706,6 +1743,10 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 
 	// получаем набор для количества проверяемых постов
 	kitWndWPSendTo := makeSettingEntryKit("Send to", strconv.Itoa(wallPostMonitorParam.SendTo))
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitWndWPSendTo.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitWndWPSendTo.Entry)
+	})
 
 	// получаем набор для фильтра получаемых для проверки постов
 	listPostsFilters := []string{"all", "others", "owner", "suggests"}
@@ -1802,6 +1843,10 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 
 	// получаем набор для идентификатора получателя сообщений
 	kitWndAPSendTo := makeSettingEntryKit("Send to", strconv.Itoa(albumPhotoMonitorParam.SendTo))
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitWndAPSendTo.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitWndAPSendTo.Entry)
+	})
 
 	// получаем набор для количества проверяемых фото
 	kitWndApPhotosCount := makeSettingSpinboxKit("Photos count", 1, 1000, albumPhotoMonitorParam.PhotosCount)
@@ -1884,6 +1929,10 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 
 	// получаем набор для идентификатора получателя сообщений
 	kitWndVSendTo := makeSettingEntryKit("Send to", strconv.Itoa(videoMonitorParam.SendTo))
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitWndVSendTo.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitWndVSendTo.Entry)
+	})
 
 	// получаем набор для количества проверяемых видео
 	kitWndVVideoCount := makeSettingSpinboxKit("Video count", 1, 1000, videoMonitorParam.VideoCount)
@@ -1966,6 +2015,10 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 
 	// получаем набор для идентификатора получателя сообщений
 	kitWndPCSendTo := makeSettingEntryKit("Send to", strconv.Itoa(photoCommentMonitorParam.SendTo))
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitWndPCSendTo.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitWndPCSendTo.Entry)
+	})
 
 	// получаем набор для количества проверяемых комментариев
 	kitWndPCCommentsCount := makeSettingSpinboxKit("Comments count", 1, 1000, photoCommentMonitorParam.CommentsCount)
@@ -2048,6 +2101,10 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 
 	// получаем набор для идентификатора получателя сообщений
 	kitWndVCSendTo := makeSettingEntryKit("Send to", strconv.Itoa(videoCommentMonitorParam.SendTo))
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitWndVCSendTo.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitWndVCSendTo.Entry)
+	})
 
 	// получаем набор для количества проверяемых видео
 	kitWndVCVideosCount := makeSettingSpinboxKit("Videos count", 1, 200, videoCommentMonitorParam.VideosCount)
@@ -2135,6 +2192,10 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 
 	// получаем набор для идентификатора получателя сообщений
 	kitWndTSendTo := makeSettingEntryKit("Send to", strconv.Itoa(topicMonitorParam.SendTo))
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitWndTSendTo.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitWndTSendTo.Entry)
+	})
 
 	// получаем набор для количества проверяемых топиков обсуждений
 	kitWndTTopicsCount := makeSettingSpinboxKit("Topics count", 1, 100, topicMonitorParam.TopicsCount)
@@ -2222,6 +2283,10 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 
 	// получаем набор для идентификатора получателя сообщений
 	kitWndWPCSendTo := makeSettingEntryKit("Send to", strconv.Itoa(wallPostCommentMonitorParam.SendTo))
+	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
+	kitWndWPCSendTo.Entry.OnChanged(func(*ui.Entry) {
+		numericEntriesHandler(kitWndWPCSendTo.Entry)
+	})
 
 	// получаем набор для количества проверяемых постов
 	kitWndWPCPostsCount := makeSettingSpinboxKit("Posts count", 1, 100, wallPostCommentMonitorParam.PostsCount)
@@ -2558,6 +2623,42 @@ func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsDat
 	boxPrimarySettings.Append(btnSubjectsSettings, false)
 
 	return boxPrimarySettings
+}
+
+func showErrorWindow(err error) {
+	date := UnixTimeStampToDate(int(time.Now().Unix()))
+	windowError := ui.NewWindow("["+date+"]: ERROR!", 400, 200, true)
+	windowError.OnClosing(func(*ui.Window) bool {
+		windowError.Disable()
+		return true
+	})
+	boxWndError := ui.NewVerticalBox()
+	windowError.SetChild(boxWndError)
+	entryTextError := ui.NewEntry()
+	entryTextError.SetReadOnly(true)
+	boxWndError.Append(entryTextError, true)
+	entryTextError.SetText(err.Error())
+	windowError.Show()
+}
+
+func numericEntriesHandler(numericEntry *ui.Entry) {
+	// проверим, есть ли знак минуса в начале строки
+	negativeNumber := false
+	if len(numericEntry.Text()) > 0 {
+		listEntryChars := strings.Split(numericEntry.Text(), "")
+		if listEntryChars[0] == "-" {
+			negativeNumber = true
+		}
+	}
+
+	re := regexp.MustCompile("[0-9]+")
+	correctValue := strings.Join(re.FindAllString(numericEntry.Text(), -1), "")
+
+	if negativeNumber {
+		numericEntry.SetText("-" + correctValue)
+	} else {
+		numericEntry.SetText(correctValue)
+	}
 }
 
 func createThreads() []*Thread {

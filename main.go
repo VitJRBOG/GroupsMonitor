@@ -13,5 +13,9 @@ func main() {
 		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
 	}
 
-	RunGui()
+	err = RunGui()
+	if err != nil {
+		date := UnixTimeStampToDate(int(time.Now().Unix()))
+		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+	}
 }

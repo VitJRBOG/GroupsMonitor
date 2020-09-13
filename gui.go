@@ -12,8 +12,12 @@ import (
 )
 
 // RunGui запускает собранный GUI
-func RunGui() {
-	ui.Main(initGui)
+func RunGui() error {
+	err := ui.Main(initGui)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func initGui() {

@@ -100,48 +100,6 @@ func GetAccessToken(methodName string, subject Subject, monitorID int) (AccessTo
 	return accessToken, nil
 }
 
-// GetNewAccessToken запрашивает у пользователя новый токен из консоли и обновляет значение в БД
-func GetNewAccessToken(sender string, nameAccessToken string) error {
-
-	// запрашиваем все данные по указанному токену
-	accessToken, err := SelectDBAccessTokenByName(nameAccessToken)
-	if err != nil {
-		return err
-	}
-
-	// проверяем существование токена с таким именем в БД
-	if accessToken.ID == 0 {
-		if accessToken.Name == "" {
-			if accessToken.Value == "" {
-				message := fmt.Sprintf(`Error: access token with name "%v" is not exist.`, nameAccessToken)
-				OutputMessage(sender, message)
-				return nil
-			}
-		}
-	}
-
-	// сообщаем пользователю о запуске алгоритма обновления токена
-	message := fmt.Sprintf("Request new access token for %v.", nameAccessToken)
-	OutputMessage(sender, message)
-
-	// запрашиваем у пользователя новый токен
-	accessToken.Value, err = InputAccessToken(nameAccessToken)
-	if err != nil {
-		return err
-	}
-
-	// сохраняем новые данные в БД
-	if err = UpdateDBAccessToken(accessToken); err != nil {
-		return err
-	}
-
-	// сообщаем пользователю об успехе
-	message = fmt.Sprintf("Access token for %v has been successfully updated!", nameAccessToken)
-	OutputMessage(sender, message)
-
-	return nil
-}
-
 // MakeCommunityHyperlink собирает гиперссылку на сообщество
 func MakeCommunityHyperlink(vkCommunity VKCommunity) string {
 	hyperlink := fmt.Sprintf("*%v (%v)", vkCommunity.ScreenName, vkCommunity.Name)

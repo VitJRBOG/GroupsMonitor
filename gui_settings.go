@@ -330,6 +330,54 @@ func makeSubjectsSettingsBox(groupsSettingsData GroupsSettingsData) *ui.Box {
 	return boxSubjectsSettings
 }
 
+// NewSubjectData хранит данные для создаваемого субъекта
+type NewSubjectData struct {
+	ID   int
+	Name string
+}
+
+// NewMonitorData хранит данные для создаваемого монитора
+type NewMonitorData struct {
+	Name      string
+	SubjectID int
+}
+
+// NewMethodData хранит данные для создаваемого метода
+type NewMethodData struct {
+	Name          string
+	SubjectID     int
+	AccessTokenID int
+	MonitorID     int
+}
+
+// ListNewMethodData хранит списки со структурами с данными для создаваемых методов
+type ListNewMethodData struct {
+	WPM  []NewMethodData // wall_post_monitor
+	APM  []NewMethodData // album_photo_monitor
+	VM   []NewMethodData // video_monitor
+	PCM  []NewMethodData // album_photo_comment_monitor
+	VCM  []NewMethodData // video_monitor
+	TM   []NewMethodData // topic_monitor
+	WPCM []NewMethodData // wall_post_comment_monitor
+}
+
+// NewMonitorModuleData хранит данные для создаваемого модуля мониторинга
+type NewMonitorModuleData struct {
+	SubjectID int
+	SendTo    int
+}
+
+// ListNewMonitorModuleData хранит структуры с данными для создаваемых модулей мониторинга
+type ListNewMonitorModuleData struct {
+	WPM  NewMonitorModuleData // wall_post_monitor
+	APM  NewMonitorModuleData // album_photo_monitor
+	VM   NewMonitorModuleData // video_monitor
+	PCM  NewMonitorModuleData // album_photo_comment_monitor
+	VCM  NewMonitorModuleData // video_monitor
+	TM   NewMonitorModuleData // topic_monitor
+	WPCM NewMonitorModuleData // wall_post_comment_monitor
+}
+
 func showSubjectAdditionWindow() {
 	// запрашиваем список токенов доступа из базы данных
 	accessTokens, err := SelectDBAccessTokens()
@@ -631,6 +679,8 @@ func showSubjectAdditionWindow() {
 		// TODO: как-нибудь надо закрывать окно
 	})
 	kitButtonsSAddition.ButtonApply.OnClicked(func(*ui.Button) {
+		var newSubjectData NewSubjectData
+
 		if len(kitSAdditionSubjectID.Entry.Text()) == 0 {
 			warningTitle := "Field \"Subject ID\" must not be empty."
 			showWarningWindow(warningTitle)
@@ -641,19 +691,16 @@ func showSubjectAdditionWindow() {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())
 		}
+		newSubjectData.ID = subjectID
 		if len(kitSAdditionName.Entry.Text()) == 0 {
 			warningTitle := "Field \"Name\" must not be empty."
 			showWarningWindow(warningTitle)
 			return
 		}
-		additionNewSubject(subjectID, kitSAdditionName.Entry.Text())
+		newSubjectData.Name = kitSAdditionName.Entry.Text()
 
-		subjects, err := SelectDBSubjects()
-		if err != nil {
-			ToLogFile(err.Error(), string(debug.Stack()))
-			panic(err.Error())
-		}
-		id := subjects[len(subjects)-1].ID
+		var listNewMethodData ListNewMethodData
+		var listNewMonitorModuleData ListNewMonitorModuleData
 
 		monitorsNames := []string{"wall_post_monitor", "album_photo_monitor", "video_monitor",
 			"photo_comment_monitor", "video_comment_monitor", "topic_monitor", "wall_post_comment_monitor"}
@@ -661,13 +708,6 @@ func showSubjectAdditionWindow() {
 		for _, monitorName := range monitorsNames {
 			switch monitorName {
 			case "wall_post_monitor":
-				additionNewMonitor(monitorName, id)
-
-				monitor, err := SelectDBMonitor(monitorName, id)
-				if err != nil {
-					ToLogFile(err.Error(), string(debug.Stack()))
-					panic(err.Error())
-				}
 
 				if kitSAdditionWGinWPM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
@@ -678,7 +718,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName := accessTokensNames[kitSAdditionWGinWPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "wall.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "wall.get"
+						listNewMethodData.WPM = append(listNewMethodData.WPM, newMethodData)
 					}
 				}
 
@@ -691,7 +734,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionUGinWPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "users.get"
+						listNewMethodData.WPM = append(listNewMethodData.WPM, newMethodData)
 					}
 				}
 
@@ -704,7 +750,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinWPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "groups.getById"
+						listNewMethodData.WPM = append(listNewMethodData.WPM, newMethodData)
 					}
 				}
 
@@ -717,76 +766,124 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionMSinWPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "messages.send"
+						listNewMethodData.WPM = append(listNewMethodData.WPM, newMethodData)
 					}
 				}
 
+				if len(kitSAdditionSendToinWPM.Entry.Text()) == 0 {
+					warningTitle := "Field \"Send to\" must not be empty."
+					showWarningWindow(warningTitle)
+					return
+				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinWPM.Entry.Text())
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
 				}
-				additionNewWallPostMonitor(id, sendTo)
+				var newMonitorModuleData NewMonitorModuleData
+				newMonitorModuleData.SendTo = sendTo
+				listNewMonitorModuleData.WPM = newMonitorModuleData
 
 			case "album_photo_monitor":
-				additionNewMonitor(monitorName, id)
 
-				monitor, err := SelectDBMonitor(monitorName, id)
-				if err != nil {
-					ToLogFile(err.Error(), string(debug.Stack()))
-					panic(err.Error())
+				if kitSAdditionPGinAPM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"photos.get\"\""
+					showWarningWindow(warningTitle)
+					return
 				}
-
 				accessTokenName := accessTokensNames[kitSAdditionPGinAPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "photos.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "photos.get"
+						listNewMethodData.APM = append(listNewMethodData.APM, newMethodData)
 					}
 				}
 
+				if kitSAdditionPGAinAPM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"photos.getAlbums\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionPGAinAPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "photos.getAlbums")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "photos.getAlbums"
+						listNewMethodData.APM = append(listNewMethodData.APM, newMethodData)
 					}
 				}
 
+				if kitSAdditionUGinAPM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"users.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinAPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "users.get"
+						listNewMethodData.APM = append(listNewMethodData.APM, newMethodData)
 					}
 				}
 
+				if kitSAdditionGGBIinAPM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"groups.getById\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinAPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "groups.getById"
+						listNewMethodData.APM = append(listNewMethodData.APM, newMethodData)
 					}
 				}
 
+				if kitSAdditionMSinAPM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"messages.send\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinAPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "messages.send"
+						listNewMethodData.APM = append(listNewMethodData.APM, newMethodData)
 					}
 				}
 
+				if len(kitSAdditionSendToinAPM.Entry.Text()) == 0 {
+					warningTitle := "Field \"Send to\" must not be empty."
+					showWarningWindow(warningTitle)
+					return
+				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinAPM.Entry.Text())
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
 				}
-				additionNewAlbumPhotoMonitor(id, sendTo)
+				var newMonitorModuleData NewMonitorModuleData
+				newMonitorModuleData.SendTo = sendTo
+				listNewMonitorModuleData.APM = newMonitorModuleData
 
 			case "video_monitor":
-				additionNewMonitor(monitorName, id)
-
-				monitor, err := SelectDBMonitor(monitorName, id)
-				if err != nil {
-					ToLogFile(err.Error(), string(debug.Stack()))
-					panic(err.Error())
-				}
 
 				if kitSAdditionVGinVM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
@@ -797,7 +894,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName := accessTokensNames[kitSAdditionVGinVM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "video.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "video.get"
+						listNewMethodData.VM = append(listNewMethodData.VM, newMethodData)
 					}
 				}
 
@@ -810,7 +910,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionUGinVM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "users.get"
+						listNewMethodData.VM = append(listNewMethodData.VM, newMethodData)
 					}
 				}
 
@@ -823,7 +926,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinVM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "groups.getById"
+						listNewMethodData.VM = append(listNewMethodData.VM, newMethodData)
 					}
 				}
 
@@ -836,7 +942,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionMSinVM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "messages.send"
+						listNewMethodData.VM = append(listNewMethodData.VM, newMethodData)
 					}
 				}
 
@@ -850,17 +959,11 @@ func showSubjectAdditionWindow() {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
 				}
-				additionNewVideoMonitor(id, sendTo)
+				var newMonitorModuleData NewMonitorModuleData
+				newMonitorModuleData.SendTo = sendTo
+				listNewMonitorModuleData.VM = newMonitorModuleData
 
 			case "photo_comment_monitor":
-				additionNewMonitor(monitorName, id)
-
-				monitor, err := SelectDBMonitor(monitorName, id)
-				if err != nil {
-					ToLogFile(err.Error(), string(debug.Stack()))
-					panic(err.Error())
-				}
-
 				if kitSAdditionPGACinPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"photos.getAllComments\"\""
@@ -870,7 +973,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName := accessTokensNames[kitSAdditionPGACinPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "photos.getAllComments")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "photos.getAllComments"
+						listNewMethodData.PCM = append(listNewMethodData.PCM, newMethodData)
 					}
 				}
 
@@ -883,7 +989,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionUGinPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "users.get"
+						listNewMethodData.PCM = append(listNewMethodData.PCM, newMethodData)
 					}
 				}
 
@@ -896,11 +1005,14 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "groups.getById"
+						listNewMethodData.PCM = append(listNewMethodData.PCM, newMethodData)
 					}
 				}
 
-				if kitSAdditionGGBIinPCM.Combobox.Selected() == -1 {
+				if kitSAdditionMSinPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"messages.send\"\""
 					showWarningWindow(warningTitle)
@@ -909,7 +1021,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionMSinPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "messages.send"
+						listNewMethodData.PCM = append(listNewMethodData.PCM, newMethodData)
 					}
 				}
 
@@ -923,17 +1038,11 @@ func showSubjectAdditionWindow() {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
 				}
-				additionPhotoCommentMonitor(id, sendTo)
+				var newMonitorModuleData NewMonitorModuleData
+				newMonitorModuleData.SendTo = sendTo
+				listNewMonitorModuleData.PCM = newMonitorModuleData
 
 			case "video_comment_monitor":
-				additionNewMonitor(monitorName, id)
-
-				monitor, err := SelectDBMonitor(monitorName, id)
-				if err != nil {
-					ToLogFile(err.Error(), string(debug.Stack()))
-					panic(err.Error())
-				}
-
 				if kitSAdditionVGCinVCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"video.getComments\"\""
@@ -943,7 +1052,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName := accessTokensNames[kitSAdditionVGCinVCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "video.getComments")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "video.getComments"
+						listNewMethodData.VCM = append(listNewMethodData.VCM, newMethodData)
 					}
 				}
 
@@ -956,7 +1068,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionUGinVCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "users.get"
+						listNewMethodData.VCM = append(listNewMethodData.VCM, newMethodData)
 					}
 				}
 
@@ -969,7 +1084,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinVCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "groups.getById"
+						listNewMethodData.VCM = append(listNewMethodData.VCM, newMethodData)
 					}
 				}
 
@@ -982,7 +1100,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionVGinVCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "video.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "video.get"
+						listNewMethodData.VCM = append(listNewMethodData.VCM, newMethodData)
 					}
 				}
 
@@ -995,7 +1116,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionMSinVCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "messages.send"
+						listNewMethodData.VCM = append(listNewMethodData.VCM, newMethodData)
 					}
 				}
 
@@ -1009,17 +1133,11 @@ func showSubjectAdditionWindow() {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
 				}
-				additionVideoCommentMonitor(id, sendTo)
+				var newMonitorModuleData NewMonitorModuleData
+				newMonitorModuleData.SendTo = sendTo
+				listNewMonitorModuleData.VCM = newMonitorModuleData
 
 			case "topic_monitor":
-				additionNewMonitor(monitorName, id)
-
-				monitor, err := SelectDBMonitor(monitorName, id)
-				if err != nil {
-					ToLogFile(err.Error(), string(debug.Stack()))
-					panic(err.Error())
-				}
-
 				if kitSAdditionBGCinTM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"board.getComments\"\""
@@ -1029,7 +1147,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName := accessTokensNames[kitSAdditionBGCinTM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "board.getComments")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "board.getComments"
+						listNewMethodData.TM = append(listNewMethodData.TM, newMethodData)
 					}
 				}
 
@@ -1042,7 +1163,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionBGTinTM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "board.getTopics")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "board.getTopics"
+						listNewMethodData.TM = append(listNewMethodData.TM, newMethodData)
 					}
 				}
 
@@ -1055,7 +1179,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionUGinTM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "users.get"
+						listNewMethodData.TM = append(listNewMethodData.TM, newMethodData)
 					}
 				}
 
@@ -1068,7 +1195,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinTM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "groups.getById"
+						listNewMethodData.TM = append(listNewMethodData.TM, newMethodData)
 					}
 				}
 
@@ -1081,7 +1211,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionMSinTM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "messages.send"
+						listNewMethodData.TM = append(listNewMethodData.TM, newMethodData)
 					}
 				}
 
@@ -1095,17 +1228,11 @@ func showSubjectAdditionWindow() {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
 				}
-				additionTopicMonitor(id, sendTo)
+				var newMonitorModuleData NewMonitorModuleData
+				newMonitorModuleData.SendTo = sendTo
+				listNewMonitorModuleData.TM = newMonitorModuleData
 
 			case "wall_post_comment_monitor":
-				additionNewMonitor(monitorName, id)
-
-				monitor, err := SelectDBMonitor(monitorName, id)
-				if err != nil {
-					ToLogFile(err.Error(), string(debug.Stack()))
-					panic(err.Error())
-				}
-
 				if kitSAdditionWGCsinWPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"wall.getComments\"\""
@@ -1115,7 +1242,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName := accessTokensNames[kitSAdditionWGCsinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "wall.getComments")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "wall.getComments"
+						listNewMethodData.WPCM = append(listNewMethodData.WPCM, newMethodData)
 					}
 				}
 
@@ -1128,7 +1258,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionUGinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "users.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "users.get"
+						listNewMethodData.WPCM = append(listNewMethodData.WPCM, newMethodData)
 					}
 				}
 
@@ -1141,7 +1274,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "groups.getById")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "groups.getById"
+						listNewMethodData.WPCM = append(listNewMethodData.WPCM, newMethodData)
 					}
 				}
 
@@ -1154,7 +1290,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionWGinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "wall.get")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "wall.get"
+						listNewMethodData.WPCM = append(listNewMethodData.WPCM, newMethodData)
 					}
 				}
 
@@ -1167,7 +1306,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionWGCinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "wall.getComment")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "wall.getComment"
+						listNewMethodData.WPCM = append(listNewMethodData.WPCM, newMethodData)
 					}
 				}
 
@@ -1180,7 +1322,10 @@ func showSubjectAdditionWindow() {
 				accessTokenName = accessTokensNames[kitSAdditionMSinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
-						additionNewMethod(id, monitor.ID, accessToken.ID, "messages.send")
+						var newMethodData NewMethodData
+						newMethodData.AccessTokenID = accessToken.ID
+						newMethodData.Name = "messages.send"
+						listNewMethodData.WPCM = append(listNewMethodData.WPCM, newMethodData)
 					}
 				}
 
@@ -1194,7 +1339,148 @@ func showSubjectAdditionWindow() {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
 				}
-				additionWallPostCommentMonitor(id, sendTo)
+				var newMonitorModuleData NewMonitorModuleData
+				newMonitorModuleData.SendTo = sendTo
+				listNewMonitorModuleData.WPCM = newMonitorModuleData
+			}
+		}
+
+		additionNewSubject(newSubjectData)
+
+		subjects, err := SelectDBSubjects()
+		if err != nil {
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
+		}
+		id := subjects[len(subjects)-1].ID
+
+		for _, monitorName := range monitorsNames {
+			switch monitorName {
+			case "wall_post_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				for i := 0; i < len(listNewMethodData.WPM); i++ {
+					listNewMethodData.WPM[i].SubjectID = id
+					listNewMethodData.WPM[i].MonitorID = monitor.ID
+					additionNewMethod(listNewMethodData.WPM[i])
+				}
+
+				listNewMonitorModuleData.WPM.SubjectID = id
+				additionNewWallPostMonitor(listNewMonitorModuleData.WPM)
+
+			case "album_photo_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				for i := 0; i < len(listNewMethodData.APM); i++ {
+					listNewMethodData.APM[i].SubjectID = id
+					listNewMethodData.APM[i].MonitorID = monitor.ID
+					additionNewMethod(listNewMethodData.APM[i])
+				}
+
+				listNewMonitorModuleData.APM.SubjectID = id
+				additionNewAlbumPhotoMonitor(listNewMonitorModuleData.APM)
+
+			case "video_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				for i := 0; i < len(listNewMethodData.VM); i++ {
+					listNewMethodData.VM[i].SubjectID = id
+					listNewMethodData.VM[i].MonitorID = monitor.ID
+					additionNewMethod(listNewMethodData.VM[i])
+				}
+
+				listNewMonitorModuleData.VM.SubjectID = id
+				additionNewVideoMonitor(listNewMonitorModuleData.VM)
+
+			case "photo_comment_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				for i := 0; i < len(listNewMethodData.PCM); i++ {
+					listNewMethodData.PCM[i].SubjectID = id
+					listNewMethodData.PCM[i].MonitorID = monitor.ID
+					additionNewMethod(listNewMethodData.PCM[i])
+				}
+
+				listNewMonitorModuleData.PCM.SubjectID = id
+				additionPhotoCommentMonitor(listNewMonitorModuleData.PCM)
+
+			case "video_comment_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				for i := 0; i < len(listNewMethodData.VCM); i++ {
+					listNewMethodData.VCM[i].SubjectID = id
+					listNewMethodData.VCM[i].MonitorID = monitor.ID
+					additionNewMethod(listNewMethodData.VCM[i])
+				}
+
+				listNewMonitorModuleData.VCM.SubjectID = id
+				additionVideoCommentMonitor(listNewMonitorModuleData.VCM)
+
+			case "topic_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				for i := 0; i < len(listNewMethodData.TM); i++ {
+					listNewMethodData.TM[i].SubjectID = id
+					listNewMethodData.TM[i].MonitorID = monitor.ID
+					additionNewMethod(listNewMethodData.TM[i])
+				}
+
+				listNewMonitorModuleData.TM.SubjectID = id
+				additionTopicMonitor(listNewMonitorModuleData.TM)
+
+			case "wall_post_comment_monitor":
+				additionNewMonitor(monitorName, id)
+
+				monitor, err := SelectDBMonitor(monitorName, id)
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				for i := 0; i < len(listNewMethodData.WPCM); i++ {
+					listNewMethodData.WPCM[i].SubjectID = id
+					listNewMethodData.WPCM[i].MonitorID = monitor.ID
+					additionNewMethod(listNewMethodData.WPCM[i])
+				}
+
+				listNewMonitorModuleData.WPCM.SubjectID = id
+				additionWallPostCommentMonitor(listNewMonitorModuleData.WPCM)
 			}
 		}
 
@@ -1210,11 +1496,11 @@ func showSubjectAdditionWindow() {
 	kitWindowSubjectAddition.Window.Show()
 }
 
-func additionNewSubject(subjectID int, subjectName string) {
+func additionNewSubject(newSubjectData NewSubjectData) {
 	var subject Subject
 
-	subject.Name = subjectName
-	subject.SubjectID = subjectID
+	subject.Name = newSubjectData.Name
+	subject.SubjectID = newSubjectData.ID
 	subject.BackupWikipage = "-0_0" // этот параметр нигде не используется
 	subject.LastBackup = 0          // этот тоже
 
@@ -1238,13 +1524,13 @@ func additionNewMonitor(monitorName string, subjectID int) {
 	}
 }
 
-func additionNewMethod(subjectID, monitorID, accessTokenID int, methodName string) {
+func additionNewMethod(newMethodData NewMethodData) {
 	var method Method
 
-	method.Name = methodName
-	method.SubjectID = subjectID
-	method.AccessTokenID = accessTokenID
-	method.MonitorID = monitorID
+	method.Name = newMethodData.Name
+	method.SubjectID = newMethodData.SubjectID
+	method.AccessTokenID = newMethodData.AccessTokenID
+	method.MonitorID = newMethodData.MonitorID
 
 	err := InsertDBMethod(method)
 	if err != nil {
@@ -1253,13 +1539,13 @@ func additionNewMethod(subjectID, monitorID, accessTokenID int, methodName strin
 	}
 }
 
-func additionNewWallPostMonitor(subjectID, sendTo int) {
+func additionNewWallPostMonitor(newMonitorModuleData NewMonitorModuleData) {
 	var wallPostMonitorParam WallPostMonitorParam
 
-	wallPostMonitorParam.SubjectID = subjectID
+	wallPostMonitorParam.SubjectID = newMonitorModuleData.SubjectID
 	wallPostMonitorParam.NeedMonitoring = 0
 	wallPostMonitorParam.Interval = 60
-	wallPostMonitorParam.SendTo = sendTo
+	wallPostMonitorParam.SendTo = newMonitorModuleData.SendTo
 	wallPostMonitorParam.Filter = "all"
 	wallPostMonitorParam.LastDate = 0
 	wallPostMonitorParam.PostsCount = 5
@@ -1273,12 +1559,12 @@ func additionNewWallPostMonitor(subjectID, sendTo int) {
 	}
 }
 
-func additionNewAlbumPhotoMonitor(subjectID, sendTo int) {
+func additionNewAlbumPhotoMonitor(newMonitorModuleData NewMonitorModuleData) {
 	var albumPhotoMonitorParam AlbumPhotoMonitorParam
 
-	albumPhotoMonitorParam.SubjectID = subjectID
+	albumPhotoMonitorParam.SubjectID = newMonitorModuleData.SubjectID
 	albumPhotoMonitorParam.NeedMonitoring = 0
-	albumPhotoMonitorParam.SendTo = sendTo
+	albumPhotoMonitorParam.SendTo = newMonitorModuleData.SendTo
 	albumPhotoMonitorParam.Interval = 60
 	albumPhotoMonitorParam.LastDate = 0
 	albumPhotoMonitorParam.PhotosCount = 5
@@ -1290,12 +1576,12 @@ func additionNewAlbumPhotoMonitor(subjectID, sendTo int) {
 	}
 }
 
-func additionNewVideoMonitor(subjectID, sendTo int) {
+func additionNewVideoMonitor(newMonitorModuleData NewMonitorModuleData) {
 	var videoMonitorParam VideoMonitorParam
 
-	videoMonitorParam.SubjectID = subjectID
+	videoMonitorParam.SubjectID = newMonitorModuleData.SubjectID
 	videoMonitorParam.NeedMonitoring = 0
-	videoMonitorParam.SendTo = sendTo
+	videoMonitorParam.SendTo = newMonitorModuleData.SendTo
 	videoMonitorParam.VideoCount = 5
 	videoMonitorParam.LastDate = 0
 	videoMonitorParam.Interval = 60
@@ -1307,15 +1593,15 @@ func additionNewVideoMonitor(subjectID, sendTo int) {
 	}
 }
 
-func additionPhotoCommentMonitor(subjectID, sendTo int) {
+func additionPhotoCommentMonitor(newMonitorModuleData NewMonitorModuleData) {
 	var photoCommentMonitorParam PhotoCommentMonitorParam
 
-	photoCommentMonitorParam.SubjectID = subjectID
+	photoCommentMonitorParam.SubjectID = newMonitorModuleData.SubjectID
 	photoCommentMonitorParam.NeedMonitoring = 0
 	photoCommentMonitorParam.CommentsCount = 5
 	photoCommentMonitorParam.LastDate = 0
 	photoCommentMonitorParam.Interval = 60
-	photoCommentMonitorParam.SendTo = sendTo
+	photoCommentMonitorParam.SendTo = newMonitorModuleData.SendTo
 
 	err := InsertDBPhotoCommentMonitor(photoCommentMonitorParam)
 	if err != nil {
@@ -1324,15 +1610,15 @@ func additionPhotoCommentMonitor(subjectID, sendTo int) {
 	}
 }
 
-func additionVideoCommentMonitor(subjectID, sendTo int) {
+func additionVideoCommentMonitor(newMonitorModuleData NewMonitorModuleData) {
 	var videoCommentMonitorParam VideoCommentMonitorParam
 
-	videoCommentMonitorParam.SubjectID = subjectID
+	videoCommentMonitorParam.SubjectID = newMonitorModuleData.SubjectID
 	videoCommentMonitorParam.NeedMonitoring = 0
 	videoCommentMonitorParam.VideosCount = 5
 	videoCommentMonitorParam.Interval = 60
 	videoCommentMonitorParam.CommentsCount = 5
-	videoCommentMonitorParam.SendTo = sendTo
+	videoCommentMonitorParam.SendTo = newMonitorModuleData.SendTo
 	videoCommentMonitorParam.LastDate = 0
 
 	err := InsertDBVideoCommentMonitor(videoCommentMonitorParam)
@@ -1342,15 +1628,15 @@ func additionVideoCommentMonitor(subjectID, sendTo int) {
 	}
 }
 
-func additionTopicMonitor(subjectID, sendTo int) {
+func additionTopicMonitor(newMonitorModuleData NewMonitorModuleData) {
 	var topicMonitorParam TopicMonitorParam
 
-	topicMonitorParam.SubjectID = subjectID
+	topicMonitorParam.SubjectID = newMonitorModuleData.SubjectID
 	topicMonitorParam.NeedMonitoring = 0
 	topicMonitorParam.TopicsCount = 5
 	topicMonitorParam.CommentsCount = 5
 	topicMonitorParam.Interval = 60
-	topicMonitorParam.SendTo = sendTo
+	topicMonitorParam.SendTo = newMonitorModuleData.SendTo
 	topicMonitorParam.LastDate = 0
 
 	err := InsertDBTopicMonitor(topicMonitorParam)
@@ -1360,10 +1646,10 @@ func additionTopicMonitor(subjectID, sendTo int) {
 	}
 }
 
-func additionWallPostCommentMonitor(subjectID, sendTo int) {
+func additionWallPostCommentMonitor(newMonitorModuleData NewMonitorModuleData) {
 	var wallPostCommentMonitorParam WallPostCommentMonitorParam
 
-	wallPostCommentMonitorParam.SubjectID = subjectID
+	wallPostCommentMonitorParam.SubjectID = newMonitorModuleData.SubjectID
 	wallPostCommentMonitorParam.NeedMonitoring = 0
 	wallPostCommentMonitorParam.PostsCount = 5
 	wallPostCommentMonitorParam.CommentsCount = 5
@@ -1373,7 +1659,7 @@ func additionWallPostCommentMonitor(subjectID, sendTo int) {
 	wallPostCommentMonitorParam.AttachmentsTypesForMonitoring = "{\"list\":[\"photo\", \"video\", \"audio\", \"doc\", \"poll\", \"link\"]}"
 	wallPostCommentMonitorParam.UsersIDsForIgnore = "{\"list\":[]}"
 	wallPostCommentMonitorParam.Interval = 60
-	wallPostCommentMonitorParam.SendTo = sendTo
+	wallPostCommentMonitorParam.SendTo = newMonitorModuleData.SendTo
 	wallPostCommentMonitorParam.Filter = "all"
 	wallPostCommentMonitorParam.LastDate = 0
 	wallPostCommentMonitorParam.KeywordsForMonitoring = "{\"list\":[]}"

@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"regexp"
+	"runtime/debug"
 	"strings"
-	"time"
 
 	"github.com/andlabs/ui"
 	_ "github.com/andlabs/ui/winmanifest"
@@ -240,8 +239,8 @@ func makeSettingEntryListKit(labelTitle, jsonDump string) EntryListKit {
 	entryListKit.Entry = ui.NewEntry()
 	structFromDump, err := MakeParamList(jsonDump)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 	if len(structFromDump.List) > 0 {
 		var list string
@@ -425,8 +424,8 @@ func createThreads() []*Thread {
 	// запускаем функцию создания потоков с модулями проверки
 	threads, err := MakeThreads()
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	return threads

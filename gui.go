@@ -353,20 +353,52 @@ func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsDat
 	return boxPrimarySettings
 }
 
-func showErrorWindow(err error) {
-	date := UnixTimeStampToDate(int(time.Now().Unix()))
-	windowError := ui.NewWindow("["+date+"]: ERROR!", 400, 200, true)
-	windowError.OnClosing(func(*ui.Window) bool {
-		windowError.Disable()
+func showWarningWindow(warningTitle string) {
+	// описываем окно с информацией об ошибке
+	windowWarning := ui.NewWindow("WARNING!", 100, 100, true)
+	windowWarning.SetMargined(true)
+	windowWarning.OnClosing(func(*ui.Window) bool {
+		windowWarning.Disable()
 		return true
 	})
-	boxWndError := ui.NewVerticalBox()
-	windowError.SetChild(boxWndError)
-	entryTextError := ui.NewEntry()
-	entryTextError.SetReadOnly(true)
-	boxWndError.Append(entryTextError, true)
-	entryTextError.SetText(err.Error())
-	windowError.Show()
+
+	// описываем основную коробку
+	boxWndWarning := ui.NewVerticalBox()
+	boxWndWarning.SetPadded(true)
+	windowWarning.SetChild(boxWndWarning)
+
+	// описываем коробку для информации
+	boxInfo := ui.NewVerticalBox()
+
+	// описываем заголовок ошибки
+	labelTitleWarning := ui.NewLabel(warningTitle)
+	boxWndWarning.Append(labelTitleWarning, false)
+
+	boxInfo.Append(labelTitleWarning, true)
+
+	// описываем коробку для кнопки
+	boxButton := ui.NewHorizontalBox()
+
+	// описываем кнопку
+	buttonOK := ui.NewButton("OK")
+	buttonOK.OnClicked(func(*ui.Button) {
+		windowWarning.Hide()
+	})
+
+	// описываем коробку для выравнивания кнопки и коробку с кнопкой
+	boxLeftPartButtonBox := ui.NewVerticalBox()
+	boxRightPartButtonBox := ui.NewVerticalBox()
+	boxRightPartButtonBox.Append(buttonOK, false)
+
+	// добавляем их на коробку для кнопки
+	boxButton.Append(boxLeftPartButtonBox, true)
+	boxButton.Append(boxRightPartButtonBox, false)
+
+	// добавляем все эти компоненты на главную коробку
+	boxWndWarning.Append(boxInfo, false)
+	boxWndWarning.Append(boxButton, false)
+
+	windowWarning.Show()
 }
 
 func numericEntriesHandler(numericEntry *ui.Entry) {

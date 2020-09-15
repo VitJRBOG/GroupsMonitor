@@ -2237,7 +2237,7 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 		updatedWallPostCommentMonitorParam.AttachmentsTypesForMonitoring = wallPostCommentMonitorParam.AttachmentsTypesForMonitoring
 		jsonDump = fmt.Sprintf("{\"list\":[%v]}", kitWndWPCUsersIdsForIgnore.Entry.Text())
 		updatedWallPostCommentMonitorParam.UsersIDsForIgnore = jsonDump
-		updatedWallPostCommentMonitorParam.PostsCount = kitWndWPCInterval.Spinbox.Value()
+		updatedWallPostCommentMonitorParam.Interval = kitWndWPCInterval.Spinbox.Value()
 		if len(kitWndWPCSendTo.Entry.Text()) == 0 {
 			warningTitle := "Field \"Send to\" must not be empty."
 			showWarningWindow(warningTitle)

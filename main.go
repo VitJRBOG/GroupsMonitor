@@ -1,21 +1,17 @@
 package main
 
-import (
-	"fmt"
-	"log"
-	"time"
-)
+import "runtime/debug"
 
 func main() {
 	err := CheckFiles()
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	err = RunGui()
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }

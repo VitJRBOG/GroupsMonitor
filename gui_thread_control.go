@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -110,8 +109,8 @@ func getSubjectsNames() []string {
 	// запрашиваем список субъектов из базы данных
 	subjects, err := SelectDBSubjects()
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 	// и добавляем их названия в список
 	for _, subject := range subjects {

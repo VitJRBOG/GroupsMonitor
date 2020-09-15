@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -70,8 +71,8 @@ func makeAccessTokensSettingsBox() *ui.Box {
 	// запрашиваем список токенов доступа из базы данных
 	accessTokens, err := SelectDBAccessTokens()
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	// описываем коробку для установок токенов доступа
@@ -164,8 +165,8 @@ func showAccessTokenAdditionWindow() {
 
 		err := InsertDBAccessToken(accessToken)
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 
 		// TODO: как-нибудь надо закрывать окно
@@ -184,8 +185,8 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 	// запрашиваем список токенов доступа из базы данных
 	accessTokens, err := SelectDBAccessTokens()
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	// получаем набор для окна отображения установок токена доступа
@@ -232,8 +233,8 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 
 				err := UpdateDBAccessToken(updatedAccessToken)
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 
 				// TODO: как-нибудь надо закрывать окно
@@ -258,8 +259,8 @@ func makeSubjectsSettingsBox(groupsSettingsData GroupsSettingsData) *ui.Box {
 	// запрашиваем список субъектов из базы данных
 	subjects, err := SelectDBSubjects()
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	boxSUpper := ui.NewVerticalBox()
@@ -333,8 +334,8 @@ func showSubjectAdditionWindow() {
 	// запрашиваем список токенов доступа из базы данных
 	accessTokens, err := SelectDBAccessTokens()
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 	// формируем список с названиями токенов доступа
 	var accessTokensNames []string
@@ -630,17 +631,22 @@ func showSubjectAdditionWindow() {
 		// TODO: как-нибудь надо закрывать окно
 	})
 	kitButtonsSAddition.ButtonApply.OnClicked(func(*ui.Button) {
+		if len(kitSAdditionSubjectID.Entry.Text()) == 0 {
+			warningTitle := "Field \"Subject ID\" must not be empty."
+			showWarningWindow(warningTitle)
+			return
+		}
 		subjectID, err := strconv.Atoi(kitSAdditionSubjectID.Entry.Text())
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 		additionNewSubject(subjectID, kitSAdditionName.Entry.Text())
 
 		subjects, err := SelectDBSubjects()
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 		id := subjects[len(subjects)-1].ID
 
@@ -654,10 +660,16 @@ func showSubjectAdditionWindow() {
 
 				monitor, err := SelectDBMonitor(monitorName, id)
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 
+				if kitSAdditionWGinWPM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"wall.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName := accessTokensNames[kitSAdditionWGinWPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -665,6 +677,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionUGinWPM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"Users.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinWPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -672,6 +690,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionGGBIinWPM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"Groups.getById\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinWPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -679,6 +703,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionMSinWPM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"messages.send\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinWPM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -688,8 +718,8 @@ func showSubjectAdditionWindow() {
 
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinWPM.Entry.Text())
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 				additionNewWallPostMonitor(id, sendTo)
 
@@ -698,8 +728,8 @@ func showSubjectAdditionWindow() {
 
 				monitor, err := SelectDBMonitor(monitorName, id)
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 
 				accessTokenName := accessTokensNames[kitSAdditionPGinAPM.Combobox.Selected()]
@@ -739,8 +769,8 @@ func showSubjectAdditionWindow() {
 
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinAPM.Entry.Text())
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 				additionNewAlbumPhotoMonitor(id, sendTo)
 
@@ -749,10 +779,16 @@ func showSubjectAdditionWindow() {
 
 				monitor, err := SelectDBMonitor(monitorName, id)
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 
+				if kitSAdditionVGinVM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"video.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName := accessTokensNames[kitSAdditionVGinVM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -760,6 +796,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionUGinVM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"users.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinVM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -767,6 +809,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionGGBIinVM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"groups.getById\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinVM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -774,6 +822,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionMSinVM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"messages.send\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinVM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -781,10 +835,15 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if len(kitSAdditionSendToinVM.Entry.Text()) == 0 {
+					warningTitle := "Field \"Send to\" must not be empty."
+					showWarningWindow(warningTitle)
+					return
+				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinVM.Entry.Text())
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 				additionNewVideoMonitor(id, sendTo)
 
@@ -793,10 +852,16 @@ func showSubjectAdditionWindow() {
 
 				monitor, err := SelectDBMonitor(monitorName, id)
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 
+				if kitSAdditionPGACinPCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"photos.getAllComments\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName := accessTokensNames[kitSAdditionPGACinPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -804,6 +869,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionUGinPCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"users.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -811,6 +882,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionGGBIinPCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"groups.getById\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -818,6 +895,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionGGBIinPCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"messages.send\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -825,10 +908,15 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if len(kitSAdditionSendToinPCM.Entry.Text()) == 0 {
+					warningTitle := "Field \"Send to\" must not be empty."
+					showWarningWindow(warningTitle)
+					return
+				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinPCM.Entry.Text())
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 				additionPhotoCommentMonitor(id, sendTo)
 
@@ -837,10 +925,16 @@ func showSubjectAdditionWindow() {
 
 				monitor, err := SelectDBMonitor(monitorName, id)
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 
+				if kitSAdditionVGCinVCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"video.getComments\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName := accessTokensNames[kitSAdditionVGCinVCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -848,6 +942,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionUGinVCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"users.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinVCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -855,6 +955,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionGGBIinVCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"groups.getById\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinVCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -862,6 +968,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionVGinVCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"video.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionVGinVCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -869,6 +981,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionMSinVCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"messages.send\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinVCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -876,10 +994,15 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if len(kitSAdditionSendToinVCM.Entry.Text()) == 0 {
+					warningTitle := "Field \"Send to\" must not be empty."
+					showWarningWindow(warningTitle)
+					return
+				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinVCM.Entry.Text())
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 				additionVideoCommentMonitor(id, sendTo)
 
@@ -888,10 +1011,16 @@ func showSubjectAdditionWindow() {
 
 				monitor, err := SelectDBMonitor(monitorName, id)
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 
+				if kitSAdditionBGCinTM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"board.getComments\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName := accessTokensNames[kitSAdditionBGCinTM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -899,6 +1028,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionBGTinTM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"board.getTopicsgetComments\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionBGTinTM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -906,6 +1041,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionUGinTM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"users.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinTM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -913,6 +1054,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionGGBIinTM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"groups.getById\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinTM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -920,6 +1067,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionMSinTM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"messages.send\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinTM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -927,10 +1080,15 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if len(kitSAdditionSendToinTM.Entry.Text()) == 0 {
+					warningTitle := "Field \"Send to\" must not be empty."
+					showWarningWindow(warningTitle)
+					return
+				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinTM.Entry.Text())
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 				additionTopicMonitor(id, sendTo)
 
@@ -939,10 +1097,16 @@ func showSubjectAdditionWindow() {
 
 				monitor, err := SelectDBMonitor(monitorName, id)
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 
+				if kitSAdditionWGCsinWPCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"wall.getComments\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName := accessTokensNames[kitSAdditionWGCsinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -950,6 +1114,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionUGinWPCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"users.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -957,6 +1127,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionGGBIinWPCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"groups.getById\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -964,6 +1140,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionWGinWPCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"wall.get\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionWGinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -971,6 +1153,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if kitSAdditionWGCinWPCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"wall.getComment\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionWGCinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -978,6 +1166,7 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				// TODO: обработка отсутствия выбора элемента
 				accessTokenName = accessTokensNames[kitSAdditionMSinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {
@@ -985,10 +1174,15 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
+				if len(kitSAdditionSendToinWPCM.Entry.Text()) == 0 {
+					warningTitle := "Field \"Send to\" must not be empty."
+					showWarningWindow(warningTitle)
+					return
+				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinWPCM.Entry.Text())
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 				additionWallPostCommentMonitor(id, sendTo)
 			}
@@ -1016,8 +1210,8 @@ func additionNewSubject(subjectID int, subjectName string) {
 
 	err := InsertDBSubject(subject)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }
 
@@ -1029,8 +1223,8 @@ func additionNewMonitor(monitorName string, subjectID int) {
 
 	err := InsertDBMonitor(monitor)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }
 
@@ -1044,8 +1238,8 @@ func additionNewMethod(subjectID, monitorID, accessTokenID int, methodName strin
 
 	err := InsertDBMethod(method)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }
 
@@ -1064,8 +1258,8 @@ func additionNewWallPostMonitor(subjectID, sendTo int) {
 
 	err := InsertDBWallPostMonitor(wallPostMonitorParam)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }
 
@@ -1081,8 +1275,8 @@ func additionNewAlbumPhotoMonitor(subjectID, sendTo int) {
 
 	err := InsertDBAlbumPhotoMonitor(albumPhotoMonitorParam)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }
 
@@ -1098,8 +1292,8 @@ func additionNewVideoMonitor(subjectID, sendTo int) {
 
 	err := InsertDBVideoMonitor(videoMonitorParam)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }
 
@@ -1115,8 +1309,8 @@ func additionPhotoCommentMonitor(subjectID, sendTo int) {
 
 	err := InsertDBPhotoCommentMonitor(photoCommentMonitorParam)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }
 
@@ -1133,8 +1327,8 @@ func additionVideoCommentMonitor(subjectID, sendTo int) {
 
 	err := InsertDBVideoCommentMonitor(videoCommentMonitorParam)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }
 
@@ -1151,8 +1345,8 @@ func additionTopicMonitor(subjectID, sendTo int) {
 
 	err := InsertDBTopicMonitor(topicMonitorParam)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }
 
@@ -1180,8 +1374,8 @@ func additionWallPostCommentMonitor(subjectID, sendTo int) {
 
 	err := InsertDBWallPostCommentMonitor(wallPostCommentMonitorParam)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 }
 
@@ -1257,8 +1451,8 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 	// запрашиваем список субъектов из базы данных
 	subjects, err := SelectDBSubjects()
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	// получаем набор для отображения общих установок субъекта мониторинга
@@ -1305,10 +1499,20 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 			kitButtonsS.ButtonApply.OnClicked(func(*ui.Button) {
 				var updatedSubject Subject
 				updatedSubject.ID = subject.ID
+				if len(kitWndSSubjectID.Entry.Text()) == 0 {
+					warningTitle := "Field \"Subject ID\" must not be empty."
+					showWarningWindow(warningTitle)
+					return
+				}
 				updatedSubject.SubjectID, err = strconv.Atoi(kitWndSSubjectID.Entry.Text())
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+				if len(kitWndSName.Entry.Text()) == 0 {
+					warningTitle := "Field \"Name\" must not be empty."
+					showWarningWindow(warningTitle)
+					return
 				}
 				updatedSubject.Name = kitWndSName.Entry.Text()
 				updatedSubject.BackupWikipage = subject.BackupWikipage
@@ -1316,8 +1520,8 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 
 				err := UpdateDBSubject(updatedSubject)
 				if err != nil {
-					date := UnixTimeStampToDate(int(time.Now().Unix()))
-					log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
 				}
 
 				// TODO: как-нибудь надо закрывать окно
@@ -1340,8 +1544,8 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 	// запрашиваем параметры мониторинга из базы данных
 	wallPostMonitorParam, err := SelectDBWallPostMonitorParam(IDSubject)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	// получаем набор для отображения установок модуля мониторинга постов на стене
@@ -1405,23 +1609,34 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 			updatedWallPostMonitorParam.NeedMonitoring = 0
 		}
 		updatedWallPostMonitorParam.Interval = kitWndWPInterval.Spinbox.Value()
+		if len(kitWndWPSendTo.Entry.Text()) == 0 {
+			warningTitle := "Field \"Send to\" must not be empty."
+			showWarningWindow(warningTitle)
+			return
+		}
 		updatedWallPostMonitorParam.SendTo, err = strconv.Atoi(kitWndWPSendTo.Entry.Text())
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 		listPostsFilters := []string{"all", "others", "owner", "suggests"}
+		if kitWndWPFilter.Combobox.Selected() == -1 {
+			warningTitle := "You must select an item in the combobox \"Filter\""
+			showWarningWindow(warningTitle)
+			return
+		}
 		updatedWallPostMonitorParam.Filter = listPostsFilters[kitWndWPFilter.Combobox.Selected()]
 		updatedWallPostMonitorParam.LastDate = wallPostMonitorParam.LastDate
 		updatedWallPostMonitorParam.PostsCount = kitWndWPPostsCount.Spinbox.Value()
+		// TODO: проверка соответствия оформления требованиям json
 		jsonDump := fmt.Sprintf("{\"list\":[%v]}", kitWndWPKeywordsForMonitoring.Entry.Text())
 		updatedWallPostMonitorParam.KeywordsForMonitoring = jsonDump
 		updatedWallPostMonitorParam.UsersIDsForIgnore = wallPostMonitorParam.UsersIDsForIgnore
 
 		err = UpdateDBWallPostMonitor(updatedWallPostMonitorParam)
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 
 		// TODO: как-нибудь надо закрывать окно
@@ -1440,8 +1655,8 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 	// запрашиваем параметры мониторинга из базы данных
 	albumPhotoMonitorParam, err := SelectDBAlbumPhotoMonitorParam(IDSubject)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	// получаем набор для отображения установок модуля мониторинга фотографий в альбомах
@@ -1495,10 +1710,15 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 		} else {
 			updatedAlbumPhotoMonitorParam.NeedMonitoring = 0
 		}
+		if len(kitWndAPSendTo.Entry.Text()) == 0 {
+			warningTitle := "Field \"Send to\" must not be empty."
+			showWarningWindow(warningTitle)
+			return
+		}
 		updatedAlbumPhotoMonitorParam.SendTo, err = strconv.Atoi(kitWndAPSendTo.Entry.Text())
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 		updatedAlbumPhotoMonitorParam.Interval = kitWndAPInterval.Spinbox.Value()
 		updatedAlbumPhotoMonitorParam.LastDate = albumPhotoMonitorParam.LastDate
@@ -1506,8 +1726,8 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 
 		err = UpdateDBAlbumPhotoMonitor(updatedAlbumPhotoMonitorParam)
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 
 		// TODO: как-нибудь надо закрывать окно
@@ -1526,8 +1746,8 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 	// запрашиваем параметры мониторинга из базы данных
 	videoMonitorParam, err := SelectDBVideoMonitorParam(IDSubject)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	// получаем набор для отображения установок модуля мониторинга видео
@@ -1581,10 +1801,15 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 		} else {
 			updatedVideoMonitorParam.NeedMonitoring = 0
 		}
+		if len(kitWndVSendTo.Entry.Text()) == 0 {
+			warningTitle := "Field \"Send to\" must not be empty."
+			showWarningWindow(warningTitle)
+			return
+		}
 		updatedVideoMonitorParam.SendTo, err = strconv.Atoi(kitWndVSendTo.Entry.Text())
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 		updatedVideoMonitorParam.Interval = kitWndVInterval.Spinbox.Value()
 		updatedVideoMonitorParam.LastDate = videoMonitorParam.LastDate
@@ -1592,8 +1817,8 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 
 		err = UpdateDBVideoMonitor(updatedVideoMonitorParam)
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 
 		// TODO: как-нибудь надо закрывать окно
@@ -1612,8 +1837,8 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	// запрашиваем параметры мониторинга из базы данных
 	photoCommentMonitorParam, err := SelectDBPhotoCommentMonitorParam(IDSubject)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	// получаем набор для отображения установок модуля мониторинга комментариев под фотками
@@ -1667,10 +1892,15 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 		} else {
 			updatedPhotoCommentMonitorParam.NeedMonitoring = 0
 		}
+		if len(kitWndPCSendTo.Entry.Text()) == 0 {
+			warningTitle := "Field \"Send to\" must not be empty."
+			showWarningWindow(warningTitle)
+			return
+		}
 		updatedPhotoCommentMonitorParam.SendTo, err = strconv.Atoi(kitWndPCSendTo.Entry.Text())
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 		updatedPhotoCommentMonitorParam.Interval = kitWndPCInterval.Spinbox.Value()
 		updatedPhotoCommentMonitorParam.LastDate = photoCommentMonitorParam.LastDate
@@ -1678,8 +1908,8 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 
 		err = UpdateDBPhotoCommentMonitor(updatedPhotoCommentMonitorParam)
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 
 		// TODO: как-нибудь надо закрывать окно
@@ -1698,8 +1928,8 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	// запрашиваем параметры мониторинга из базы данных
 	videoCommentMonitorParam, err := SelectDBVideoCommentMonitorParam(IDSubject)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	// получаем набор для отображения установок модуля мониторинга комментариев в обсуждениях
@@ -1757,6 +1987,11 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 		} else {
 			updatedVideoCommentMonitorParam.NeedMonitoring = 0
 		}
+		if len(kitWndVCSendTo.Entry.Text()) == 0 {
+			warningTitle := "Field \"Send to\" must not be empty."
+			showWarningWindow(warningTitle)
+			return
+		}
 		updatedVideoCommentMonitorParam.SendTo, err = strconv.Atoi(kitWndVCSendTo.Entry.Text())
 		if err != nil {
 			date := UnixTimeStampToDate(int(time.Now().Unix()))
@@ -1769,8 +2004,8 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 
 		err = UpdateDBVideoCommentMonitor(updatedVideoCommentMonitorParam)
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 
 		// TODO: как-нибудь надо закрывать окно
@@ -1789,8 +2024,8 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 	// запрашиваем параметры мониторинга из базы данных
 	topicMonitorParam, err := SelectDBTopicMonitorParam(IDSubject)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	// получаем набор для отображения установок модуля мониторинга комментариев в обсуждениях
@@ -1848,6 +2083,11 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 		} else {
 			updatedTopicMonitorParam.NeedMonitoring = 0
 		}
+		if len(kitWndTSendTo.Entry.Text()) == 0 {
+			warningTitle := "Field \"Send to\" must not be empty."
+			showWarningWindow(warningTitle)
+			return
+		}
 		updatedTopicMonitorParam.SendTo, err = strconv.Atoi(kitWndTSendTo.Entry.Text())
 		if err != nil {
 			date := UnixTimeStampToDate(int(time.Now().Unix()))
@@ -1860,8 +2100,8 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 
 		err = UpdateDBTopicMonitor(updatedTopicMonitorParam)
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 
 		// TODO: как-нибудь надо закрывать окно
@@ -1880,8 +2120,8 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 	// запрашиваем параметры мониторинга из базы данных
 	wallPostCommentMonitorParam, err := SelectDBWallPostCommentMonitorParam(IDSubject)
 	if err != nil {
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 
 	// получаем набор для отображения установок модуля мониторинга комментариев под постами
@@ -1988,16 +2228,28 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 		jsonDump = fmt.Sprintf("{\"list\":[%v]}", kitWndWPCUsersIdsForIgnore.Entry.Text())
 		updatedWallPostCommentMonitorParam.UsersIDsForIgnore = jsonDump
 		updatedWallPostCommentMonitorParam.PostsCount = kitWndWPCInterval.Spinbox.Value()
+		if len(kitWndWPCSendTo.Entry.Text()) == 0 {
+			warningTitle := "Field \"Send to\" must not be empty."
+			showWarningWindow(warningTitle)
+			return
+		}
 		updatedWallPostCommentMonitorParam.SendTo, err = strconv.Atoi(kitWndWPCSendTo.Entry.Text())
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 		listPostsFilters := []string{"all", "others", "owner"}
+		if kitWndWPCFilter.Combobox.Selected() == -1 {
+			warningTitle := "You must select an item in the combobox \"Filter\""
+			showWarningWindow(warningTitle)
+			return
+		}
 		updatedWallPostCommentMonitorParam.Filter = listPostsFilters[kitWndWPCFilter.Combobox.Selected()]
 		updatedWallPostCommentMonitorParam.LastDate = wallPostCommentMonitorParam.LastDate
+		// TODO: проверка соответствия оформления требованиям json
 		jsonDump = fmt.Sprintf("{\"list\":[%v]}", kitWndWPCKeywordsForMonitoring.Entry.Text())
 		updatedWallPostCommentMonitorParam.KeywordsForMonitoring = jsonDump
+		// TODO: проверка соответствия оформления требованиям json
 		jsonDump = fmt.Sprintf("{\"list\":[%v]}", kitWndWPCSmallCommentsForMonitoring.Entry.Text())
 		updatedWallPostCommentMonitorParam.SmallCommentsForMonitoring = jsonDump
 		updatedWallPostCommentMonitorParam.DigitsCountForCardNumberMonitoring = wallPostCommentMonitorParam.DigitsCountForCardNumberMonitoring
@@ -2010,8 +2262,8 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 
 		err = UpdateDBWallPostCommentMonitor(updatedWallPostCommentMonitorParam)
 		if err != nil {
-			date := UnixTimeStampToDate(int(time.Now().Unix()))
-			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 		// TODO: как-нибудь надо закрывать окно
 	})

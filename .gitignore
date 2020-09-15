@@ -5,6 +5,7 @@ db/
 res/
 path.txt
 log.txt
+run.sh
 build_for_win.sh
 GroupsMonitor
 GroupsMonitor.exe

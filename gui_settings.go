@@ -641,6 +641,11 @@ func showSubjectAdditionWindow() {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())
 		}
+		if len(kitSAdditionName.Entry.Text()) == 0 {
+			warningTitle := "Field \"Name\" must not be empty."
+			showWarningWindow(warningTitle)
+			return
+		}
 		additionNewSubject(subjectID, kitSAdditionName.Entry.Text())
 
 		subjects, err := SelectDBSubjects()

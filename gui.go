@@ -371,8 +371,6 @@ func showWarningWindow(warningTitle string) {
 
 	// описываем заголовок ошибки
 	labelTitleWarning := ui.NewLabel(warningTitle)
-	boxWndWarning.Append(labelTitleWarning, false)
-
 	boxInfo.Append(labelTitleWarning, true)
 
 	// описываем коробку для кнопки

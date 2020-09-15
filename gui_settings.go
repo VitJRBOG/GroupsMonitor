@@ -1166,7 +1166,12 @@ func showSubjectAdditionWindow() {
 					}
 				}
 
-				// TODO: обработка отсутствия выбора элемента
+				if kitSAdditionMSinWPCM.Combobox.Selected() == -1 {
+					warningTitle := "You must select an item in the combobox " +
+						"\"Access token for \"messages.send\"\""
+					showWarningWindow(warningTitle)
+					return
+				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinWPCM.Combobox.Selected()]
 				for _, accessToken := range accessTokens {
 					if accessTokenName == accessToken.Name {

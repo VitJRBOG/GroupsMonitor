@@ -192,7 +192,8 @@ func showAccessTokenAdditionWindow() {
 
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsATAddition.ButtonCancel.OnClicked(func(*ui.Button) {
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowAccessTokenAddition.Window.Disable()
+		kitWindowAccessTokenAddition.Window.Hide()
 	})
 	kitButtonsATAddition.ButtonApply.OnClicked(func(*ui.Button) {
 		var accessToken AccessToken
@@ -206,7 +207,8 @@ func showAccessTokenAdditionWindow() {
 			panic(err.Error())
 		}
 
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowAccessTokenAddition.Window.Disable()
+		kitWindowAccessTokenAddition.Window.Hide()
 	})
 
 	// добавляем коробку с кнопками на основную коробку окна
@@ -259,7 +261,8 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 			kitButtonsAT := MakeSettingButtonsKit()
 
 			kitButtonsAT.ButtonCancel.OnClicked(func(*ui.Button) {
-				// TODO: как-нибудь надо закрывать окно
+				kitWindowAccessTokenSettings.Window.Disable()
+				kitWindowAccessTokenSettings.Window.Hide()
 			})
 			// привязываем кнопки к соответствующим процедурам
 			kitButtonsAT.ButtonApply.OnClicked(func(*ui.Button) {
@@ -274,7 +277,8 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 					panic(err.Error())
 				}
 
-				// TODO: как-нибудь надо закрывать окно
+				kitWindowAccessTokenSettings.Window.Disable()
+				kitWindowAccessTokenSettings.Window.Hide()
 			})
 
 			// добавляем коробку с кнопками на основную коробку окна
@@ -713,7 +717,8 @@ func showSubjectAdditionWindow() {
 
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsSAddition.ButtonCancel.OnClicked(func(*ui.Button) {
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowSubjectAddition.Window.Disable()
+		kitWindowSubjectAddition.Window.Hide()
 	})
 	kitButtonsSAddition.ButtonApply.OnClicked(func(*ui.Button) {
 		var newSubjectData NewSubjectData
@@ -1521,7 +1526,8 @@ func showSubjectAdditionWindow() {
 			}
 		}
 
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowSubjectAddition.Window.Disable()
+		kitWindowSubjectAddition.Window.Hide()
 	})
 
 	// добавляем коробку с кнопками на основную коробку окна
@@ -1826,7 +1832,8 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 
 			// привязываем к кнопкам соответствующие процедуры
 			kitButtonsS.ButtonCancel.OnClicked(func(*ui.Button) {
-				// TODO: как-нибудь надо закрывать окно
+				kitWindowGeneralSettings.Window.Disable()
+				kitWindowGeneralSettings.Window.Hide()
 			})
 			// привязываем кнопки к соответствующим процедурам
 			kitButtonsS.ButtonApply.OnClicked(func(*ui.Button) {
@@ -1857,7 +1864,8 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 					panic(err.Error())
 				}
 
-				// TODO: как-нибудь надо закрывать окно
+				kitWindowGeneralSettings.Window.Disable()
+				kitWindowGeneralSettings.Window.Hide()
 			})
 
 			// добавляем коробку с кнопками на основную коробку окна
@@ -1929,7 +1937,8 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsWP.ButtonCancel.OnClicked(func(*ui.Button) {
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowWallPostSettings.Window.Disable()
+		kitWindowWallPostSettings.Window.Hide()
 	})
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsWP.ButtonApply.OnClicked(func(*ui.Button) {
@@ -1972,7 +1981,8 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 			panic(err.Error())
 		}
 
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowWallPostSettings.Window.Disable()
+		kitWindowWallPostSettings.Window.Hide()
 	})
 
 	// добавляем коробку с кнопками на основную коробку окна
@@ -2031,7 +2041,8 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsAP.ButtonCancel.OnClicked(func(*ui.Button) {
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowAlbumPhotoSettings.Window.Disable()
+		kitWindowAlbumPhotoSettings.Window.Hide()
 	})
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsAP.ButtonApply.OnClicked(func(*ui.Button) {
@@ -2063,7 +2074,8 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 			panic(err.Error())
 		}
 
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowAlbumPhotoSettings.Window.Disable()
+		kitWindowAlbumPhotoSettings.Window.Hide()
 	})
 
 	// добавляем коробку с кнопками на основную коробку окна
@@ -2122,7 +2134,8 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsV.ButtonCancel.OnClicked(func(*ui.Button) {
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowVideoSettings.Window.Disable()
+		kitWindowVideoSettings.Window.Hide()
 	})
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsV.ButtonApply.OnClicked(func(*ui.Button) {
@@ -2154,7 +2167,8 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 			panic(err.Error())
 		}
 
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowVideoSettings.Window.Disable()
+		kitWindowVideoSettings.Window.Hide()
 	})
 
 	// добавляем коробку с кнопками на основную коробку окна
@@ -2213,7 +2227,8 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsPC.ButtonCancel.OnClicked(func(*ui.Button) {
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowPhotoCommentSettings.Window.Disable()
+		kitWindowPhotoCommentSettings.Window.Hide()
 	})
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsPC.ButtonApply.OnClicked(func(*ui.Button) {
@@ -2245,7 +2260,8 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 			panic(err.Error())
 		}
 
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowPhotoCommentSettings.Window.Disable()
+		kitWindowPhotoCommentSettings.Window.Hide()
 	})
 
 	// добавляем коробку с кнопками на основную коробку окна
@@ -2308,7 +2324,8 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsVC.ButtonCancel.OnClicked(func(*ui.Button) {
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowVideoCommentSettings.Window.Disable()
+		kitWindowVideoCommentSettings.Window.Hide()
 	})
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsVC.ButtonApply.OnClicked(func(*ui.Button) {
@@ -2341,7 +2358,8 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 			panic(err.Error())
 		}
 
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowVideoCommentSettings.Window.Disable()
+		kitWindowVideoCommentSettings.Window.Hide()
 	})
 
 	// добавляем коробку с кнопками на основную коробку окна
@@ -2404,7 +2422,8 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsT.ButtonCancel.OnClicked(func(*ui.Button) {
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowTopicSettings.Window.Disable()
+		kitWindowTopicSettings.Window.Hide()
 	})
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsT.ButtonApply.OnClicked(func(*ui.Button) {
@@ -2437,7 +2456,8 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 			panic(err.Error())
 		}
 
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowTopicSettings.Window.Disable()
+		kitWindowTopicSettings.Window.Hide()
 	})
 
 	// добавляем коробку с кнопками на основную коробку окна
@@ -2533,7 +2553,8 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsWPC.ButtonCancel.OnClicked(func(*ui.Button) {
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowWallPostCommentSettings.Window.Disable()
+		kitWindowWallPostCommentSettings.Window.Hide()
 	})
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsWPC.ButtonApply.OnClicked(func(*ui.Button) {
@@ -2598,7 +2619,8 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())
 		}
-		// TODO: как-нибудь надо закрывать окно
+		kitWindowWallPostCommentSettings.Window.Disable()
+		kitWindowWallPostCommentSettings.Window.Hide()
 	})
 
 	// добавляем коробку с кнопками на основную коробку окна

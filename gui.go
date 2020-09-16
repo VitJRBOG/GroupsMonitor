@@ -146,7 +146,8 @@ type WindowSettingsKit struct {
 	Box    *ui.Box
 }
 
-func makeSettingWindowKit(windowTitle string, width, height int) WindowSettingsKit {
+// MakeSettingWindowKit создает набор для окна с установками
+func MakeSettingWindowKit(windowTitle string, width, height int) WindowSettingsKit {
 	var windowSettingsKit WindowSettingsKit
 
 	windowSettingsKit.Window = ui.NewWindow(windowTitle, width, height, true)
@@ -168,7 +169,8 @@ type CheckboxKit struct {
 	CheckBox *ui.Checkbox
 }
 
-func makeSettingCheckboxKit(labelTitle string, needMonitoringFlag int) CheckboxKit {
+// MakeSettingCheckboxKit создает набор для поля с переключателем
+func MakeSettingCheckboxKit(labelTitle string, needMonitoringFlag int) CheckboxKit {
 	var checkboxKit CheckboxKit
 
 	checkboxKit.Box = ui.NewHorizontalBox()
@@ -192,7 +194,8 @@ type SpinboxKit struct {
 	Spinbox *ui.Spinbox
 }
 
-func makeSettingSpinboxKit(labelTitle string, minValue, maxValue, currentValue int) SpinboxKit {
+// MakeSettingSpinboxKit создает набор для спинбокса
+func MakeSettingSpinboxKit(labelTitle string, minValue, maxValue, currentValue int) SpinboxKit {
 	var spinboxKit SpinboxKit
 
 	spinboxKit.Box = ui.NewHorizontalBox()
@@ -212,7 +215,8 @@ type EntryKit struct {
 	Entry *ui.Entry
 }
 
-func makeSettingEntryKit(labelTitle string, entryValue string) EntryKit {
+// MakeSettingEntryKit создает набор для текстового поля
+func MakeSettingEntryKit(labelTitle string, entryValue string) EntryKit {
 	var entryKit EntryKit
 
 	entryKit.Box = ui.NewHorizontalBox()
@@ -232,7 +236,8 @@ type EntryListKit struct {
 	Entry *ui.Entry
 }
 
-func makeSettingEntryListKit(labelTitle, jsonDump string) EntryListKit {
+// MakeSettingEntryListKit создает набор для текстового поля с перечислением
+func MakeSettingEntryListKit(labelTitle, jsonDump string) EntryListKit {
 	var entryListKit EntryListKit
 
 	entryListKit.Box = ui.NewHorizontalBox()
@@ -266,7 +271,8 @@ type ComboboxKit struct {
 	Combobox *ui.Combobox
 }
 
-func makeSettingComboboxKit(labelTitle string, comboboxValues []string, currentValue string) ComboboxKit {
+// MakeSettingComboboxKit создает набор для поля с выпадающим списком
+func MakeSettingComboboxKit(labelTitle string, comboboxValues []string, currentValue string) ComboboxKit {
 	var comboboxKit ComboboxKit
 
 	comboboxKit.Box = ui.NewHorizontalBox()
@@ -294,7 +300,8 @@ type ButtonsKit struct {
 	ButtonCancel *ui.Button
 }
 
-func makeSettingButtonsKit() ButtonsKit {
+// MakeSettingButtonsKit создает набор для кнопок отмены и принятия изменений
+func MakeSettingButtonsKit() ButtonsKit {
 	var buttonsKit ButtonsKit
 
 	buttonsKit.Box = ui.NewHorizontalBox()
@@ -318,7 +325,8 @@ func makeSettingButtonsKit() ButtonsKit {
 	return buttonsKit
 }
 
-func showWarningWindow(warningTitle string) {
+// ShowWarningWindow отображает окно с сообщением для пользователя
+func ShowWarningWindow(warningTitle string) {
 	// описываем окно с информацией об ошибке
 	windowWarning := ui.NewWindow("WARNING!", 100, 100, true)
 	windowWarning.SetMargined(true)
@@ -364,7 +372,8 @@ func showWarningWindow(warningTitle string) {
 	windowWarning.Show()
 }
 
-func numericEntriesHandler(numericEntry *ui.Entry) {
+// NumericEntriesHandler обработчик текстовых полей, предназначенных для ввода числа
+func NumericEntriesHandler(numericEntry *ui.Entry) {
 	// проверим, есть ли знак минуса в начале строки
 	negativeNumber := false
 	if len(numericEntry.Text()) > 0 {
@@ -394,7 +403,7 @@ func initFiles() {
 	if dbHasBeenCreated {
 		message := "File of database has been created just now. Database is empty. " +
 			"Need to create new access token and new subject for monitoring."
-		showWarningWindow(message)
+		ShowWarningWindow(message)
 	}
 }
 

@@ -167,15 +167,15 @@ func makeAccessTokensSettingsBox() *ui.Box {
 func showAccessTokenAdditionWindow() {
 	// получаем набор для отображения окна для добавления нового токена доступа
 	windowTitle := fmt.Sprintf("New access token addition")
-	kitWindowAccessTokenAddition := makeSettingWindowKit(windowTitle, 300, 100)
+	kitWindowAccessTokenAddition := MakeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndATAddition := ui.NewVerticalBox()
 
 	// получаем набор для ввода названия нового токена доступа
-	kitATCreationName := makeSettingEntryKit("Name", "")
+	kitATCreationName := MakeSettingEntryKit("Name", "")
 
 	// получаем набор для ввода значения нового токена доступа
-	kitATCreationValue := makeSettingEntryKit("Value", "")
+	kitATCreationValue := MakeSettingEntryKit("Value", "")
 
 	// описываем группу, в которой будут размещены элементы
 	groupWndATAddition := ui.NewGroup("")
@@ -188,7 +188,7 @@ func showAccessTokenAdditionWindow() {
 	kitWindowAccessTokenAddition.Box.Append(groupWndATAddition, false)
 
 	// получаем набор для кнопок принятия и отмены изменений
-	kitButtonsATAddition := makeSettingButtonsKit()
+	kitButtonsATAddition := MakeSettingButtonsKit()
 
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsATAddition.ButtonCancel.OnClicked(func(*ui.Button) {
@@ -227,7 +227,7 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 	}
 
 	// получаем набор для окна отображения установок токена доступа
-	kitWindowAccessTokenSettings := makeSettingWindowKit("", 300, 100)
+	kitWindowAccessTokenSettings := MakeSettingWindowKit("", 300, 100)
 
 	// перечисляем токены доступа
 	for _, accessToken := range accessTokens {
@@ -240,10 +240,10 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 			boxWndAT := ui.NewVerticalBox()
 
 			// получаем набор для названия токена доступа
-			kitWndATName := makeSettingEntryKit("Name", accessToken.Name)
+			kitWndATName := MakeSettingEntryKit("Name", accessToken.Name)
 
 			// получаем набор для значения токена доступа
-			kitWndATValue := makeSettingEntryKit("Value", accessToken.Value)
+			kitWndATValue := MakeSettingEntryKit("Value", accessToken.Value)
 
 			// описываем группу, в которой будут размещены элементы
 			groupWndAT := ui.NewGroup("")
@@ -256,7 +256,7 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 			kitWindowAccessTokenSettings.Box.Append(groupWndAT, false)
 
 			// получаем набор для кнопок принятия и отмены изменений
-			kitButtonsAT := makeSettingButtonsKit()
+			kitButtonsAT := MakeSettingButtonsKit()
 
 			kitButtonsAT.ButtonCancel.OnClicked(func(*ui.Button) {
 				// TODO: как-нибудь надо закрывать окно
@@ -430,7 +430,7 @@ func showSubjectAdditionWindow() {
 
 	// получаем набор для отображения окна для добавления нового субъекта мониторинга
 	windowTitle := fmt.Sprintf("New subject addition")
-	kitWindowSubjectAddition := makeSettingWindowKit(windowTitle, 300, 100)
+	kitWindowSubjectAddition := MakeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndSAddition := ui.NewHorizontalBox()
 	boxWndSAddition.SetPadded(true)
@@ -441,13 +441,13 @@ func showSubjectAdditionWindow() {
 	boxWndSAdditionRight.SetPadded(true)
 
 	// получаем набор для ввода названия нового субъекта
-	kitSAdditionName := makeSettingEntryKit("Name", "")
+	kitSAdditionName := MakeSettingEntryKit("Name", "")
 
 	// получаем набор для ввода идентификатора субъекта в базе данных ВК
-	kitSAdditionSubjectID := makeSettingEntryKit("Subject ID", "")
+	kitSAdditionSubjectID := MakeSettingEntryKit("Subject ID", "")
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitSAdditionSubjectID.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitSAdditionSubjectID.Entry)
+		NumericEntriesHandler(kitSAdditionSubjectID.Entry)
 	})
 
 	// описываем группу для общих установок субъекта
@@ -459,23 +459,23 @@ func showSubjectAdditionWindow() {
 	groupSAdditionGeneral.SetChild(boxSAdditionGeneral)
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле wall_post_monitor
-	kitSAdditionSendToinWPM := makeSettingEntryKit("Send to", "")
+	kitSAdditionSendToinWPM := MakeSettingEntryKit("Send to", "")
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitSAdditionSendToinWPM.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitSAdditionSendToinWPM.Entry)
+		NumericEntriesHandler(kitSAdditionSendToinWPM.Entry)
 	})
 
 	// получаем набор для выбора токена доступа для метода wall.get в модуле wall_post_monitor
-	kitSAdditionWGinWPM := makeSettingComboboxKit("Access token for \"wall.get\"", accessTokensNames, "")
+	kitSAdditionWGinWPM := MakeSettingComboboxKit("Access token for \"wall.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода users.get в модуле wall_post_monitor
-	kitSAdditionUGinWPM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+	kitSAdditionUGinWPM := MakeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода groups.getById в модуле wall_post_monitor
-	kitSAdditionGGBIinWPM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+	kitSAdditionGGBIinWPM := MakeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода messages.send в модуле wall_post_monitor
-	kitSAdditionMSinWPM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+	kitSAdditionMSinWPM := MakeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
 
 	// описываем группу для установок модуля wall_post_monitor субъекта
 	groupSAdditionWPM := ui.NewGroup("Wall post monitor")
@@ -489,26 +489,26 @@ func showSubjectAdditionWindow() {
 	groupSAdditionWPM.SetChild(boxSAdditionWPM)
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле album_photo_monitor
-	kitSAdditionSendToinAPM := makeSettingEntryKit("Send to", "")
+	kitSAdditionSendToinAPM := MakeSettingEntryKit("Send to", "")
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitSAdditionSendToinAPM.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitSAdditionSendToinAPM.Entry)
+		NumericEntriesHandler(kitSAdditionSendToinAPM.Entry)
 	})
 
 	// получаем набор для выбора токена доступа для метода photos.get в модуле album_photo_monitor
-	kitSAdditionPGinAPM := makeSettingComboboxKit("Access token for \"photos.get\"", accessTokensNames, "")
+	kitSAdditionPGinAPM := MakeSettingComboboxKit("Access token for \"photos.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода photos.getAlbums в модуле album_photo_monitor
-	kitSAdditionPGAinAPM := makeSettingComboboxKit("Access token for \"photos.getAlbums\"", accessTokensNames, "")
+	kitSAdditionPGAinAPM := MakeSettingComboboxKit("Access token for \"photos.getAlbums\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода users.get в модуле album_photo_monitor
-	kitSAdditionUGinAPM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+	kitSAdditionUGinAPM := MakeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода groups.getById в модуле album_photo_monitor
-	kitSAdditionGGBIinAPM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+	kitSAdditionGGBIinAPM := MakeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода messages.send в модуле album_photo_monitor
-	kitSAdditionMSinAPM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+	kitSAdditionMSinAPM := MakeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
 
 	// описываем группу для установок модуля album_photo_monitor субъекта
 	groupSAdditionAPM := ui.NewGroup("Album photo monitor")
@@ -523,23 +523,23 @@ func showSubjectAdditionWindow() {
 	groupSAdditionAPM.SetChild(boxSAdditionAPM)
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле video_monitor
-	kitSAdditionSendToinVM := makeSettingEntryKit("Send to", "")
+	kitSAdditionSendToinVM := MakeSettingEntryKit("Send to", "")
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitSAdditionSendToinVM.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitSAdditionSendToinVM.Entry)
+		NumericEntriesHandler(kitSAdditionSendToinVM.Entry)
 	})
 
 	// получаем набор для выбора токена доступа для метода video.get в модуле video_monitor
-	kitSAdditionVGinVM := makeSettingComboboxKit("Access token for \"video.get\"", accessTokensNames, "")
+	kitSAdditionVGinVM := MakeSettingComboboxKit("Access token for \"video.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода users.get в модуле video_monitor
-	kitSAdditionUGinVM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+	kitSAdditionUGinVM := MakeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода groups.getById в модуле video_monitor
-	kitSAdditionGGBIinVM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+	kitSAdditionGGBIinVM := MakeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода messages.send в модуле video_monitor
-	kitSAdditionMSinVM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+	kitSAdditionMSinVM := MakeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
 
 	// описываем группу для установок модуля video_monitor субъекта
 	groupSAdditionVM := ui.NewGroup("Video monitor")
@@ -553,23 +553,23 @@ func showSubjectAdditionWindow() {
 	groupSAdditionVM.SetChild(boxSAdditionVM)
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле photo_comment_monitor
-	kitSAdditionSendToinPCM := makeSettingEntryKit("Send to", "")
+	kitSAdditionSendToinPCM := MakeSettingEntryKit("Send to", "")
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitSAdditionSendToinPCM.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitSAdditionSendToinPCM.Entry)
+		NumericEntriesHandler(kitSAdditionSendToinPCM.Entry)
 	})
 
 	// получаем набор для выбора токена доступа для метода photos.getAllComments в модуле photo_comment_monitor
-	kitSAdditionPGACinPCM := makeSettingComboboxKit("Access token for \"photos.getAllComments\"", accessTokensNames, "")
+	kitSAdditionPGACinPCM := MakeSettingComboboxKit("Access token for \"photos.getAllComments\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода users.get в модуле photo_comment_monitor
-	kitSAdditionUGinPCM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+	kitSAdditionUGinPCM := MakeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода groups.getById в модуле photo_comment_monitor
-	kitSAdditionGGBIinPCM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+	kitSAdditionGGBIinPCM := MakeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода messages.send в модуле photo_comment_monitor
-	kitSAdditionMSinPCM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+	kitSAdditionMSinPCM := MakeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
 
 	// описываем группу для установок модуля photo_comment_monitor субъекта
 	groupSAdditionPCM := ui.NewGroup("Photo comment monitor")
@@ -583,26 +583,26 @@ func showSubjectAdditionWindow() {
 	groupSAdditionPCM.SetChild(boxSAdditionPCM)
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле video_comment_monitor
-	kitSAdditionSendToinVCM := makeSettingEntryKit("Send to", "")
+	kitSAdditionSendToinVCM := MakeSettingEntryKit("Send to", "")
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitSAdditionSendToinVCM.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitSAdditionSendToinVCM.Entry)
+		NumericEntriesHandler(kitSAdditionSendToinVCM.Entry)
 	})
 
 	// получаем набор для выбора токена доступа для метода video.getComments в модуле video_comment_monitor
-	kitSAdditionVGCinVCM := makeSettingComboboxKit("Access token for \"video.getComments\"", accessTokensNames, "")
+	kitSAdditionVGCinVCM := MakeSettingComboboxKit("Access token for \"video.getComments\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода users.get в модуле video_comment_monitor
-	kitSAdditionUGinVCM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+	kitSAdditionUGinVCM := MakeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода groups.getById в модуле video_comment_monitor
-	kitSAdditionGGBIinVCM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+	kitSAdditionGGBIinVCM := MakeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода video.get в модуле video_comment_monitor
-	kitSAdditionVGinVCM := makeSettingComboboxKit("Access token for \"video.get\"", accessTokensNames, "")
+	kitSAdditionVGinVCM := MakeSettingComboboxKit("Access token for \"video.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода messages.send в модуле video_comment_monitor
-	kitSAdditionMSinVCM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+	kitSAdditionMSinVCM := MakeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
 
 	// описываем группу для установок модуля video_comment_monitor субъекта
 	groupSAdditionVCM := ui.NewGroup("Video comment monitor")
@@ -617,26 +617,26 @@ func showSubjectAdditionWindow() {
 	groupSAdditionVCM.SetChild(boxSAdditionVCM)
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле topic_monitor
-	kitSAdditionSendToinTM := makeSettingEntryKit("Send to", "")
+	kitSAdditionSendToinTM := MakeSettingEntryKit("Send to", "")
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitSAdditionSendToinTM.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitSAdditionSendToinTM.Entry)
+		NumericEntriesHandler(kitSAdditionSendToinTM.Entry)
 	})
 
 	// получаем набор для выбора токена доступа для метода board.getComments в модуле topic_monitor
-	kitSAdditionBGCinTM := makeSettingComboboxKit("Access token for \"board.getComments\"", accessTokensNames, "")
+	kitSAdditionBGCinTM := MakeSettingComboboxKit("Access token for \"board.getComments\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода board.getTopics в модуле topic_monitor
-	kitSAdditionBGTinTM := makeSettingComboboxKit("Access token for \"board.getTopics\"", accessTokensNames, "")
+	kitSAdditionBGTinTM := MakeSettingComboboxKit("Access token for \"board.getTopics\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода users.get в модуле topic_monitor
-	kitSAdditionUGinTM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+	kitSAdditionUGinTM := MakeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода groups.getById в модуле topic_monitor
-	kitSAdditionGGBIinTM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+	kitSAdditionGGBIinTM := MakeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода messages.send в модуле topic_monitor
-	kitSAdditionMSinTM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+	kitSAdditionMSinTM := MakeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
 
 	// описываем группу для установок модуля topic_monitor субъекта
 	groupSAdditionTM := ui.NewGroup("Topic monitor")
@@ -651,29 +651,29 @@ func showSubjectAdditionWindow() {
 	groupSAdditionTM.SetChild(boxSAdditionTM)
 
 	// получаем набор для ввода идентификатора получателя сообщений в модуле wall_post_comment_monitor
-	kitSAdditionSendToinWPCM := makeSettingEntryKit("Send to", "")
+	kitSAdditionSendToinWPCM := MakeSettingEntryKit("Send to", "")
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitSAdditionSendToinWPCM.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitSAdditionSendToinWPCM.Entry)
+		NumericEntriesHandler(kitSAdditionSendToinWPCM.Entry)
 	})
 
 	// получаем набор для выбора токена доступа для метода wall.getComments в модуле wall_post_comment_monitor
-	kitSAdditionWGCsinWPCM := makeSettingComboboxKit("Access token for \"wall.getComments\"", accessTokensNames, "")
+	kitSAdditionWGCsinWPCM := MakeSettingComboboxKit("Access token for \"wall.getComments\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода users.get в модуле wall_post_comment_monitor
-	kitSAdditionUGinWPCM := makeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
+	kitSAdditionUGinWPCM := MakeSettingComboboxKit("Access token for \"users.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода groups.getById в модуле wall_post_comment_monitor
-	kitSAdditionGGBIinWPCM := makeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
+	kitSAdditionGGBIinWPCM := MakeSettingComboboxKit("Access token for \"groups.getById\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода wall.get в модуле wall_post_comment_monitor
-	kitSAdditionWGinWPCM := makeSettingComboboxKit("Access token for \"wall.get\"", accessTokensNames, "")
+	kitSAdditionWGinWPCM := MakeSettingComboboxKit("Access token for \"wall.get\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода wall.getComment в модуле wall_post_comment_monitor
-	kitSAdditionWGCinWPCM := makeSettingComboboxKit("Access token for \"wall.getComment\"", accessTokensNames, "")
+	kitSAdditionWGCinWPCM := MakeSettingComboboxKit("Access token for \"wall.getComment\"", accessTokensNames, "")
 
 	// получаем набор для выбора токена доступа для метода messages.send в модуле wall_post_comment_monitor
-	kitSAdditionMSinWPCM := makeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
+	kitSAdditionMSinWPCM := MakeSettingComboboxKit("Access token for \"messages.send\"", accessTokensNames, "")
 
 	// описываем группу для установок модуля wall_post_comment_monitor субъекта
 	groupSAdditionWPCM := ui.NewGroup("Wall post comment monitor")
@@ -709,7 +709,7 @@ func showSubjectAdditionWindow() {
 	kitWindowSubjectAddition.Box.Append(boxWndSAddition, false)
 
 	// получаем набор для кнопок принятия и отмены изменений
-	kitButtonsSAddition := makeSettingButtonsKit()
+	kitButtonsSAddition := MakeSettingButtonsKit()
 
 	// привязываем кнопки к соответствующим процедурам
 	kitButtonsSAddition.ButtonCancel.OnClicked(func(*ui.Button) {
@@ -720,7 +720,7 @@ func showSubjectAdditionWindow() {
 
 		if len(kitSAdditionSubjectID.Entry.Text()) == 0 {
 			warningTitle := "Field \"Subject ID\" must not be empty."
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		subjectID, err := strconv.Atoi(kitSAdditionSubjectID.Entry.Text())
@@ -731,7 +731,7 @@ func showSubjectAdditionWindow() {
 		newSubjectData.ID = subjectID
 		if len(kitSAdditionName.Entry.Text()) == 0 {
 			warningTitle := "Field \"Name\" must not be empty."
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		newSubjectData.Name = kitSAdditionName.Entry.Text()
@@ -749,7 +749,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionWGinWPM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"wall.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName := accessTokensNames[kitSAdditionWGinWPM.Combobox.Selected()]
@@ -765,7 +765,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionUGinWPM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"Users.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinWPM.Combobox.Selected()]
@@ -781,7 +781,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionGGBIinWPM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"Groups.getById\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinWPM.Combobox.Selected()]
@@ -797,7 +797,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionMSinWPM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"messages.send\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinWPM.Combobox.Selected()]
@@ -812,7 +812,7 @@ func showSubjectAdditionWindow() {
 
 				if len(kitSAdditionSendToinWPM.Entry.Text()) == 0 {
 					warningTitle := "Field \"Send to\" must not be empty."
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinWPM.Entry.Text())
@@ -829,7 +829,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionPGinAPM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"photos.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName := accessTokensNames[kitSAdditionPGinAPM.Combobox.Selected()]
@@ -845,7 +845,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionPGAinAPM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"photos.getAlbums\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionPGAinAPM.Combobox.Selected()]
@@ -861,7 +861,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionUGinAPM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"users.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinAPM.Combobox.Selected()]
@@ -877,7 +877,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionGGBIinAPM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"groups.getById\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinAPM.Combobox.Selected()]
@@ -893,7 +893,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionMSinAPM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"messages.send\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinAPM.Combobox.Selected()]
@@ -908,7 +908,7 @@ func showSubjectAdditionWindow() {
 
 				if len(kitSAdditionSendToinAPM.Entry.Text()) == 0 {
 					warningTitle := "Field \"Send to\" must not be empty."
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinAPM.Entry.Text())
@@ -925,7 +925,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionVGinVM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"video.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName := accessTokensNames[kitSAdditionVGinVM.Combobox.Selected()]
@@ -941,7 +941,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionUGinVM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"users.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinVM.Combobox.Selected()]
@@ -957,7 +957,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionGGBIinVM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"groups.getById\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinVM.Combobox.Selected()]
@@ -973,7 +973,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionMSinVM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"messages.send\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinVM.Combobox.Selected()]
@@ -988,7 +988,7 @@ func showSubjectAdditionWindow() {
 
 				if len(kitSAdditionSendToinVM.Entry.Text()) == 0 {
 					warningTitle := "Field \"Send to\" must not be empty."
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinVM.Entry.Text())
@@ -1004,7 +1004,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionPGACinPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"photos.getAllComments\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName := accessTokensNames[kitSAdditionPGACinPCM.Combobox.Selected()]
@@ -1020,7 +1020,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionUGinPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"users.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinPCM.Combobox.Selected()]
@@ -1036,7 +1036,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionGGBIinPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"groups.getById\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinPCM.Combobox.Selected()]
@@ -1052,7 +1052,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionMSinPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"messages.send\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinPCM.Combobox.Selected()]
@@ -1067,7 +1067,7 @@ func showSubjectAdditionWindow() {
 
 				if len(kitSAdditionSendToinPCM.Entry.Text()) == 0 {
 					warningTitle := "Field \"Send to\" must not be empty."
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinPCM.Entry.Text())
@@ -1083,7 +1083,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionVGCinVCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"video.getComments\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName := accessTokensNames[kitSAdditionVGCinVCM.Combobox.Selected()]
@@ -1099,7 +1099,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionUGinVCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"users.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinVCM.Combobox.Selected()]
@@ -1115,7 +1115,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionGGBIinVCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"groups.getById\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinVCM.Combobox.Selected()]
@@ -1131,7 +1131,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionVGinVCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"video.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionVGinVCM.Combobox.Selected()]
@@ -1147,7 +1147,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionMSinVCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"messages.send\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinVCM.Combobox.Selected()]
@@ -1162,7 +1162,7 @@ func showSubjectAdditionWindow() {
 
 				if len(kitSAdditionSendToinVCM.Entry.Text()) == 0 {
 					warningTitle := "Field \"Send to\" must not be empty."
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinVCM.Entry.Text())
@@ -1178,7 +1178,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionBGCinTM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"board.getComments\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName := accessTokensNames[kitSAdditionBGCinTM.Combobox.Selected()]
@@ -1194,7 +1194,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionBGTinTM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"board.getTopicsgetComments\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionBGTinTM.Combobox.Selected()]
@@ -1210,7 +1210,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionUGinTM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"users.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinTM.Combobox.Selected()]
@@ -1226,7 +1226,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionGGBIinTM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"groups.getById\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinTM.Combobox.Selected()]
@@ -1242,7 +1242,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionMSinTM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"messages.send\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinTM.Combobox.Selected()]
@@ -1257,7 +1257,7 @@ func showSubjectAdditionWindow() {
 
 				if len(kitSAdditionSendToinTM.Entry.Text()) == 0 {
 					warningTitle := "Field \"Send to\" must not be empty."
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinTM.Entry.Text())
@@ -1273,7 +1273,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionWGCsinWPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"wall.getComments\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName := accessTokensNames[kitSAdditionWGCsinWPCM.Combobox.Selected()]
@@ -1289,7 +1289,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionUGinWPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"users.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionUGinWPCM.Combobox.Selected()]
@@ -1305,7 +1305,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionGGBIinWPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"groups.getById\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionGGBIinWPCM.Combobox.Selected()]
@@ -1321,7 +1321,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionWGinWPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"wall.get\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionWGinWPCM.Combobox.Selected()]
@@ -1337,7 +1337,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionWGCinWPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"wall.getComment\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionWGCinWPCM.Combobox.Selected()]
@@ -1353,7 +1353,7 @@ func showSubjectAdditionWindow() {
 				if kitSAdditionMSinWPCM.Combobox.Selected() == -1 {
 					warningTitle := "You must select an item in the combobox " +
 						"\"Access token for \"messages.send\"\""
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				accessTokenName = accessTokensNames[kitSAdditionMSinWPCM.Combobox.Selected()]
@@ -1368,7 +1368,7 @@ func showSubjectAdditionWindow() {
 
 				if len(kitSAdditionSendToinWPCM.Entry.Text()) == 0 {
 					warningTitle := "Field \"Send to\" must not be empty."
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				sendTo, err := strconv.Atoi(kitSAdditionSendToinWPCM.Entry.Text())
@@ -1789,7 +1789,7 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 	}
 
 	// получаем набор для отображения общих установок субъекта мониторинга
-	kitWindowGeneralSettings := makeSettingWindowKit("", 300, 100)
+	kitWindowGeneralSettings := MakeSettingWindowKit("", 300, 100)
 
 	// перечисляем субъекты
 	for _, subject := range subjects {
@@ -1802,13 +1802,13 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 			boxWndS := ui.NewVerticalBox()
 
 			// получаем набор для названия субъекта мониторинга
-			kitWndSName := makeSettingEntryKit("Name", subject.Name)
+			kitWndSName := MakeSettingEntryKit("Name", subject.Name)
 
 			// получаем набор для идентификатора субъекта мониторинга в базе ВК
-			kitWndSSubjectID := makeSettingEntryKit("Subject ID", strconv.Itoa(subject.SubjectID))
+			kitWndSSubjectID := MakeSettingEntryKit("Subject ID", strconv.Itoa(subject.SubjectID))
 			// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 			kitWndSSubjectID.Entry.OnChanged(func(*ui.Entry) {
-				numericEntriesHandler(kitWndSSubjectID.Entry)
+				NumericEntriesHandler(kitWndSSubjectID.Entry)
 			})
 
 			// описываем группу, в которой будут размещены элементы
@@ -1822,7 +1822,7 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 			kitWindowGeneralSettings.Box.Append(groupWndS, false)
 
 			// получаем набор для кнопок принятия и отмены изменений
-			kitButtonsS := makeSettingButtonsKit()
+			kitButtonsS := MakeSettingButtonsKit()
 
 			// привязываем к кнопкам соответствующие процедуры
 			kitButtonsS.ButtonCancel.OnClicked(func(*ui.Button) {
@@ -1834,7 +1834,7 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 				updatedSubject.ID = subject.ID
 				if len(kitWndSSubjectID.Entry.Text()) == 0 {
 					warningTitle := "Field \"Subject ID\" must not be empty."
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				updatedSubject.SubjectID, err = strconv.Atoi(kitWndSSubjectID.Entry.Text())
@@ -1844,7 +1844,7 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 				}
 				if len(kitWndSName.Entry.Text()) == 0 {
 					warningTitle := "Field \"Name\" must not be empty."
-					showWarningWindow(warningTitle)
+					ShowWarningWindow(warningTitle)
 					return
 				}
 				updatedSubject.Name = kitWndSName.Entry.Text()
@@ -1883,32 +1883,32 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 
 	// получаем набор для отображения установок модуля мониторинга постов на стене
 	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
-	kitWindowWallPostSettings := makeSettingWindowKit(windowTitle, 300, 100)
+	kitWindowWallPostSettings := MakeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndWP := ui.NewVerticalBox()
 
 	// получаем набор для флага необходимости активировать модуль мониторинга
-	kitWndWPMonitoring := makeSettingCheckboxKit("Need monitoring", wallPostMonitorParam.NeedMonitoring)
+	kitWndWPMonitoring := MakeSettingCheckboxKit("Need monitoring", wallPostMonitorParam.NeedMonitoring)
 
 	// получаем набор для интервала между запусками функции мониторинга
-	kitWndWPInterval := makeSettingSpinboxKit("Interval", 5, 21600, wallPostMonitorParam.Interval)
+	kitWndWPInterval := MakeSettingSpinboxKit("Interval", 5, 21600, wallPostMonitorParam.Interval)
 
 	// получаем набор для количества проверяемых постов
-	kitWndWPSendTo := makeSettingEntryKit("Send to", strconv.Itoa(wallPostMonitorParam.SendTo))
+	kitWndWPSendTo := MakeSettingEntryKit("Send to", strconv.Itoa(wallPostMonitorParam.SendTo))
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitWndWPSendTo.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitWndWPSendTo.Entry)
+		NumericEntriesHandler(kitWndWPSendTo.Entry)
 	})
 
 	// получаем набор для фильтра получаемых для проверки постов
 	listPostsFilters := []string{"all", "others", "owner", "suggests"}
-	kitWndWPFilter := makeSettingComboboxKit("Filter", listPostsFilters, wallPostMonitorParam.Filter)
+	kitWndWPFilter := MakeSettingComboboxKit("Filter", listPostsFilters, wallPostMonitorParam.Filter)
 
 	// получаем набор для количества проверяемых постов
-	kitWndWPPostsCount := makeSettingSpinboxKit("Posts count", 1, 100, wallPostMonitorParam.PostsCount)
+	kitWndWPPostsCount := MakeSettingSpinboxKit("Posts count", 1, 100, wallPostMonitorParam.PostsCount)
 
 	// получаем набор для списка ключевых слов для отбора постов
-	kitWndWPKeywordsForMonitoring := makeSettingEntryListKit("Keywords", wallPostMonitorParam.KeywordsForMonitoring)
+	kitWndWPKeywordsForMonitoring := MakeSettingEntryListKit("Keywords", wallPostMonitorParam.KeywordsForMonitoring)
 
 	// описываем группу, в которой будут размещены элементы
 	groupWndWP := ui.NewGroup("")
@@ -1925,7 +1925,7 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 	kitWindowWallPostSettings.Box.Append(groupWndWP, false)
 
 	// получаем набор для кнопок принятия и отмены изменений
-	kitButtonsWP := makeSettingButtonsKit()
+	kitButtonsWP := MakeSettingButtonsKit()
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsWP.ButtonCancel.OnClicked(func(*ui.Button) {
@@ -1944,7 +1944,7 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 		updatedWallPostMonitorParam.Interval = kitWndWPInterval.Spinbox.Value()
 		if len(kitWndWPSendTo.Entry.Text()) == 0 {
 			warningTitle := "Field \"Send to\" must not be empty."
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		updatedWallPostMonitorParam.SendTo, err = strconv.Atoi(kitWndWPSendTo.Entry.Text())
@@ -1955,7 +1955,7 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 		listPostsFilters := []string{"all", "others", "owner", "suggests"}
 		if kitWndWPFilter.Combobox.Selected() == -1 {
 			warningTitle := "You must select an item in the combobox \"Filter\""
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		updatedWallPostMonitorParam.Filter = listPostsFilters[kitWndWPFilter.Combobox.Selected()]
@@ -1994,25 +1994,25 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 
 	// получаем набор для отображения установок модуля мониторинга фотографий в альбомах
 	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
-	kitWindowAlbumPhotoSettings := makeSettingWindowKit(windowTitle, 300, 100)
+	kitWindowAlbumPhotoSettings := MakeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndAP := ui.NewVerticalBox()
 
 	// получаем набор для флага необходимости активировать модуль мониторинга
-	kitWndAPMonitoring := makeSettingCheckboxKit("Need monitoring", albumPhotoMonitorParam.NeedMonitoring)
+	kitWndAPMonitoring := MakeSettingCheckboxKit("Need monitoring", albumPhotoMonitorParam.NeedMonitoring)
 
 	// получаем набор для интервала между запусками функции мониторинга
-	kitWndAPInterval := makeSettingSpinboxKit("Interval", 5, 21600, albumPhotoMonitorParam.Interval)
+	kitWndAPInterval := MakeSettingSpinboxKit("Interval", 5, 21600, albumPhotoMonitorParam.Interval)
 
 	// получаем набор для идентификатора получателя сообщений
-	kitWndAPSendTo := makeSettingEntryKit("Send to", strconv.Itoa(albumPhotoMonitorParam.SendTo))
+	kitWndAPSendTo := MakeSettingEntryKit("Send to", strconv.Itoa(albumPhotoMonitorParam.SendTo))
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitWndAPSendTo.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitWndAPSendTo.Entry)
+		NumericEntriesHandler(kitWndAPSendTo.Entry)
 	})
 
 	// получаем набор для количества проверяемых фото
-	kitWndApPhotosCount := makeSettingSpinboxKit("Photos count", 1, 1000, albumPhotoMonitorParam.PhotosCount)
+	kitWndApPhotosCount := MakeSettingSpinboxKit("Photos count", 1, 1000, albumPhotoMonitorParam.PhotosCount)
 
 	// описываем группу, в которой будут размещены элементы
 	groupWndAP := ui.NewGroup("")
@@ -2027,7 +2027,7 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 	kitWindowAlbumPhotoSettings.Box.Append(groupWndAP, false)
 
 	// получаем набор для кнопок принятия и отмены изменений
-	kitButtonsAP := makeSettingButtonsKit()
+	kitButtonsAP := MakeSettingButtonsKit()
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsAP.ButtonCancel.OnClicked(func(*ui.Button) {
@@ -2045,7 +2045,7 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 		}
 		if len(kitWndAPSendTo.Entry.Text()) == 0 {
 			warningTitle := "Field \"Send to\" must not be empty."
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		updatedAlbumPhotoMonitorParam.SendTo, err = strconv.Atoi(kitWndAPSendTo.Entry.Text())
@@ -2085,25 +2085,25 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 
 	// получаем набор для отображения установок модуля мониторинга видео
 	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
-	kitWindowVideoSettings := makeSettingWindowKit(windowTitle, 300, 100)
+	kitWindowVideoSettings := MakeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndV := ui.NewVerticalBox()
 
 	// получаем набор для флага необходимости активировать модуль мониторинга
-	kitWndVMonitoring := makeSettingCheckboxKit("Need monitoring", videoMonitorParam.NeedMonitoring)
+	kitWndVMonitoring := MakeSettingCheckboxKit("Need monitoring", videoMonitorParam.NeedMonitoring)
 
 	// получаем набор для интервала между запусками функции мониторинга
-	kitWndVInterval := makeSettingSpinboxKit("Interval", 5, 21600, videoMonitorParam.Interval)
+	kitWndVInterval := MakeSettingSpinboxKit("Interval", 5, 21600, videoMonitorParam.Interval)
 
 	// получаем набор для идентификатора получателя сообщений
-	kitWndVSendTo := makeSettingEntryKit("Send to", strconv.Itoa(videoMonitorParam.SendTo))
+	kitWndVSendTo := MakeSettingEntryKit("Send to", strconv.Itoa(videoMonitorParam.SendTo))
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitWndVSendTo.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitWndVSendTo.Entry)
+		NumericEntriesHandler(kitWndVSendTo.Entry)
 	})
 
 	// получаем набор для количества проверяемых видео
-	kitWndVVideoCount := makeSettingSpinboxKit("Video count", 1, 1000, videoMonitorParam.VideoCount)
+	kitWndVVideoCount := MakeSettingSpinboxKit("Video count", 1, 1000, videoMonitorParam.VideoCount)
 
 	// описываем группу, в которой будут размещены элементы
 	groupWndV := ui.NewGroup("")
@@ -2118,7 +2118,7 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 	kitWindowVideoSettings.Box.Append(groupWndV, false)
 
 	// получаем набор для кнопок принятия и отмены изменений
-	kitButtonsV := makeSettingButtonsKit()
+	kitButtonsV := MakeSettingButtonsKit()
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsV.ButtonCancel.OnClicked(func(*ui.Button) {
@@ -2136,7 +2136,7 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 		}
 		if len(kitWndVSendTo.Entry.Text()) == 0 {
 			warningTitle := "Field \"Send to\" must not be empty."
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		updatedVideoMonitorParam.SendTo, err = strconv.Atoi(kitWndVSendTo.Entry.Text())
@@ -2176,25 +2176,25 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 
 	// получаем набор для отображения установок модуля мониторинга комментариев под фотками
 	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
-	kitWindowPhotoCommentSettings := makeSettingWindowKit(windowTitle, 300, 100)
+	kitWindowPhotoCommentSettings := MakeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndPC := ui.NewVerticalBox()
 
 	// получаем набор для флага необходимости активировать модуль мониторинга
-	kitWndPCMonitoring := makeSettingCheckboxKit("Need monitoring", photoCommentMonitorParam.NeedMonitoring)
+	kitWndPCMonitoring := MakeSettingCheckboxKit("Need monitoring", photoCommentMonitorParam.NeedMonitoring)
 
 	// получаем набор для интервала между запусками функции мониторинга
-	kitWndPCInterval := makeSettingSpinboxKit("Interval", 5, 21600, photoCommentMonitorParam.Interval)
+	kitWndPCInterval := MakeSettingSpinboxKit("Interval", 5, 21600, photoCommentMonitorParam.Interval)
 
 	// получаем набор для идентификатора получателя сообщений
-	kitWndPCSendTo := makeSettingEntryKit("Send to", strconv.Itoa(photoCommentMonitorParam.SendTo))
+	kitWndPCSendTo := MakeSettingEntryKit("Send to", strconv.Itoa(photoCommentMonitorParam.SendTo))
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitWndPCSendTo.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitWndPCSendTo.Entry)
+		NumericEntriesHandler(kitWndPCSendTo.Entry)
 	})
 
 	// получаем набор для количества проверяемых комментариев
-	kitWndPCCommentsCount := makeSettingSpinboxKit("Comments count", 1, 1000, photoCommentMonitorParam.CommentsCount)
+	kitWndPCCommentsCount := MakeSettingSpinboxKit("Comments count", 1, 1000, photoCommentMonitorParam.CommentsCount)
 
 	// описываем группу, в которой будут размещены элементы
 	groupWndPC := ui.NewGroup("")
@@ -2209,7 +2209,7 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	kitWindowPhotoCommentSettings.Box.Append(groupWndPC, false)
 
 	// получаем набор для кнопок принятия и отмены изменений
-	kitButtonsPC := makeSettingButtonsKit()
+	kitButtonsPC := MakeSettingButtonsKit()
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsPC.ButtonCancel.OnClicked(func(*ui.Button) {
@@ -2227,7 +2227,7 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 		}
 		if len(kitWndPCSendTo.Entry.Text()) == 0 {
 			warningTitle := "Field \"Send to\" must not be empty."
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		updatedPhotoCommentMonitorParam.SendTo, err = strconv.Atoi(kitWndPCSendTo.Entry.Text())
@@ -2267,28 +2267,28 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 
 	// получаем набор для отображения установок модуля мониторинга комментариев в обсуждениях
 	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
-	kitWindowVideoCommentSettings := makeSettingWindowKit(windowTitle, 300, 100)
+	kitWindowVideoCommentSettings := MakeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndVC := ui.NewVerticalBox()
 
 	// получаем набор для флага необходимости активировать модуль мониторинга
-	kitWndVCMonitoring := makeSettingCheckboxKit("Need monitoring", videoCommentMonitorParam.NeedMonitoring)
+	kitWndVCMonitoring := MakeSettingCheckboxKit("Need monitoring", videoCommentMonitorParam.NeedMonitoring)
 
 	// получаем набор для интервала между запусками функции мониторинга
-	kitWndVCInterval := makeSettingSpinboxKit("Interval", 5, 21600, videoCommentMonitorParam.Interval)
+	kitWndVCInterval := MakeSettingSpinboxKit("Interval", 5, 21600, videoCommentMonitorParam.Interval)
 
 	// получаем набор для идентификатора получателя сообщений
-	kitWndVCSendTo := makeSettingEntryKit("Send to", strconv.Itoa(videoCommentMonitorParam.SendTo))
+	kitWndVCSendTo := MakeSettingEntryKit("Send to", strconv.Itoa(videoCommentMonitorParam.SendTo))
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitWndVCSendTo.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitWndVCSendTo.Entry)
+		NumericEntriesHandler(kitWndVCSendTo.Entry)
 	})
 
 	// получаем набор для количества проверяемых видео
-	kitWndVCVideosCount := makeSettingSpinboxKit("Videos count", 1, 200, videoCommentMonitorParam.VideosCount)
+	kitWndVCVideosCount := MakeSettingSpinboxKit("Videos count", 1, 200, videoCommentMonitorParam.VideosCount)
 
 	// получаем набор для количества проверяемых комментариев
-	kitWndVCCommentsCount := makeSettingSpinboxKit("Comments count", 1, 100, videoCommentMonitorParam.CommentsCount)
+	kitWndVCCommentsCount := MakeSettingSpinboxKit("Comments count", 1, 100, videoCommentMonitorParam.CommentsCount)
 
 	// описываем группу, в которой будут размещены элементы
 	groupWndVC := ui.NewGroup("")
@@ -2304,7 +2304,7 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 	kitWindowVideoCommentSettings.Box.Append(groupWndVC, false)
 
 	// получаем набор для кнопок принятия и отмены изменений
-	kitButtonsVC := makeSettingButtonsKit()
+	kitButtonsVC := MakeSettingButtonsKit()
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsVC.ButtonCancel.OnClicked(func(*ui.Button) {
@@ -2322,7 +2322,7 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 		}
 		if len(kitWndVCSendTo.Entry.Text()) == 0 {
 			warningTitle := "Field \"Send to\" must not be empty."
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		updatedVideoCommentMonitorParam.SendTo, err = strconv.Atoi(kitWndVCSendTo.Entry.Text())
@@ -2363,28 +2363,28 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 
 	// получаем набор для отображения установок модуля мониторинга комментариев в обсуждениях
 	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
-	kitWindowTopicSettings := makeSettingWindowKit(windowTitle, 300, 100)
+	kitWindowTopicSettings := MakeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndT := ui.NewVerticalBox()
 
 	// получаем набор для флага необходимости активировать модуль мониторинга
-	kitWndTMonitoring := makeSettingCheckboxKit("Need monitoring", topicMonitorParam.NeedMonitoring)
+	kitWndTMonitoring := MakeSettingCheckboxKit("Need monitoring", topicMonitorParam.NeedMonitoring)
 
 	// получаем набор для интервала между запусками функции мониторинга
-	kitWndTInterval := makeSettingSpinboxKit("Interval", 5, 21600, topicMonitorParam.Interval)
+	kitWndTInterval := MakeSettingSpinboxKit("Interval", 5, 21600, topicMonitorParam.Interval)
 
 	// получаем набор для идентификатора получателя сообщений
-	kitWndTSendTo := makeSettingEntryKit("Send to", strconv.Itoa(topicMonitorParam.SendTo))
+	kitWndTSendTo := MakeSettingEntryKit("Send to", strconv.Itoa(topicMonitorParam.SendTo))
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitWndTSendTo.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitWndTSendTo.Entry)
+		NumericEntriesHandler(kitWndTSendTo.Entry)
 	})
 
 	// получаем набор для количества проверяемых топиков обсуждений
-	kitWndTTopicsCount := makeSettingSpinboxKit("Topics count", 1, 100, topicMonitorParam.TopicsCount)
+	kitWndTTopicsCount := MakeSettingSpinboxKit("Topics count", 1, 100, topicMonitorParam.TopicsCount)
 
 	// получаем набор для количества проверяемых комментариев
-	kitWndTCommentsCount := makeSettingSpinboxKit("Comments count", 1, 100, topicMonitorParam.TopicsCount)
+	kitWndTCommentsCount := MakeSettingSpinboxKit("Comments count", 1, 100, topicMonitorParam.TopicsCount)
 
 	// описываем группу, в которой будут размещены элементы
 	groupWndT := ui.NewGroup("")
@@ -2400,7 +2400,7 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 	kitWindowTopicSettings.Box.Append(groupWndT, false)
 
 	// получаем набор для кнопок принятия и отмены изменений
-	kitButtonsT := makeSettingButtonsKit()
+	kitButtonsT := MakeSettingButtonsKit()
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsT.ButtonCancel.OnClicked(func(*ui.Button) {
@@ -2418,7 +2418,7 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 		}
 		if len(kitWndTSendTo.Entry.Text()) == 0 {
 			warningTitle := "Field \"Send to\" must not be empty."
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		updatedTopicMonitorParam.SendTo, err = strconv.Atoi(kitWndTSendTo.Entry.Text())
@@ -2459,53 +2459,53 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 
 	// получаем набор для отображения установок модуля мониторинга комментариев под постами
 	windowTitle := fmt.Sprintf("%v settings for %v", btnName, nameSubject)
-	kitWindowWallPostCommentSettings := makeSettingWindowKit(windowTitle, 300, 100)
+	kitWindowWallPostCommentSettings := MakeSettingWindowKit(windowTitle, 300, 100)
 
 	boxWndWPC := ui.NewVerticalBox()
 
 	// получаем набор для флага необходимости активировать модуль мониторинга
-	kitWndWPCMonitoring := makeSettingCheckboxKit("Need monitoring", wallPostCommentMonitorParam.NeedMonitoring)
+	kitWndWPCMonitoring := MakeSettingCheckboxKit("Need monitoring", wallPostCommentMonitorParam.NeedMonitoring)
 
 	// получаем набор для интервала между запусками функции мониторинга
-	kitWndWPCInterval := makeSettingSpinboxKit("Interval", 5, 21600, wallPostCommentMonitorParam.Interval)
+	kitWndWPCInterval := MakeSettingSpinboxKit("Interval", 5, 21600, wallPostCommentMonitorParam.Interval)
 
 	// получаем набор для идентификатора получателя сообщений
-	kitWndWPCSendTo := makeSettingEntryKit("Send to", strconv.Itoa(wallPostCommentMonitorParam.SendTo))
+	kitWndWPCSendTo := MakeSettingEntryKit("Send to", strconv.Itoa(wallPostCommentMonitorParam.SendTo))
 	// и привязываем его к обработке ввода, чтобы кроме чисел ничего не вводилось
 	kitWndWPCSendTo.Entry.OnChanged(func(*ui.Entry) {
-		numericEntriesHandler(kitWndWPCSendTo.Entry)
+		NumericEntriesHandler(kitWndWPCSendTo.Entry)
 	})
 
 	// получаем набор для количества проверяемых постов
-	kitWndWPCPostsCount := makeSettingSpinboxKit("Posts count", 1, 100, wallPostCommentMonitorParam.PostsCount)
+	kitWndWPCPostsCount := MakeSettingSpinboxKit("Posts count", 1, 100, wallPostCommentMonitorParam.PostsCount)
 
 	// получаем набор для количества проверяемых комментариев
-	kitWndWPCCommentsCount := makeSettingSpinboxKit("Comments count", 1, 100, wallPostCommentMonitorParam.CommentsCount)
+	kitWndWPCCommentsCount := MakeSettingSpinboxKit("Comments count", 1, 100, wallPostCommentMonitorParam.CommentsCount)
 
 	// получаем набор для фильтров постов для проверки комментариев
 	listPostsFilters := []string{"all", "others", "owner"}
-	kitWndWPCFilter := makeSettingComboboxKit("Filter", listPostsFilters, wallPostCommentMonitorParam.Filter)
+	kitWndWPCFilter := MakeSettingComboboxKit("Filter", listPostsFilters, wallPostCommentMonitorParam.Filter)
 
 	// получаем набор для флага необходимости проверять все комментарии без исключения
-	kitWndWPCMonitoringAll := makeSettingCheckboxKit("Monitoring all", wallPostCommentMonitorParam.MonitoringAll)
+	kitWndWPCMonitoringAll := MakeSettingCheckboxKit("Monitoring all", wallPostCommentMonitorParam.MonitoringAll)
 
 	// получаем набор для флага необходимости проверять комментарии от сообществ
-	kitWndWPCMonitorByCommunity := makeSettingCheckboxKit("Monitor by community", wallPostCommentMonitorParam.MonitorByCommunity)
+	kitWndWPCMonitorByCommunity := MakeSettingCheckboxKit("Monitor by community", wallPostCommentMonitorParam.MonitorByCommunity)
 
 	// получаем набор для списка ключевых слов для поиска комментариев
-	kitWndWPCKeywordsForMonitoring := makeSettingEntryListKit("Keywords for monitoring", wallPostCommentMonitorParam.KeywordsForMonitoring)
+	kitWndWPCKeywordsForMonitoring := MakeSettingEntryListKit("Keywords for monitoring", wallPostCommentMonitorParam.KeywordsForMonitoring)
 
 	// получаем набор для списка комментариев для поиска
-	kitWndWPCSmallCommentsForMonitoring := makeSettingEntryListKit("Small comments for monitoring", wallPostCommentMonitorParam.SmallCommentsForMonitoring)
+	kitWndWPCSmallCommentsForMonitoring := MakeSettingEntryListKit("Small comments for monitoring", wallPostCommentMonitorParam.SmallCommentsForMonitoring)
 
 	// получаем набор для списка имен и фамилий авторов комментариев для поиска комментариев
-	kitWndWPCUsersNamesForMonitoring := makeSettingEntryListKit("Users names for monitoring", wallPostCommentMonitorParam.UsersNamesForMonitoring)
+	kitWndWPCUsersNamesForMonitoring := MakeSettingEntryListKit("Users names for monitoring", wallPostCommentMonitorParam.UsersNamesForMonitoring)
 
 	// получаем набор для списка идентификаторов авторов комментариев для поиска комментариев
-	kitWndWPCUsersIdsForMonitoring := makeSettingEntryListKit("Users IDs for monitoring", wallPostCommentMonitorParam.UsersIDsForMonitoring)
+	kitWndWPCUsersIdsForMonitoring := MakeSettingEntryListKit("Users IDs for monitoring", wallPostCommentMonitorParam.UsersIDsForMonitoring)
 
 	// получаем набор для списка идентификаторов авторов комментариев для их игнорирования при проверке комментариев
-	kitWndWPCUsersIdsForIgnore := makeSettingEntryListKit("Users IDs for ignore", wallPostCommentMonitorParam.UsersIDsForIgnore)
+	kitWndWPCUsersIdsForIgnore := MakeSettingEntryListKit("Users IDs for ignore", wallPostCommentMonitorParam.UsersIDsForIgnore)
 
 	// описываем группу, в которой будут размещены элементы
 	groupWndWPC := ui.NewGroup("")
@@ -2529,7 +2529,7 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 	kitWindowWallPostCommentSettings.Box.Append(groupWndWPC, false)
 
 	// получаем набор для кнопок принятия и отмены изменений
-	kitButtonsWPC := makeSettingButtonsKit()
+	kitButtonsWPC := MakeSettingButtonsKit()
 
 	// привязываем к кнопкам соответствующие процедуры
 	kitButtonsWPC.ButtonCancel.OnClicked(func(*ui.Button) {
@@ -2563,7 +2563,7 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 		updatedWallPostCommentMonitorParam.Interval = kitWndWPCInterval.Spinbox.Value()
 		if len(kitWndWPCSendTo.Entry.Text()) == 0 {
 			warningTitle := "Field \"Send to\" must not be empty."
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		updatedWallPostCommentMonitorParam.SendTo, err = strconv.Atoi(kitWndWPCSendTo.Entry.Text())
@@ -2574,7 +2574,7 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 		listPostsFilters := []string{"all", "others", "owner"}
 		if kitWndWPCFilter.Combobox.Selected() == -1 {
 			warningTitle := "You must select an item in the combobox \"Filter\""
-			showWarningWindow(warningTitle)
+			ShowWarningWindow(warningTitle)
 			return
 		}
 		updatedWallPostCommentMonitorParam.Filter = listPostsFilters[kitWndWPCFilter.Combobox.Selected()]

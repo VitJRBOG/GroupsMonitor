@@ -20,6 +20,9 @@ func RunGui() error {
 }
 
 func initGui() {
+	// проверяем наличие ресурсных файлов программы, и если их нет, то создаем
+	initFiles()
+
 	// получаем список со ссылками на потоки
 	threads := createThreads()
 
@@ -378,6 +381,20 @@ func numericEntriesHandler(numericEntry *ui.Entry) {
 		numericEntry.SetText("-" + correctValue)
 	} else {
 		numericEntry.SetText(correctValue)
+	}
+}
+
+func initFiles() {
+	dbHasBeenCreated, err := CheckFiles()
+	if err != nil {
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
+	}
+
+	if dbHasBeenCreated {
+		message := "File of database has been created just now. Database is empty. " +
+			"Need to create new access token and new subject for monitoring."
+		showWarningWindow(message)
 	}
 }
 

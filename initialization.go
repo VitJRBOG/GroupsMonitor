@@ -6,26 +6,26 @@ import (
 )
 
 // CheckFiles проверяет наличие файлов, необходимых для нормальной работы программы
-func CheckFiles() error {
+func CheckFiles() (bool, error) {
 	// проверяем наличие файла, в котором хранится лог-вывод программы
 	err := checkLogFileExistence()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// проверяем наличие файла, в котором хранится путь к остальным файлам
 	err = checkPathFileExistence()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// проверяем наличие файла БД
-	err = checkDBFileExistence()
+	dbHasBeenCreated, err := checkDBFileExistence()
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return dbHasBeenCreated, nil
 }
 
 // checkLogFileExistence проверяет наличие файла, где хранится лог-вывод программы
@@ -38,9 +38,6 @@ func checkLogFileExistence() error {
 		if err != nil {
 			return err
 		}
-		sender := "Initialization"
-		message := "File \"log.txt\" has been created."
-		OutputMessage(sender, message)
 	}
 
 	return nil
@@ -57,33 +54,28 @@ func checkPathFileExistence() error {
 		if err != nil {
 			return err
 		}
-		sender := "Initialization"
-		message := "File \"path.txt\" has been created."
-		OutputMessage(sender, message)
 	}
 
 	return nil
 }
 
 // checkDBFileExistence проверяет наличие файла БД
-func checkDBFileExistence() error {
+func checkDBFileExistence() (bool, error) {
+	hasBeenCreated := false
+
 	path, err := ReadPathFile()
 	if err != nil {
-		return err
+		return hasBeenCreated, err
 	}
 	// проверяем
 	if _, err := os.Stat(path + "groupsmonitor_db.db"); os.IsNotExist(err) {
 		// если файл БД отсутствует, создаем
 		err = InitDB()
 		if err != nil {
-			return err
+			return hasBeenCreated, err
 		}
-		sender := "Initialization"
-		message := "Database has been created."
-		OutputMessage(sender, message)
-		message = "Database is empty. Need to create new access token and new subject for monitoring."
-		OutputMessage(sender, message)
+		hasBeenCreated = true
 	}
 
-	return nil
+	return hasBeenCreated, nil
 }

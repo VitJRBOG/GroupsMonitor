@@ -65,6 +65,43 @@ func makeSettingsBox() *ui.Box {
 	return boxSettings
 }
 
+func makePrimarySettingsBox(generalBoxesData GeneralBoxesData, groupsSettingsData GroupsSettingsData) *ui.Box {
+	// описываем коробку для первичных установок
+	boxPrimarySettings := ui.NewVerticalBox()
+
+	// описываем кнопку для отображения установок токенов доступа
+	btnAccessTokensSettings := ui.NewButton("Access tokens")
+	// по умолчанию делаем ее неактивной
+	btnAccessTokensSettings.Disable()
+	// описываем кнопку для отображения установок субъектов
+	btnSubjectsSettings := ui.NewButton("Subjects")
+
+	// привязываем кнопки к процедурам отображения соответствующих блоков настроек
+	btnAccessTokensSettings.OnClicked(func(*ui.Button) {
+		groupsSettingsData.Additional.SetChild(ui.NewLabel("Nothing to show here..."))
+		groupsSettingsData.General.SetTitle("Access tokens")
+		groupsSettingsData.General.SetChild(generalBoxesData.AccessTokens)
+		btnAccessTokensSettings.Disable()
+		if !(btnSubjectsSettings.Enabled()) {
+			btnSubjectsSettings.Enable()
+		}
+	})
+	btnSubjectsSettings.OnClicked(func(*ui.Button) {
+		groupsSettingsData.General.SetTitle("Subjects")
+		groupsSettingsData.General.SetChild(generalBoxesData.Subjects)
+		btnSubjectsSettings.Disable()
+		if !(btnAccessTokensSettings.Enabled()) {
+			btnAccessTokensSettings.Enable()
+		}
+	})
+
+	// добавляем кнопки на коробку для первичных установок
+	boxPrimarySettings.Append(btnAccessTokensSettings, false)
+	boxPrimarySettings.Append(btnSubjectsSettings, false)
+
+	return boxPrimarySettings
+}
+
 func makeAccessTokensSettingsBox() *ui.Box {
 	boxAccessTokensSettings := ui.NewVerticalBox()
 

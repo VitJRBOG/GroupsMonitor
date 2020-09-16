@@ -7,9 +7,9 @@ import (
 
 // Thread - структура для хранения данных о потоке
 type Thread struct {
-	Name     string
-	StopFlag int
-	Status   string
+	Name       string
+	ActionFlag int // 0 - nothing, 1 - stopping, 2 - restarting, 3 - waiting
+	Status     string
 }
 
 // MakeThreads создает и запускает потоки
@@ -258,18 +258,24 @@ func wallPostMonitoring(threadData *Thread, subject Subject) {
 			time.Sleep(1 * time.Second)
 
 			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.StopFlag == 1 {
+			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
 			}
 
 			// если выставлен флаг рестарта
-			if threadData.StopFlag == 2 {
+			if threadData.ActionFlag == 2 {
 				// то обновляем статус потока
 				threadData.Status = "alive"
 				// и перезапускаем функцию
-				threadData.StopFlag = 0
+				threadData.ActionFlag = 0
 				wallPostMonitoring(threadData, subject)
+			}
+
+			// если выставлен флаг ожидания
+			if threadData.ActionFlag == 3 {
+				// то обновляем статус потока
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -344,18 +350,24 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 			time.Sleep(1 * time.Second)
 
 			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.StopFlag == 1 {
+			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
 			}
 
 			// если выставлен флаг рестарта
-			if threadData.StopFlag == 2 {
+			if threadData.ActionFlag == 2 {
 				// то обновляем статус потока
 				threadData.Status = "alive"
 				// и перезапускаем функцию
-				threadData.StopFlag = 0
+				threadData.ActionFlag = 0
 				albumPhotoMonitoring(threadData, subject)
+			}
+
+			// если выставлен флаг ожидания
+			if threadData.ActionFlag == 3 {
+				// то обновляем статус потока
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -432,18 +444,24 @@ func videoMonitoring(threadData *Thread, subject Subject) {
 			time.Sleep(1 * time.Second)
 
 			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.StopFlag == 1 {
+			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
 			}
 
 			// если выставлен флаг рестарта
-			if threadData.StopFlag == 2 {
+			if threadData.ActionFlag == 2 {
 				// то обновляем статус потока
 				threadData.Status = "alive"
 				// и перезапускаем функцию
-				threadData.StopFlag = 0
+				threadData.ActionFlag = 0
 				videoMonitoring(threadData, subject)
+			}
+
+			// если выставлен флаг ожидания
+			if threadData.ActionFlag == 3 {
+				// то обновляем статус потока
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -520,18 +538,24 @@ func photoCommentMonitoring(threadData *Thread, subject Subject) {
 			time.Sleep(1 * time.Second)
 
 			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.StopFlag == 1 {
+			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
 			}
 
 			// если выставлен флаг рестарта
-			if threadData.StopFlag == 2 {
+			if threadData.ActionFlag == 2 {
 				// то обновляем статус потока
 				threadData.Status = "alive"
 				// и перезапускаем функцию
-				threadData.StopFlag = 0
+				threadData.ActionFlag = 0
 				photoCommentMonitoring(threadData, subject)
+			}
+
+			// если выставлен флаг ожидания
+			if threadData.ActionFlag == 3 {
+				// то обновляем статус потока
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -608,18 +632,24 @@ func videoCommentMonitoring(threadData *Thread, subject Subject) {
 			time.Sleep(1 * time.Second)
 
 			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.StopFlag == 1 {
+			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
 			}
 
 			// если выставлен флаг рестарта
-			if threadData.StopFlag == 2 {
+			if threadData.ActionFlag == 2 {
 				// то обновляем статус потока
 				threadData.Status = "alive"
 				// и перезапускаем функцию
-				threadData.StopFlag = 0
+				threadData.ActionFlag = 0
 				videoCommentMonitoring(threadData, subject)
+			}
+
+			// если выставлен флаг ожидания
+			if threadData.ActionFlag == 3 {
+				// то обновляем статус потока
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -694,18 +724,24 @@ func topicMonitoring(threadData *Thread, subject Subject) {
 			time.Sleep(1 * time.Second)
 
 			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.StopFlag == 1 {
+			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
 			}
 
 			// если выставлен флаг рестарта
-			if threadData.StopFlag == 2 {
+			if threadData.ActionFlag == 2 {
 				// то обновляем статус потока
 				threadData.Status = "alive"
 				// и перезапускаем функцию
-				threadData.StopFlag = 0
+				threadData.ActionFlag = 0
 				topicMonitoring(threadData, subject)
+			}
+
+			// если выставлен флаг ожидания
+			if threadData.ActionFlag == 3 {
+				// то обновляем статус потока
+				threadData.Status = "waiting"
 			}
 		}
 
@@ -780,18 +816,24 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
 			time.Sleep(1 * time.Second)
 
 			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.StopFlag == 1 {
+			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
 			}
 
 			// если выставлен флаг рестарта
-			if threadData.StopFlag == 2 {
+			if threadData.ActionFlag == 2 {
 				// то обновляем статус потока
 				threadData.Status = "alive"
 				// и перезапускаем функцию
-				threadData.StopFlag = 0
+				threadData.ActionFlag = 0
 				wallPostCommentMonitoring(threadData, subject)
+			}
+
+			// если выставлен флаг ожидания
+			if threadData.ActionFlag == 3 {
+				// то обновляем статус потока
+				threadData.Status = "waiting"
 			}
 		}
 

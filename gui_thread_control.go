@@ -181,11 +181,11 @@ func makeSubjectBox(subjectName string, threads []*Thread) *ui.Box {
 				if strings.ToLower(threadData.Name) == strings.ToLower(subjectName+"'s "+btnTitle) {
 					// привязываем к кнопке управления потоком соответствующую процедуру
 					btnMonitorControl.OnClicked(func(*ui.Button) {
-						if threadData.Status == "waiting" {
-							threadData.Status = "alive"
+						if threadData.ActionFlag == 3 {
+							threadData.ActionFlag = 2
 						} else {
-							if threadData.Status == "alive" {
-								threadData.Status = "waiting"
+							if threadData.ActionFlag != 1 {
+								threadData.ActionFlag = 3
 							}
 						}
 					})

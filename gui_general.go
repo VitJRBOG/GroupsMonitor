@@ -85,7 +85,7 @@ func RestartThreads(threads []*Thread) {
 	// пробегаем по всем потокам и выставляем флаги на перезапуск потоков
 	for _, thread := range threads {
 		if thread != nil {
-			thread.StopFlag = 2
+			thread.ActionFlag = 2
 		}
 	}
 
@@ -103,7 +103,7 @@ func StopThreads(threads []*Thread) {
 	// пробегаем по всем потокам и выставляем флаги на остановку
 	for _, thread := range threads {
 		if thread != nil {
-			thread.StopFlag = 1
+			thread.ActionFlag = 1
 		}
 	}
 

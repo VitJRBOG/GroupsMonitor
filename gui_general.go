@@ -30,16 +30,16 @@ func makeGeneralBox(threads []*Thread) *ui.Box {
 
 	// и привязываем к каждой соответствующую процедуру
 	btnStart.OnClicked(func(*ui.Button) {
-		StartThreads(threads)
+		go StartThreads(threads)
 		btnStart.Disable()
 		btnRestart.Enable()
 		btnStop.Enable()
 	})
 	btnRestart.OnClicked(func(*ui.Button) {
-		RestartThreads(threads)
+		go RestartThreads(threads)
 	})
 	btnStop.OnClicked(func(*ui.Button) {
-		StopThreads(threads)
+		go StopThreads(threads)
 		btnRestart.Disable()
 		btnStop.Disable()
 	})

@@ -12,132 +12,188 @@ import (
 
 // RunGui запускает собранный GUI
 func RunGui() error {
-	err := ui.Main(initGui)
+	err := ui.Main(initGUI)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func initGui() {
-	// проверяем наличие ресурсных файлов программы, и если их нет, то создаем
-	initFiles()
+// mainWindow хранит данные о главном окне программы
+type mainWindow struct {
+	window *ui.Window
+}
 
-	// получаем список со ссылками на потоки
-	threads := createThreads()
-
-	// описываем главное окно GUI
-	wndMain := ui.NewWindow("GroupsMonitor", 255, 160, true)
-	wndMain.SetMargined(true)
-	wndMain.OnClosing(func(*ui.Window) bool {
+func (mw *mainWindow) init() {
+	mw.window = ui.NewWindow("GroupsMonitor", 255, 160, true)
+	mw.window.SetMargined(true)
+	mw.window.OnClosing(func(*ui.Window) bool {
 		ui.Quit()
 		return true
 	})
 	ui.OnShouldQuit(func() bool {
-		wndMain.Destroy()
+		mw.window.Destroy()
 		return true
 	})
-
-	// описываем главную коробку для объектов интерфейса
-	boxMain := ui.NewVerticalBox()
-	boxMain.SetPadded(true)
-	// и добавляем ее на главное окно
-	wndMain.SetChild(boxMain)
-
-	// описываем группу для нижней панели окна
-	groupBottom := ui.NewGroup("")
-	groupBottom.SetMargined(true)
-
-	// получаем коробку с основными кнопками
-	boxGeneral := makeGeneralBox(threads)
-	// и сразу добавляем ее в группу
-	groupBottom.SetChild(boxGeneral)
-	groupBottom.SetTitle("General")
-
-	// получаем коробку для управления потоками
-	boxThreadControl := makeThreadControlBox(threads)
-
-	// получаем коробку с настройками мониторинга
-	boxSettings := makeSettingsBox()
-
-	// получаем коробку с переключателями панелей
-	boxSelection := makeSelectionBox(groupBottom, boxGeneral, boxThreadControl, boxSettings)
-
-	// в конце добавляем на главную коробку коробку с кнопками-переключателями
-	boxMain.Append(boxSelection, false)
-	// а затем группу
-	boxMain.Append(groupBottom, false)
-
-	// отображаем главное окно
-	wndMain.Show()
+	mw.window.Show()
 }
 
-func makeSelectionBox(groupBottom *ui.Group, boxGeneral *ui.Box, boxThreadControl *ui.Box, boxSettings *ui.Box) *ui.Box {
-	// описываем верхнюю коробку
-	boxSelection := ui.NewHorizontalBox()
+func (mw *mainWindow) setBox(bmw boxMainWnd) {
+	mw.window.SetChild(bmw.box)
+}
 
-	// описываем левую верхнюю коробку
-	boxSelectionLeft := ui.NewHorizontalBox()
-	// и добавляем ее на верхнюю коробку
-	boxSelection.Append(boxSelectionLeft, true)
+// boxMainWnd хранит данные о главном боксе главного окна программы
+type boxMainWnd struct {
+	box *ui.Box
+}
 
-	// описываем коробку для кнопок переключения
-	boxSelectButton := ui.NewHorizontalBox()
-	// и добавляем ее на верхнюю коробку
-	boxSelection.Append(boxSelectButton, false)
+func (bmw *boxMainWnd) init() {
+	bmw.box = ui.NewVerticalBox()
+	bmw.box.SetPadded(true)
+}
 
-	// описываем правую верхнюю коробку
-	boxSelectionRight := ui.NewHorizontalBox()
-	// и добавляем ее на верхнюю коробку
-	boxSelection.Append(boxSelectionRight, true)
+func (bmw *boxMainWnd) appendUpperPart(upperPart upperPartBoxMainWnd) {
+	bmw.box.Append(upperPart.box, false)
+}
 
-	// описываем кнопки для переключения между коробками
-	btnGeneralBox := ui.NewButton("General")
-	btnGeneralBox.Disable()
-	btnThreadControlBox := ui.NewButton("Threads")
-	btnSettings := ui.NewButton("Settings")
+func (bmw *boxMainWnd) appendBottomPart(bottomPart bottomPartBoxMainWnd) {
+	bmw.box.Append(bottomPart.group, false)
+}
 
-	// затем добавляем эти кнопки в коробку для кнопок переключения между коробками
-	boxSelectButton.Append(btnGeneralBox, false)
-	boxSelectButton.Append(btnThreadControlBox, false)
-	boxSelectButton.Append(btnSettings, false)
+// upperPartBoxMainWnd хранит данные о верхней части главного бокса
+type upperPartBoxMainWnd struct {
+	box *ui.Box
+}
 
-	// затем привязываем к каждой кнопке-переключателе коробок соответствующую процедуру
-	btnGeneralBox.OnClicked(func(*ui.Button) {
-		groupBottom.SetChild(boxGeneral)
-		groupBottom.SetTitle("General")
-		btnGeneralBox.Disable()
-		if !(btnThreadControlBox.Enabled()) {
-			btnThreadControlBox.Enable()
+func (upperPart *upperPartBoxMainWnd) init() {
+	upperPart.box = ui.NewHorizontalBox()
+}
+
+func (upperPart *upperPartBoxMainWnd) initFlexibleSpaceBox() {
+	box := ui.NewHorizontalBox()
+	upperPart.box.Append(box, true)
+}
+
+func (upperPart *upperPartBoxMainWnd) appendButtonsBox(sbb selectingButtonsBox) {
+	upperPart.box.Append(sbb.box, false)
+}
+
+// selectingButtonsBox хранит данные о кнопках переключения между разделами программы
+type selectingButtonsBox struct {
+	box               *ui.Box
+	btnGeneral        *ui.Button
+	btnThreadsControl *ui.Button
+	btnSettings       *ui.Button
+}
+
+func (bb *selectingButtonsBox) init() {
+	bb.box = ui.NewHorizontalBox()
+}
+
+func (bb *selectingButtonsBox) initBtnGeneral(bottomPart bottomPartBoxMainWnd, boxGeneral *ui.Box) {
+	bb.btnGeneral = ui.NewButton("General")
+	bb.btnGeneral.Disable()
+
+	bb.btnGeneral.OnClicked(func(*ui.Button) {
+		bottomPart.group.SetChild(boxGeneral)
+		bottomPart.group.SetTitle("General")
+		bb.btnGeneral.Disable()
+		if !(bb.btnThreadsControl.Enabled()) {
+			bb.btnThreadsControl.Enable()
 		}
-		if !(btnSettings.Enabled()) {
-			btnSettings.Enable()
+		if !(bb.btnSettings.Enabled()) {
+			bb.btnSettings.Enable()
 		}
 	})
-	btnThreadControlBox.OnClicked(func(*ui.Button) {
-		groupBottom.SetChild(boxThreadControl)
-		btnThreadControlBox.Disable()
-		groupBottom.SetTitle("Thread control")
-		if !(btnGeneralBox.Enabled()) {
-			btnGeneralBox.Enable()
+
+	bb.box.Append(bb.btnGeneral, false)
+}
+
+func (bb *selectingButtonsBox) initBtnThreadsControl(bottomPart bottomPartBoxMainWnd, boxThreadsControl *ui.Box) {
+	bb.btnThreadsControl = ui.NewButton("Threads")
+
+	bb.btnThreadsControl.OnClicked(func(*ui.Button) {
+		bottomPart.group.SetChild(boxThreadsControl)
+		bb.btnThreadsControl.Disable()
+		bottomPart.group.SetTitle("Thread control")
+		if !(bb.btnGeneral.Enabled()) {
+			bb.btnGeneral.Enable()
 		}
-		if !(btnSettings.Enabled()) {
-			btnSettings.Enable()
-		}
-	})
-	btnSettings.OnClicked(func(*ui.Button) {
-		groupBottom.SetChild(boxSettings)
-		groupBottom.SetTitle("Settings")
-		btnSettings.Disable()
-		if !(btnGeneralBox.Enabled()) {
-			btnGeneralBox.Enable()
-		}
-		if !(btnThreadControlBox.Enabled()) {
-			btnThreadControlBox.Enable()
+		if !(bb.btnSettings.Enabled()) {
+			bb.btnSettings.Enable()
 		}
 	})
 
-	return boxSelection
+	bb.box.Append(bb.btnThreadsControl, false)
+}
+
+func (bb *selectingButtonsBox) initBtnSettings(bottomPart bottomPartBoxMainWnd, boxSettings *ui.Box) {
+	bb.btnSettings = ui.NewButton("Settings")
+
+	bb.btnSettings.OnClicked(func(*ui.Button) {
+		bottomPart.group.SetChild(boxSettings)
+		bottomPart.group.SetTitle("Settings")
+		bb.btnSettings.Disable()
+		if !(bb.btnGeneral.Enabled()) {
+			bb.btnGeneral.Enable()
+		}
+		if !(bb.btnThreadsControl.Enabled()) {
+			bb.btnThreadsControl.Enable()
+		}
+	})
+
+	bb.box.Append(bb.btnSettings, false)
+}
+
+// bottomPartBoxMainWnd хранит данные о нижней части главного бокса
+type bottomPartBoxMainWnd struct {
+	group *ui.Group
+}
+
+func (bottomPart *bottomPartBoxMainWnd) init() {
+	bottomPart.group = ui.NewGroup("General")
+	bottomPart.group.SetMargined(true)
+}
+
+func (bottomPart *bottomPartBoxMainWnd) setBox(box *ui.Box) {
+	bottomPart.group.SetChild(box)
+}
+
+// initGUI собирает GUI
+func initGUI() {
+	initFiles()
+
+	threads := createThreads()
+
+	boxGeneral := makeGeneralBox(threads)
+	boxThreadsControl := makeThreadControlBox(threads)
+	boxSettings := makeSettingsBox()
+
+	var bmw boxMainWnd
+	bmw.init()
+
+	var bottomPart bottomPartBoxMainWnd
+	bottomPart.init()
+	bottomPart.setBox(boxGeneral)
+
+	var btnsBox selectingButtonsBox
+	btnsBox.init()
+	btnsBox.initBtnGeneral(bottomPart, boxGeneral)
+	btnsBox.initBtnThreadsControl(bottomPart, boxThreadsControl)
+	btnsBox.initBtnSettings(bottomPart, boxSettings)
+
+	var upperPart upperPartBoxMainWnd
+	upperPart.init()
+	upperPart.initFlexibleSpaceBox()
+	upperPart.appendButtonsBox(btnsBox)
+	upperPart.initFlexibleSpaceBox()
+
+	bmw.appendUpperPart(upperPart)
+	bmw.appendBottomPart(bottomPart)
+
+	var mw mainWindow
+	mw.init()
+	mw.setBox(bmw)
 }
 
 // WindowSettingsKit хранит ссылки на объекты окна с установками модулей мониторинга
@@ -393,6 +449,7 @@ func NumericEntriesHandler(numericEntry *ui.Entry) {
 	}
 }
 
+// initFiles запускает процесс инициализации файлов
 func initFiles() {
 	dbHasBeenCreated, err := CheckFiles()
 	if err != nil {
@@ -407,8 +464,8 @@ func initFiles() {
 	}
 }
 
+// createThreads запускает процесс создания потоков с модулями проверки
 func createThreads() []*Thread {
-	// запускаем функцию создания потоков с модулями проверки
 	threads, err := MakeThreads()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))

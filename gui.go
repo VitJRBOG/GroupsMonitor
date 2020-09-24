@@ -381,51 +381,96 @@ func MakeSettingButtonsKit() ButtonsKit {
 	return buttonsKit
 }
 
-// ShowWarningWindow отображает окно с сообщением для пользователя
-func ShowWarningWindow(warningTitle string) {
-	// описываем окно с информацией об ошибке
-	windowWarning := ui.NewWindow("WARNING!", 100, 100, true)
-	windowWarning.SetMargined(true)
-	windowWarning.OnClosing(func(*ui.Window) bool {
-		windowWarning.Disable()
+// warningWindow хранит данные об окне с сообщением для пользователя
+type warningWindow struct {
+	window *ui.Window
+}
+
+func (ww *warningWindow) init() {
+	ww.window = ui.NewWindow("WARNING!", 100, 100, true)
+	ww.window.SetMargined(true)
+	ww.window.OnClosing(func(*ui.Window) bool {
+		ww.window.Disable()
 		return true
 	})
+	ww.window.Show()
+}
 
-	// описываем основную коробку
-	boxWndWarning := ui.NewVerticalBox()
-	boxWndWarning.SetPadded(true)
-	windowWarning.SetChild(boxWndWarning)
+func (ww *warningWindow) setBox(box boxWarningWnd) {
+	ww.window.SetChild(box.box)
+}
 
-	// описываем коробку для информации
-	boxInfo := ui.NewVerticalBox()
+// boxWarningWnd хранит данные о главном боксе для окна с сообщением
+type boxWarningWnd struct {
+	box *ui.Box
+}
 
-	// описываем заголовок ошибки
-	labelTitleWarning := ui.NewLabel(warningTitle)
-	boxInfo.Append(labelTitleWarning, true)
+func (bww *boxWarningWnd) init() {
+	bww.box = ui.NewVerticalBox()
+	bww.box.SetPadded(true)
+}
 
-	// описываем коробку для кнопки
-	boxButton := ui.NewHorizontalBox()
+func (bww *boxWarningWnd) appendInfoBox(bwi boxWarningInfo) {
+	bww.box.Append(bwi.box, false)
+}
 
-	// описываем кнопку
-	buttonOK := ui.NewButton("OK")
-	buttonOK.OnClicked(func(*ui.Button) {
-		windowWarning.Hide()
+func (bww *boxWarningWnd) appendBtnsBox(bwb boxWarningBtn) {
+	bww.box.Append(bwb.box, false)
+}
+
+// boxWarningInfo хранит данные о информационной части главного бокса
+type boxWarningInfo struct {
+	box *ui.Box
+}
+
+func (bwi *boxWarningInfo) init(warningTitle string) {
+	bwi.box = ui.NewVerticalBox()
+	titleLabel := ui.NewLabel(warningTitle)
+	bwi.box.Append(titleLabel, true)
+}
+
+// boxWarningBtn хранит данные о части главного бокса, на которой размещена кнопка OK
+type boxWarningBtn struct {
+	box   *ui.Box
+	btnOk *ui.Button
+}
+
+func (bwb *boxWarningBtn) init() {
+	bwb.box = ui.NewHorizontalBox()
+}
+
+func (bwb *boxWarningBtn) initFlexibleSpaceBox() {
+	box := ui.NewVerticalBox()
+	bwb.box.Append(box, true)
+}
+
+func (bwb *boxWarningBtn) initBtnOk(ww warningWindow) {
+	bwb.btnOk = ui.NewButton("OK")
+	bwb.btnOk.OnClicked(func(*ui.Button) {
+		ww.window.Hide()
 	})
+	bwb.box.Append(bwb.btnOk, false)
+}
 
-	// описываем коробку для выравнивания кнопки и коробку с кнопкой
-	boxLeftPartButtonBox := ui.NewVerticalBox()
-	boxRightPartButtonBox := ui.NewVerticalBox()
-	boxRightPartButtonBox.Append(buttonOK, false)
+// ShowWarningWindow отображает окно с сообщением для пользователя
+func ShowWarningWindow(warningTitle string) {
+	var bww boxWarningWnd
+	bww.init()
 
-	// добавляем их на коробку для кнопки
-	boxButton.Append(boxLeftPartButtonBox, true)
-	boxButton.Append(boxRightPartButtonBox, false)
+	var ww warningWindow
+	ww.init()
+	ww.setBox(bww)
 
-	// добавляем все эти компоненты на главную коробку
-	boxWndWarning.Append(boxInfo, false)
-	boxWndWarning.Append(boxButton, false)
+	var bwi boxWarningInfo
+	bwi.init(warningTitle)
 
-	windowWarning.Show()
+	var bwb boxWarningBtn
+	bwb.init()
+	bwb.initFlexibleSpaceBox()
+	bwb.initBtnOk(ww)
+
+	bww.appendInfoBox(bwi)
+	bww.appendBtnsBox(bwb)
 }
 
 // NumericEntriesHandler обработчик текстовых полей, предназначенных для ввода числа

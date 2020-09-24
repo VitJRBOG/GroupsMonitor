@@ -441,6 +441,8 @@ func showSubjectAdditionWindow() {
 
 	boxWndSAdditionLeft := ui.NewVerticalBox()
 	boxWndSAdditionLeft.SetPadded(true)
+	boxWndSAdditionCenter := ui.NewVerticalBox()
+	boxWndSAdditionCenter.SetPadded(true)
 	boxWndSAdditionRight := ui.NewVerticalBox()
 	boxWndSAdditionRight.SetPadded(true)
 
@@ -697,16 +699,19 @@ func showSubjectAdditionWindow() {
 	boxWndSAdditionLeft.Append(groupSAdditionGeneral, false)
 	boxWndSAdditionLeft.Append(groupSAdditionWPM, false)
 	boxWndSAdditionLeft.Append(groupSAdditionAPM, false)
-	boxWndSAdditionLeft.Append(groupSAdditionVM, false)
+
+	// коробку посередине
+	boxWndSAdditionCenter.Append(groupSAdditionVM, false)
+	boxWndSAdditionCenter.Append(groupSAdditionPCM, false)
+	boxWndSAdditionCenter.Append(groupSAdditionVCM, false)
 
 	// и правую коробку (для экономии места из-за отсутствия в данной библиотеке для gui скроллинга)
-	boxWndSAdditionRight.Append(groupSAdditionPCM, false)
-	boxWndSAdditionRight.Append(groupSAdditionVCM, false)
 	boxWndSAdditionRight.Append(groupSAdditionTM, false)
 	boxWndSAdditionRight.Append(groupSAdditionWPCM, false)
 
 	// затем добавляем левую и правую коробки на одну общую
 	boxWndSAddition.Append(boxWndSAdditionLeft, false)
+	boxWndSAddition.Append(boxWndSAdditionCenter, false)
 	boxWndSAddition.Append(boxWndSAdditionRight, false)
 
 	// добавляем коробку в основную коробку окна

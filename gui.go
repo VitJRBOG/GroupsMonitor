@@ -268,19 +268,30 @@ type SpinboxKit struct {
 	Spinbox *ui.Spinbox
 }
 
+func (sbk *SpinboxKit) init() {
+	sbk.Box = ui.NewHorizontalBox()
+	sbk.Box.SetPadded(true)
+}
+
+func (sbk *SpinboxKit) initLabel(labelTitle string) {
+	label := ui.NewLabel(labelTitle)
+	sbk.Box.Append(label, true)
+}
+
+func (sbk *SpinboxKit) initSpinbox(minValue, maxValue, currentValue int) {
+	sbk.Spinbox = ui.NewSpinbox(minValue, maxValue)
+	sbk.Spinbox.SetValue(currentValue)
+	sbk.Box.Append(sbk.Spinbox, true)
+}
+
 // MakeSettingSpinboxKit создает набор для спинбокса
 func MakeSettingSpinboxKit(labelTitle string, minValue, maxValue, currentValue int) SpinboxKit {
-	var spinboxKit SpinboxKit
+	var sbk SpinboxKit
+	sbk.init()
+	sbk.initLabel(labelTitle)
+	sbk.initSpinbox(minValue, maxValue, currentValue)
 
-	spinboxKit.Box = ui.NewHorizontalBox()
-	spinboxKit.Box.SetPadded(true)
-	labelObj := ui.NewLabel(labelTitle)
-	spinboxKit.Box.Append(labelObj, true)
-	spinboxKit.Spinbox = ui.NewSpinbox(minValue, maxValue)
-	spinboxKit.Spinbox.SetValue(currentValue)
-	spinboxKit.Box.Append(spinboxKit.Spinbox, true)
-
-	return spinboxKit
+	return sbk
 }
 
 // EntryKit хранит ссылки на объекты для параметров с полями для ввода текста

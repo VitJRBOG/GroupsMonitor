@@ -418,29 +418,34 @@ type ButtonsKit struct {
 	ButtonCancel *ui.Button
 }
 
+func (bk *ButtonsKit) init() {
+	bk.Box = ui.NewHorizontalBox()
+	bk.Box.SetPadded(true)
+}
+
+func (bk *ButtonsKit) initFlexibleSpaceBox() {
+	box := ui.NewHorizontalBox()
+	bk.Box.Append(box, false)
+}
+
+func (bk *ButtonsKit) initButtons() {
+	buttonsBox := ui.NewHorizontalBox()
+	bk.ButtonApply = ui.NewButton("Apply")
+	bk.ButtonCancel = ui.NewButton("Cancel")
+	buttonsBox.Append(bk.ButtonApply, false)
+	buttonsBox.Append(bk.ButtonCancel, false)
+	bk.Box.Append(buttonsBox, false)
+}
+
 // MakeSettingButtonsKit создает набор для кнопок отмены и принятия изменений
 func MakeSettingButtonsKit() ButtonsKit {
-	var buttonsKit ButtonsKit
+	var bk ButtonsKit
+	bk.init()
+	bk.initFlexibleSpaceBox()
+	bk.initFlexibleSpaceBox()
+	bk.initButtons()
 
-	buttonsKit.Box = ui.NewHorizontalBox()
-	buttonsKit.Box.SetPadded(true)
-
-	boxButtons := ui.NewHorizontalBox()
-	boxButtons.SetPadded(true)
-	buttonsKit.ButtonCancel = ui.NewButton("Cancel")
-	boxButtons.Append(buttonsKit.ButtonCancel, false)
-	buttonsKit.ButtonApply = ui.NewButton("Apply")
-	boxButtons.Append(buttonsKit.ButtonApply, false)
-
-	// для выравнивания кнопок
-	boxEmptyLeft := ui.NewHorizontalBox()
-	boxEmptyCenter := ui.NewHorizontalBox()
-
-	buttonsKit.Box.Append(boxEmptyLeft, false)
-	buttonsKit.Box.Append(boxEmptyCenter, false)
-	buttonsKit.Box.Append(boxButtons, false)
-
-	return buttonsKit
+	return bk
 }
 
 // warningWindow хранит данные об окне с сообщением для пользователя

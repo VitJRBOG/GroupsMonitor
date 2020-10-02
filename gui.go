@@ -332,15 +332,18 @@ type EntryListKit struct {
 	Entry *ui.Entry
 }
 
-// MakeSettingEntryListKit создает набор для текстового поля с перечислением
-func MakeSettingEntryListKit(labelTitle, jsonDump string) EntryListKit {
-	var entryListKit EntryListKit
+func (elk *EntryListKit) init() {
+	elk.Box = ui.NewHorizontalBox()
+	elk.Box.SetPadded(true)
+}
 
-	entryListKit.Box = ui.NewHorizontalBox()
-	entryListKit.Box.SetPadded(true)
-	labelObj := ui.NewLabel(labelTitle)
-	entryListKit.Box.Append(labelObj, true)
-	entryListKit.Entry = ui.NewEntry()
+func (elk *EntryListKit) initLabel(labelTitle string) {
+	label := ui.NewLabel(labelTitle)
+	elk.Box.Append(label, true)
+}
+
+func (elk *EntryListKit) initEntry(jsonDump string) {
+	elk.Entry = ui.NewEntry()
 	structFromDump, err := MakeParamList(jsonDump)
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
@@ -354,11 +357,19 @@ func MakeSettingEntryListKit(labelTitle, jsonDump string) EntryListKit {
 			}
 			list += fmt.Sprintf("\"%v\"", item)
 		}
-		entryListKit.Entry.SetText(list)
+		elk.Entry.SetText(list)
 	}
-	entryListKit.Box.Append(entryListKit.Entry, true)
+	elk.Box.Append(elk.Entry, true)
+}
 
-	return entryListKit
+// MakeSettingEntryListKit создает набор для текстового поля с перечислением
+func MakeSettingEntryListKit(labelTitle, jsonDump string) EntryListKit {
+	var elk EntryListKit
+	elk.init()
+	elk.initLabel(labelTitle)
+	elk.initEntry(jsonDump)
+
+	return elk
 }
 
 // ComboboxKit хранит ссылки на объекты для параметров с выпадающим списком

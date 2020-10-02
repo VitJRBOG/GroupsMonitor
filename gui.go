@@ -232,23 +232,34 @@ type CheckboxKit struct {
 	CheckBox *ui.Checkbox
 }
 
+func (cbk *CheckboxKit) init() {
+	cbk.Box = ui.NewHorizontalBox()
+	cbk.Box.SetPadded(true)
+}
+
+func (cbk *CheckboxKit) initLabel(labelTitle string) {
+	label := ui.NewLabel(labelTitle)
+	cbk.Box.Append(label, true)
+}
+
+func (cbk *CheckboxKit) initCheckbox(needMonitoringFlag int) {
+	cbk.CheckBox = ui.NewCheckbox("")
+	if needMonitoringFlag == 1 {
+		cbk.CheckBox.SetChecked(true)
+	} else {
+		cbk.CheckBox.SetChecked(false)
+	}
+	cbk.Box.Append(cbk.CheckBox, true)
+}
+
 // MakeSettingCheckboxKit создает набор для поля с переключателем
 func MakeSettingCheckboxKit(labelTitle string, needMonitoringFlag int) CheckboxKit {
-	var checkboxKit CheckboxKit
+	var cbk CheckboxKit
+	cbk.init()
+	cbk.initLabel(labelTitle)
+	cbk.initCheckbox(needMonitoringFlag)
 
-	checkboxKit.Box = ui.NewHorizontalBox()
-	checkboxKit.Box.SetPadded(true)
-	labelObj := ui.NewLabel(labelTitle)
-	checkboxKit.Box.Append(labelObj, true)
-	checkboxKit.CheckBox = ui.NewCheckbox("")
-	if needMonitoringFlag == 1 {
-		checkboxKit.CheckBox.SetChecked(true)
-	} else {
-		checkboxKit.CheckBox.SetChecked(false)
-	}
-	checkboxKit.Box.Append(checkboxKit.CheckBox, true)
-
-	return checkboxKit
+	return cbk
 }
 
 // SpinboxKit хранит ссылки на объекты для параметров с спинбоксом

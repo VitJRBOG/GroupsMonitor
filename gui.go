@@ -300,19 +300,30 @@ type EntryKit struct {
 	Entry *ui.Entry
 }
 
+func (ek *EntryKit) init() {
+	ek.Box = ui.NewHorizontalBox()
+	ek.Box.SetPadded(true)
+}
+
+func (ek *EntryKit) initLabel(labelTitle string) {
+	label := ui.NewLabel(labelTitle)
+	ek.Box.Append(label, true)
+}
+
+func (ek *EntryKit) initEntry(entryValue string) {
+	ek.Entry = ui.NewEntry()
+	ek.Entry.SetText(entryValue)
+	ek.Box.Append(ek.Entry, true)
+}
+
 // MakeSettingEntryKit создает набор для текстового поля
 func MakeSettingEntryKit(labelTitle string, entryValue string) EntryKit {
-	var entryKit EntryKit
+	var ek EntryKit
+	ek.init()
+	ek.initLabel(labelTitle)
+	ek.initEntry(entryValue)
 
-	entryKit.Box = ui.NewHorizontalBox()
-	entryKit.Box.SetPadded(true)
-	labelObj := ui.NewLabel(labelTitle)
-	entryKit.Box.Append(labelObj, true)
-	entryKit.Entry = ui.NewEntry()
-	entryKit.Entry.SetText(entryValue)
-	entryKit.Box.Append(entryKit.Entry, true)
-
-	return entryKit
+	return ek
 }
 
 // EntryListKit хранит ссылки на объекты для параметров со списком в поле для ввода текста

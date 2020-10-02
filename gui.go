@@ -378,26 +378,37 @@ type ComboboxKit struct {
 	Combobox *ui.Combobox
 }
 
-// MakeSettingComboboxKit создает набор для поля с выпадающим списком
-func MakeSettingComboboxKit(labelTitle string, comboboxValues []string, currentValue string) ComboboxKit {
-	var comboboxKit ComboboxKit
+func (cbk *ComboboxKit) init() {
+	cbk.Box = ui.NewHorizontalBox()
+	cbk.Box.SetPadded(true)
+}
 
-	comboboxKit.Box = ui.NewHorizontalBox()
-	comboboxKit.Box.SetPadded(true)
-	labelObj := ui.NewLabel(labelTitle)
-	comboboxKit.Box.Append(labelObj, true)
-	comboboxKit.Combobox = ui.NewCombobox()
+func (cbk *ComboboxKit) initLabel(labelTitle string) {
+	label := ui.NewLabel(labelTitle)
+	cbk.Box.Append(label, true)
+}
+
+func (cbk *ComboboxKit) initCombobox(comboboxValues []string, currentValue string) {
+	cbk.Combobox = ui.NewCombobox()
 	slctd := -1
 	for i, item := range comboboxValues {
-		comboboxKit.Combobox.Append(item)
+		cbk.Combobox.Append(item)
 		if currentValue == item {
 			slctd = i
 		}
 	}
-	comboboxKit.Combobox.SetSelected(slctd)
-	comboboxKit.Box.Append(comboboxKit.Combobox, true)
+	cbk.Combobox.SetSelected(slctd)
+	cbk.Box.Append(cbk.Combobox, true)
+}
 
-	return comboboxKit
+// MakeSettingComboboxKit создает набор для поля с выпадающим списком
+func MakeSettingComboboxKit(labelTitle string, comboboxValues []string, currentValue string) ComboboxKit {
+	var cbk ComboboxKit
+	cbk.init()
+	cbk.initLabel(labelTitle)
+	cbk.initCombobox(comboboxValues, currentValue)
+
+	return cbk
 }
 
 // ButtonsKit хранит ссылки на объекты для кнопок принятия и отмены изменений в установках

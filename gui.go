@@ -202,21 +202,28 @@ type WindowSettingsKit struct {
 	Box    *ui.Box
 }
 
-// MakeSettingWindowKit создает набор для окна с установками
-func MakeSettingWindowKit(windowTitle string, width, height int) WindowSettingsKit {
-	var windowSettingsKit WindowSettingsKit
-
-	windowSettingsKit.Window = ui.NewWindow(windowTitle, width, height, true)
-	windowSettingsKit.Window.OnClosing(func(*ui.Window) bool {
-		windowSettingsKit.Window.Disable()
+func (wsk *WindowSettingsKit) init(windowTitle string, width, height int) {
+	wsk.Window = ui.NewWindow(windowTitle, width, height, true)
+	wsk.Window.OnClosing(func(*ui.Window) bool {
+		wsk.Window.Disable()
 		return true
 	})
-	windowSettingsKit.Window.SetMargined(true)
-	windowSettingsKit.Box = ui.NewVerticalBox()
-	windowSettingsKit.Box.SetPadded(true)
-	windowSettingsKit.Window.SetChild(windowSettingsKit.Box)
+	wsk.Window.SetMargined(true)
+}
 
-	return windowSettingsKit
+func (wsk *WindowSettingsKit) initBox() {
+	wsk.Box = ui.NewVerticalBox()
+	wsk.Box.SetPadded(true)
+	wsk.Window.SetChild(wsk.Box)
+}
+
+// MakeSettingWindowKit создает набор для окна с установками
+func MakeSettingWindowKit(windowTitle string, width, height int) WindowSettingsKit {
+	var wsk WindowSettingsKit
+	wsk.init(windowTitle, width, height)
+	wsk.initBox()
+
+	return wsk
 }
 
 // CheckboxKit хранит ссылки на объекты для параметров с переключателями

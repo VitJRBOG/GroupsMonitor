@@ -86,7 +86,8 @@ func GetAccessToken(methodName string, subject Subject, monitorID int) (AccessTo
 	var accessToken AccessToken
 
 	// запрашиваем из БД данные по методу vk api
-	method, err := SelectDBMethod(methodName, subject.ID, monitorID)
+	var method Method
+	err := method.selectFromDBByNameAndBySubjectIDAndByMonitorID(methodName, subject.ID, monitorID)
 	if err != nil {
 		return accessToken, err
 	}

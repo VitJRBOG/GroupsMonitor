@@ -1592,7 +1592,7 @@ func additionNewMethod(newMethodData NewMethodData) {
 	method.AccessTokenID = newMethodData.AccessTokenID
 	method.MonitorID = newMethodData.MonitorID
 
-	err := InsertDBMethod(method)
+	err := method.insertIntoDB()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())

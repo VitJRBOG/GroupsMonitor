@@ -322,21 +322,19 @@ type Method struct {
 	MonitorID     int
 }
 
-// InsertDBMethod добавляет новое поле в таблицу method
-func InsertDBMethod(method Method) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (m *Method) insertIntoDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.open()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// добавляем новое поле в таблицу
 	query := fmt.Sprintf(`INSERT INTO method (name, subject_id, 
 		access_token_id, monitor_id) 
 		VALUES ('%v', '%d', '%d', '%d')`,
-		method.Name, method.SubjectID, method.AccessTokenID, method.MonitorID)
-	_, err = db.Exec(query)
+		m.Name, m.SubjectID, m.AccessTokenID, m.MonitorID)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -344,35 +342,30 @@ func InsertDBMethod(method Method) error {
 	return nil
 }
 
-// SelectDBMethod извлекает из таблицы method поле с указанным name, subject_id и monitor_id
-func SelectDBMethod(methodName string, subjectID, monitorID int) (*Method, error) {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (m *Method) selectFromDBByNameAndBySubjectIDAndByMonitorID(methodName string, subjectID, monitorID int) error {
+	var dbKit DataBaseKit
+	err := dbKit.open()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// читаем данные из БД
 	query := fmt.Sprintf("SELECT * FROM method WHERE name='%v' and subject_id=%d and monitor_id=%d",
 		methodName, subjectID, monitorID)
-	rows, err := db.Query(query)
+	rows, err := dbKit.db.Query(query)
 	defer rows.Close()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// считываем данные из rows
-	var method Method
 	for rows.Next() {
-		err = rows.Scan(&method.ID, &method.Name,
-			&method.SubjectID, &method.AccessTokenID,
-			&method.MonitorID)
+		err = rows.Scan(m.ID, m.Name,
+			m.SubjectID, m.AccessTokenID,
+			m.MonitorID)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
-	return &method, nil
+	return nil
 }
 
 // WallPostMonitorParam - структура для полей из таблицы wall_post_monitor

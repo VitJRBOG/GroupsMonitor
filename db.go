@@ -315,7 +315,7 @@ func (at *AccessToken) selectFromDBByID(accessTokenID int) error {
 	}
 
 	for rows.Next() {
-		err = rows.Scan(at.ID, at.Name, at.Value)
+		err = rows.Scan(&at.ID, &at.Name, &at.Value)
 		if err != nil {
 			return err
 		}
@@ -338,7 +338,7 @@ func (at *AccessToken) selectFromDBByName(accessTokenName string) error {
 	}
 
 	for rows.Next() {
-		err = rows.Scan(at.ID, at.Name, at.Value)
+		err = rows.Scan(&at.ID, &at.Name, &at.Value)
 		if err != nil {
 			return err
 		}
@@ -449,7 +449,7 @@ func (m *Monitor) selectFromDBByNameAndBySubjectID(monitorName string, subjectID
 	}
 
 	for rows.Next() {
-		err = rows.Scan(m.ID, m.Name, m.SubjectID)
+		err = rows.Scan(&m.ID, &m.Name, &m.SubjectID)
 		if err != nil {
 			return err
 		}
@@ -502,9 +502,9 @@ func (m *Method) selectFromDBByNameAndBySubjectIDAndByMonitorID(methodName strin
 	}
 
 	for rows.Next() {
-		err = rows.Scan(m.ID, m.Name,
-			m.SubjectID, m.AccessTokenID,
-			m.MonitorID)
+		err = rows.Scan(&m.ID, &m.Name,
+			&m.SubjectID, &m.AccessTokenID,
+			&m.MonitorID)
 		if err != nil {
 			return err
 		}

@@ -1411,7 +1411,8 @@ func showSubjectAdditionWindow() {
 			case "wall_post_monitor":
 				additionNewMonitor(monitorName, id)
 
-				monitor, err := SelectDBMonitor(monitorName, id)
+				var monitor Monitor
+				err := monitor.selectFromDBByNameAndBySubjectID(monitorName, id)
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
@@ -1429,7 +1430,8 @@ func showSubjectAdditionWindow() {
 			case "album_photo_monitor":
 				additionNewMonitor(monitorName, id)
 
-				monitor, err := SelectDBMonitor(monitorName, id)
+				var monitor Monitor
+				err := monitor.selectFromDBByNameAndBySubjectID(monitorName, id)
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
@@ -1447,7 +1449,8 @@ func showSubjectAdditionWindow() {
 			case "video_monitor":
 				additionNewMonitor(monitorName, id)
 
-				monitor, err := SelectDBMonitor(monitorName, id)
+				var monitor Monitor
+				err := monitor.selectFromDBByNameAndBySubjectID(monitorName, id)
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
@@ -1465,7 +1468,8 @@ func showSubjectAdditionWindow() {
 			case "photo_comment_monitor":
 				additionNewMonitor(monitorName, id)
 
-				monitor, err := SelectDBMonitor(monitorName, id)
+				var monitor Monitor
+				err := monitor.selectFromDBByNameAndBySubjectID(monitorName, id)
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
@@ -1483,7 +1487,8 @@ func showSubjectAdditionWindow() {
 			case "video_comment_monitor":
 				additionNewMonitor(monitorName, id)
 
-				monitor, err := SelectDBMonitor(monitorName, id)
+				var monitor Monitor
+				err := monitor.selectFromDBByNameAndBySubjectID(monitorName, id)
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
@@ -1501,7 +1506,8 @@ func showSubjectAdditionWindow() {
 			case "topic_monitor":
 				additionNewMonitor(monitorName, id)
 
-				monitor, err := SelectDBMonitor(monitorName, id)
+				var monitor Monitor
+				err := monitor.selectFromDBByNameAndBySubjectID(monitorName, id)
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
@@ -1519,7 +1525,8 @@ func showSubjectAdditionWindow() {
 			case "wall_post_comment_monitor":
 				additionNewMonitor(monitorName, id)
 
-				monitor, err := SelectDBMonitor(monitorName, id)
+				var monitor Monitor
+				err := monitor.selectFromDBByNameAndBySubjectID(monitorName, id)
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
@@ -1570,7 +1577,7 @@ func additionNewMonitor(monitorName string, subjectID int) {
 	monitor.Name = monitorName
 	monitor.SubjectID = subjectID
 
-	err := InsertDBMonitor(monitor)
+	err := monitor.insertIntoDB()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())

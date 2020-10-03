@@ -22,7 +22,8 @@ func SendVKAPIQuery(sender string, methodName string,
 	monitorName = strings.Replace(monitorName, " ", "_", -1)
 
 	// получаем данные о текущем модуле мониторинга
-	monitor, err := SelectDBMonitor(monitorName, subject.ID)
+	var monitor Monitor
+	err := monitor.selectFromDBByNameAndBySubjectID(monitorName, subject.ID)
 	if err != nil {
 		return nil, err
 	}

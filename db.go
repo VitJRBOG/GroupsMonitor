@@ -272,53 +272,45 @@ type Monitor struct {
 	SubjectID int
 }
 
-// InsertDBMonitor добавляет новое поле в таблицу monitor
-func InsertDBMonitor(monitor Monitor) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (m *Monitor) insertIntoDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.open()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
-
-	// добавляем новое поле в таблицу
 	query := fmt.Sprintf(`INSERT INTO monitor (name, subject_id) 
 		VALUES ('%v', '%d')`,
-		monitor.Name, monitor.SubjectID)
-	_, err = db.Exec(query)
+		m.Name, m.SubjectID)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
-// SelectDBMonitor извлекает из таблицы monitor поле с указанными name и subject_id
-func SelectDBMonitor(monitorName string, subjectID int) (*Monitor, error) {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (m *Monitor) selectFromDBByNameAndBySubjectID(monitorName string, subjectID int) error {
+	var dbKit DataBaseKit
+	err := dbKit.open()
+	defer dbKit.db.Close()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// читаем данные из БД
 	query := fmt.Sprintf("SELECT * FROM monitor WHERE name='%v' and subject_id=%d", monitorName, subjectID)
-	rows, err := db.Query(query)
+	rows, err := dbKit.db.Query(query)
 	defer rows.Close()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// считываем данные из rows
-	var monitor Monitor
 	for rows.Next() {
-		err = rows.Scan(&monitor.ID, &monitor.Name, &monitor.SubjectID)
+		err = rows.Scan(m.ID, m.Name, m.SubjectID)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
-	return &monitor, nil
+	return nil
 }
 
 // Method - структура для полей из таблицы method

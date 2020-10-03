@@ -92,7 +92,7 @@ func GetAccessToken(methodName string, subject Subject, monitorID int) (AccessTo
 	}
 
 	// запрашиваем из БД токен доступа, связанный с этим методом vk api
-	accessToken, err = SelectDBAccessTokenByID(method.AccessTokenID)
+	err = accessToken.selectFromDBByID(method.AccessTokenID)
 	if err != nil {
 		return accessToken, err
 	}

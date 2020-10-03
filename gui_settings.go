@@ -106,7 +106,8 @@ func makeAccessTokensSettingsBox() *ui.Box {
 	boxAccessTokensSettings := ui.NewVerticalBox()
 
 	// запрашиваем список токенов доступа из базы данных
-	accessTokens, err := SelectDBAccessTokens()
+	var dbKit DataBaseKit
+	accessTokens, err := dbKit.selectTableAccessToken()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -201,7 +202,7 @@ func showAccessTokenAdditionWindow() {
 		accessToken.Name = kitATCreationName.Entry.Text()
 		accessToken.Value = kitATCreationValue.Entry.Text()
 
-		err := InsertDBAccessToken(accessToken)
+		err := accessToken.insertToDB()
 		if err != nil {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())
@@ -222,7 +223,8 @@ func showAccessTokenAdditionWindow() {
 
 func showAccessTokenSettingWindow(IDAccessToken int) {
 	// запрашиваем список токенов доступа из базы данных
-	accessTokens, err := SelectDBAccessTokens()
+	var dbKit DataBaseKit
+	accessTokens, err := dbKit.selectTableAccessToken()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -271,7 +273,7 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 				updatedAccessToken.Name = kitWndATName.Entry.Text()
 				updatedAccessToken.Value = kitWndATValue.Entry.Text()
 
-				err := UpdateDBAccessToken(updatedAccessToken)
+				err := updatedAccessToken.updateInDB()
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
@@ -421,7 +423,8 @@ type ListNewMonitorModuleData struct {
 
 func showSubjectAdditionWindow() {
 	// запрашиваем список токенов доступа из базы данных
-	accessTokens, err := SelectDBAccessTokens()
+	var dbKit DataBaseKit
+	accessTokens, err := dbKit.selectTableAccessToken()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())

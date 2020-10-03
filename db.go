@@ -42,6 +42,31 @@ func (dbKit *DataBaseKit) open() error {
 	return nil
 }
 
+func (dbKit *DataBaseKit) selectTableAccessToken() ([]AccessToken, error) {
+	err := dbKit.open()
+	defer dbKit.db.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := dbKit.db.Query("SELECT * FROM access_token")
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var accessTokens []AccessToken
+	for rows.Next() {
+		var accessToken AccessToken
+		err = rows.Scan(&accessToken.ID, &accessToken.Name, &accessToken.Value)
+		if err != nil {
+			return nil, err
+		}
+		accessTokens = append(accessTokens, accessToken)
+	}
+	return accessTokens, nil
+}
+
 // TODO: убрать эту функцию после завершения рефакторинга модуля db
 // openDB читает и возвращает базу данных
 func openDB() (*sql.DB, error) {
@@ -87,128 +112,81 @@ type AccessToken struct {
 	Value string
 }
 
-// InsertDBAccessToken добавляет новое поле в таблицу access_token
-func InsertDBAccessToken(accessToken AccessToken) error {
-	// получаем ссылку на db
+func (at *AccessToken) insertToDB() error {
 	db, err := openDB()
 	defer db.Close()
 	if err != nil {
 		return err
 	}
 
-	// добавляем новое поле в таблицу
 	query := fmt.Sprintf(`INSERT INTO access_token (name, value) VALUES ('%v', '%v')`,
-		accessToken.Name, accessToken.Value)
+		at.Name, at.Value)
 	_, err = db.Exec(query)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
-// SelectDBAccessTokens извлекает поля из таблицы access_token
-func SelectDBAccessTokens() ([]AccessToken, error) {
-	// получаем ссылку на db
+func (at *AccessToken) selectFromDBByID(accessTokenID int) error {
 	db, err := openDB()
 	defer db.Close()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// читаем данные из БД
-	rows, err := db.Query("SELECT * FROM access_token")
-	defer rows.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	// считываем данные из rows
-	var accessTokens []AccessToken
-	for rows.Next() {
-		var accessToken AccessToken
-		err = rows.Scan(&accessToken.ID, &accessToken.Name, &accessToken.Value)
-		if err != nil {
-			return nil, err
-		}
-		accessTokens = append(accessTokens, accessToken)
-	}
-	return accessTokens, nil
-}
-
-// SelectDBAccessTokenByID извлекает поле из таблицы access_token по id
-func SelectDBAccessTokenByID(accessTokenID int) (AccessToken, error) {
-	var accessToken AccessToken
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
-	if err != nil {
-		return accessToken, err
-	}
-
-	// читаем данные из БД
 	query := fmt.Sprintf("SELECT * FROM access_token WHERE id=%d", accessTokenID)
 	rows, err := db.Query(query)
 	defer rows.Close()
 	if err != nil {
-		return accessToken, err
+		return err
 	}
 
-	// считываем данные из rows
 	for rows.Next() {
-		err = rows.Scan(&accessToken.ID, &accessToken.Name, &accessToken.Value)
+		err = rows.Scan(at.ID, at.Name, at.Value)
 		if err != nil {
-			return accessToken, err
+			return err
 		}
 	}
-	return accessToken, nil
+	return nil
 }
 
-// SelectDBAccessTokenByName извлекает поле из таблицы access_token по name
-func SelectDBAccessTokenByName(nameAccessToken string) (AccessToken, error) {
-	var accessToken AccessToken
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
-	if err != nil {
-		return accessToken, err
-	}
-
-	// читаем данные из БД
-	query := fmt.Sprintf("SELECT * FROM access_token WHERE name='%v'", nameAccessToken)
-	rows, err := db.Query(query)
-	defer rows.Close()
-	if err != nil {
-		return accessToken, err
-	}
-
-	// считываем данные из rows
-	for rows.Next() {
-		err = rows.Scan(&accessToken.ID, &accessToken.Name, &accessToken.Value)
-		if err != nil {
-			return accessToken, err
-		}
-	}
-	return accessToken, nil
-}
-
-// UpdateDBAccessToken обновляет значения в поле таблицы access_token
-func UpdateDBAccessToken(accessToken AccessToken) error {
-	// получаем ссылку на db
+func (at *AccessToken) selectFromDBByName(accessTokenName string) error {
 	db, err := openDB()
 	defer db.Close()
 	if err != nil {
 		return err
 	}
 
-	// обновляем значения в конкретном поле
+	query := fmt.Sprintf("SELECT * FROM access_token WHERE name='%v'", accessTokenName)
+	rows, err := db.Query(query)
+	defer rows.Close()
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+		err = rows.Scan(at.ID, at.Name, at.Value)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (at *AccessToken) updateInDB() error {
+	db, err := openDB()
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
 	query := fmt.Sprintf(`UPDATE access_token SET name='%v', value='%v' WHERE id=%d`,
-		accessToken.Name, accessToken.Value, accessToken.ID)
+		at.Name, at.Value, at.ID)
 	_, err = db.Exec(query)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 

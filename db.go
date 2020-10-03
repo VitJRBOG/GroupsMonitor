@@ -8,6 +8,41 @@ import (
 	_ "github.com/mattn/go-sqlite3" // иначе драйвер для работы с SQLite не работает
 )
 
+// DataBaseKit хранит ссылку на объект базы данных
+type DataBaseKit struct {
+	db *sql.DB
+}
+
+func (dbKit *DataBaseKit) open() error {
+	path, err := ReadPathFile()
+	if err != nil {
+		return err
+	}
+	pathToDB := path + "groupsmonitor_db.db"
+	dbKit.db, err = sql.Open("sqlite3", pathToDB)
+	if err != nil {
+		errorMessage := fmt.Sprintf("%v", err)
+
+		typeError, causeError := DBIOError(errorMessage)
+
+		switch typeError {
+
+		case "timeout error":
+			interval := 1 * time.Second
+			sender := "Database"
+			message := fmt.Sprintf("Error: %v. Timeout for %v...", causeError, interval)
+			OutputMessage(sender, message)
+			time.Sleep(interval)
+			return dbKit.open()
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+// TODO: убрать эту функцию после завершения рефакторинга модуля db
 // openDB читает и возвращает базу данных
 func openDB() (*sql.DB, error) {
 	// определяем путь к файлу базы данных
@@ -43,33 +78,6 @@ func openDB() (*sql.DB, error) {
 	}
 
 	return db, nil
-}
-
-// GetTableLen определяет количество записей в указанной таблице
-func GetTableLen(tableName string) (int, error) {
-	db, err := openDB()
-	defer db.Close()
-	if err != nil {
-		return 0, err
-	}
-
-	// читаем данные из БД
-	query := fmt.Sprintf("SELECT COUNT(*) FROM '%v'", tableName)
-	rows, err := db.Query(query)
-	defer rows.Close()
-	if err != nil {
-		return 0, err
-	}
-
-	var tableLenth int
-
-	for rows.Next() {
-		err = rows.Scan(&tableLenth)
-		if err != nil {
-			return 0, err
-		}
-	}
-	return tableLenth, nil
 }
 
 // AccessToken - структура для полей из таблицы access_token

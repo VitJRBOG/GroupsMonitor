@@ -70,7 +70,8 @@ func checkDBFileExistence() (bool, error) {
 	// проверяем
 	if _, err := os.Stat(path + "groupsmonitor_db.db"); os.IsNotExist(err) {
 		// если файл БД отсутствует, создаем
-		err = InitDB()
+		var dbKit DataBaseKit
+		err = dbKit.initDB()
 		if err != nil {
 			return hasBeenCreated, err
 		}

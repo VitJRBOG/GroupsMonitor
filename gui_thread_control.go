@@ -107,7 +107,8 @@ func getSubjectsNames() []string {
 	var subjectsNames []string
 
 	// запрашиваем список субъектов из базы данных
-	subjects, err := SelectDBSubjects()
+	var dbKit DataBaseKit
+	subjects, err := dbKit.selectTableSubject()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())

@@ -17,7 +17,8 @@ func MakeThreads() ([]*Thread, error) {
 	var threads []*Thread
 
 	// получаем из БД список субъектов
-	subjects, err := SelectDBSubjects()
+	var dbKit DataBaseKit
+	subjects, err := dbKit.selectTableSubject()
 	if err != nil {
 		return threads, err
 	}

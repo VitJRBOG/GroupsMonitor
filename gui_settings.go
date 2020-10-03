@@ -300,7 +300,8 @@ func makeSubjectsSettingsBox(groupsSettingsData GroupsSettingsData) *ui.Box {
 	boxSubjectsSettings := ui.NewVerticalBox()
 
 	// запрашиваем список субъектов из базы данных
-	subjects, err := SelectDBSubjects()
+	var dbKit DataBaseKit
+	subjects, err := dbKit.selectTableSubject()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -1397,7 +1398,8 @@ func showSubjectAdditionWindow() {
 
 		additionNewSubject(newSubjectData)
 
-		subjects, err := SelectDBSubjects()
+		var dbKit DataBaseKit
+		subjects, err := dbKit.selectTableSubject()
 		if err != nil {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())
@@ -1555,7 +1557,7 @@ func additionNewSubject(newSubjectData NewSubjectData) {
 	subject.BackupWikipage = "-0_0" // этот параметр нигде не используется
 	subject.LastBackup = 0          // этот тоже
 
-	err := InsertDBSubject(subject)
+	err := subject.insertIntoDB()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -1796,7 +1798,8 @@ func makeSubjectAdditionalSettingsBox(subjectData Subject) *ui.Box {
 
 func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 	// запрашиваем список субъектов из базы данных
-	subjects, err := SelectDBSubjects()
+	var dbKit DataBaseKit
+	subjects, err := dbKit.selectTableSubject()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -1866,7 +1869,7 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 				updatedSubject.BackupWikipage = subject.BackupWikipage
 				updatedSubject.LastBackup = subject.LastBackup
 
-				err := UpdateDBSubject(updatedSubject)
+				err := updatedSubject.updateInDB()
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())

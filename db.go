@@ -67,6 +67,34 @@ func (dbKit *DataBaseKit) selectTableAccessToken() ([]AccessToken, error) {
 	return accessTokens, nil
 }
 
+func (dbKit *DataBaseKit) selectTableSubject() ([]Subject, error) {
+	err := dbKit.open()
+	defer dbKit.db.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	// читаем данные из БД
+	rows, err := dbKit.db.Query("SELECT * FROM subject")
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	// считываем данные из rows
+	var subjects []Subject
+	for rows.Next() {
+		var subject Subject
+		err = rows.Scan(&subject.ID, &subject.SubjectID, &subject.Name,
+			&subject.BackupWikipage, &subject.LastBackup)
+		if err != nil {
+			return nil, err
+		}
+		subjects = append(subjects, subject)
+	}
+	return subjects, nil
+}
+
 // TODO: убрать эту функцию после завершения рефакторинга модуля db
 // openDB читает и возвращает базу данных
 func openDB() (*sql.DB, error) {
@@ -199,20 +227,18 @@ type Subject struct {
 	LastBackup     int    `json:"last_backup"`
 }
 
-// InsertDBSubject добавляет новое поле в таблицу subject
-func InsertDBSubject(subject Subject) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (s *Subject) insertIntoDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.open()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// добавляем новое поле в таблицу
 	query := fmt.Sprintf(`INSERT INTO subject (subject_id, name, 
 		backup_wikipage, last_backup) VALUES ('%d', '%v', '%v', '%d')`,
-		subject.SubjectID, subject.Name, subject.BackupWikipage, subject.LastBackup)
-	_, err = db.Exec(query)
+		s.SubjectID, s.Name, s.BackupWikipage, s.LastBackup)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -220,50 +246,18 @@ func InsertDBSubject(subject Subject) error {
 	return nil
 }
 
-// SelectDBSubjects извлекает поля из таблицы subject
-func SelectDBSubjects() ([]Subject, error) {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	// читаем данные из БД
-	rows, err := db.Query("SELECT * FROM subject")
-	defer rows.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	// считываем данные из rows
-	var subjects []Subject
-	for rows.Next() {
-		var subject Subject
-		err = rows.Scan(&subject.ID, &subject.SubjectID, &subject.Name,
-			&subject.BackupWikipage, &subject.LastBackup)
-		if err != nil {
-			return nil, err
-		}
-		subjects = append(subjects, subject)
-	}
-	return subjects, nil
-}
-
-// UpdateDBSubject обновляет значения в поле таблицы subject
-func UpdateDBSubject(subject Subject) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (s *Subject) updateInDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.open()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// обновляем значения в конкретном поле
 	query := fmt.Sprintf(`UPDATE subject 
 		SET subject_id='%d', name='%v', backup_wikipage='%v', last_backup='%d' WHERE id=%d`,
-		subject.SubjectID, subject.Name, subject.BackupWikipage, subject.LastBackup, subject.ID)
-	_, err = db.Exec(query)
+		s.SubjectID, s.Name, s.BackupWikipage, s.LastBackup, s.ID)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}

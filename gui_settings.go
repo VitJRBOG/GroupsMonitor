@@ -202,7 +202,7 @@ func showAccessTokenAdditionWindow() {
 		accessToken.Name = kitATCreationName.Entry.Text()
 		accessToken.Value = kitATCreationValue.Entry.Text()
 
-		err := accessToken.insertToDB()
+		err := accessToken.insertIntoDB()
 		if err != nil {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())

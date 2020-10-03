@@ -112,7 +112,7 @@ type AccessToken struct {
 	Value string
 }
 
-func (at *AccessToken) insertToDB() error {
+func (at *AccessToken) insertIntoDB() error {
 	db, err := openDB()
 	defer db.Close()
 	if err != nil {

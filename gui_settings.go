@@ -1612,7 +1612,7 @@ func additionNewWallPostMonitor(newMonitorModuleData NewMonitorModuleData) {
 	wallPostMonitorParam.KeywordsForMonitoring = "{\"list\":[]}"
 	wallPostMonitorParam.UsersIDsForIgnore = "{\"list\":[]}"
 
-	err := InsertDBWallPostMonitor(wallPostMonitorParam)
+	err := wallPostMonitorParam.insertIntoDB()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -1901,7 +1901,8 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 
 func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string) {
 	// запрашиваем параметры мониторинга из базы данных
-	wallPostMonitorParam, err := SelectDBWallPostMonitorParam(IDSubject)
+	var wallPostMonitorParam WallPostMonitorParam
+	err := wallPostMonitorParam.selectFromDBBySubjectID(IDSubject)
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -1993,7 +1994,7 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 		updatedWallPostMonitorParam.KeywordsForMonitoring = jsonDump
 		updatedWallPostMonitorParam.UsersIDsForIgnore = wallPostMonitorParam.UsersIDsForIgnore
 
-		err = UpdateDBWallPostMonitor(updatedWallPostMonitorParam)
+		err = updatedWallPostMonitorParam.updateInDB()
 		if err != nil {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"runtime/debug"
 	"time"
 )
 
@@ -27,9 +28,11 @@ func MakeThreads() ([]*Thread, error) {
 	for _, subject := range subjects {
 
 		// получаем из БД параметры для модуля мониторинга постов на стене
-		wallPostMonitorParam, err := SelectDBWallPostMonitorParam(subject.ID)
+		var wallPostMonitorParam WallPostMonitorParam
+		err := wallPostMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return threads, err
+			ToLogFile(err.Error(), string(debug.Stack()))
+			panic(err.Error())
 		}
 
 		// проверяем параметр и определяем, нужно ли запускать этот модуль

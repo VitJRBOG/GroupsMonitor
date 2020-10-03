@@ -526,22 +526,20 @@ type WallPostMonitorParam struct {
 	UsersIDsForIgnore     string
 }
 
-// InsertDBWallPostMonitor добавляет новое поле в таблицу wall_post_monitor
-func InsertDBWallPostMonitor(wPMP WallPostMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (wpmp *WallPostMonitorParam) insertIntoDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// добавляем новое поле в таблицу
 	query := fmt.Sprintf(`INSERT INTO wall_post_monitor (subject_id, need_monitoring, interval, 
 		send_to, filter, last_date, posts_count, keywords_for_monitoring, users_ids_for_ignore) 
 		VALUES ('%d', '%d', '%d', '%d', '%v', '%d', '%d', '%v', '%v')`,
-		wPMP.SubjectID, wPMP.NeedMonitoring, wPMP.Interval, wPMP.SendTo,
-		wPMP.Filter, wPMP.LastDate, wPMP.PostsCount, wPMP.KeywordsForMonitoring, wPMP.UsersIDsForIgnore)
-	_, err = db.Exec(query)
+		wpmp.SubjectID, wpmp.NeedMonitoring, wpmp.Interval, wpmp.SendTo,
+		wpmp.Filter, wpmp.LastDate, wpmp.PostsCount, wpmp.KeywordsForMonitoring, wpmp.UsersIDsForIgnore)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -549,78 +547,70 @@ func InsertDBWallPostMonitor(wPMP WallPostMonitorParam) error {
 	return nil
 }
 
-// SelectDBWallPostMonitorParam извлекает поля из таблицы wall_post_monitor
-func SelectDBWallPostMonitorParam(subjectID int) (WallPostMonitorParam, error) {
-	var wallPostMonitorParam WallPostMonitorParam
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (wpmp *WallPostMonitorParam) selectFromDBBySubjectID(subjectID int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
-		return wallPostMonitorParam, err
+		return err
 	}
 
-	// читаем данные из БД
 	query := fmt.Sprintf("SELECT * FROM wall_post_monitor WHERE subject_id=%d", subjectID)
-	rows, err := db.Query(query)
+	rows, err := dbKit.db.Query(query)
 	defer rows.Close()
 	if err != nil {
-		return wallPostMonitorParam, err
+		return err
 	}
 
-	// считываем данные из rows
 	for rows.Next() {
-		err = rows.Scan(&wallPostMonitorParam.ID, &wallPostMonitorParam.SubjectID,
-			&wallPostMonitorParam.NeedMonitoring, &wallPostMonitorParam.Interval,
-			&wallPostMonitorParam.SendTo, &wallPostMonitorParam.Filter,
-			&wallPostMonitorParam.LastDate, &wallPostMonitorParam.PostsCount,
-			&wallPostMonitorParam.KeywordsForMonitoring, &wallPostMonitorParam.UsersIDsForIgnore)
+		err = rows.Scan(&wpmp.ID, &wpmp.SubjectID,
+			&wpmp.NeedMonitoring, &wpmp.Interval,
+			&wpmp.SendTo, &wpmp.Filter,
+			&wpmp.LastDate, &wpmp.PostsCount,
+			&wpmp.KeywordsForMonitoring, &wpmp.UsersIDsForIgnore)
 		if err != nil {
-			return wallPostMonitorParam, err
+			return err
 		}
 	}
 
-	return wallPostMonitorParam, nil
-}
-
-// UpdateDBWallPostMonitorLastDate обновляет значение в поле таблицы wall_post_monitor
-func UpdateDBWallPostMonitorLastDate(subjectID int, newLastDate int,
-	wallPostMonitorParam WallPostMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
-	if err != nil {
-		return err
-	}
-
-	// обновляем значения в конкретном поле
-	query := fmt.Sprintf(`UPDATE wall_post_monitor SET last_date=%d WHERE subject_id=%d`, newLastDate, subjectID)
-	_, err = db.Exec(query)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-// UpdateDBWallPostMonitor обновляет значения в поле таблицы wall_post_monitor
-func UpdateDBWallPostMonitor(wallPostMonitorParam WallPostMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (wpmp *WallPostMonitorParam) updateInDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// обновляем значения в конкретном поле
 	query := fmt.Sprintf(`UPDATE wall_post_monitor 
 		SET subject_id='%d', need_monitoring='%d', interval='%d', send_to='%d', filter='%v', 
 		last_date='%d', posts_count='%d', keywords_for_monitoring='%v',
 		users_ids_for_ignore='%v' WHERE id=%d`,
-		wallPostMonitorParam.SubjectID, wallPostMonitorParam.NeedMonitoring,
-		wallPostMonitorParam.Interval, wallPostMonitorParam.SendTo, wallPostMonitorParam.Filter,
-		wallPostMonitorParam.LastDate, wallPostMonitorParam.PostsCount, wallPostMonitorParam.KeywordsForMonitoring,
-		wallPostMonitorParam.UsersIDsForIgnore, wallPostMonitorParam.ID)
-	_, err = db.Exec(query)
+		wpmp.SubjectID, wpmp.NeedMonitoring,
+		wpmp.Interval, wpmp.SendTo, wpmp.Filter,
+		wpmp.LastDate, wpmp.PostsCount, wpmp.KeywordsForMonitoring,
+		wpmp.UsersIDsForIgnore, wpmp.ID)
+	_, err = dbKit.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (wpmp *WallPostMonitorParam) updateInDBFieldLastDate(subjectID, newLastDate int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf(`UPDATE wall_post_monitor SET last_date=%d WHERE subject_id=%d`,
+		newLastDate, subjectID)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}

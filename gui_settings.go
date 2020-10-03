@@ -1629,7 +1629,7 @@ func additionNewAlbumPhotoMonitor(newMonitorModuleData NewMonitorModuleData) {
 	albumPhotoMonitorParam.LastDate = 0
 	albumPhotoMonitorParam.PhotosCount = 5
 
-	err := InsertDBAlbumPhotoMonitor(albumPhotoMonitorParam)
+	err := albumPhotoMonitorParam.insertIntoDB()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2015,7 +2015,8 @@ func showSubjectWallPostSettingWindow(IDSubject int, nameSubject, btnName string
 
 func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName string) {
 	// запрашиваем параметры мониторинга из базы данных
-	albumPhotoMonitorParam, err := SelectDBAlbumPhotoMonitorParam(IDSubject)
+	var albumPhotoMonitorParam AlbumPhotoMonitorParam
+	err := albumPhotoMonitorParam.selectFromDBBySubjectID(IDSubject)
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2087,7 +2088,7 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 		updatedAlbumPhotoMonitorParam.LastDate = albumPhotoMonitorParam.LastDate
 		updatedAlbumPhotoMonitorParam.PhotosCount = kitWndApPhotosCount.Spinbox.Value()
 
-		err = UpdateDBAlbumPhotoMonitor(updatedAlbumPhotoMonitorParam)
+		err = updatedAlbumPhotoMonitorParam.updateInDB()
 		if err != nil {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())

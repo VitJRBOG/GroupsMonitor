@@ -10,7 +10,8 @@ func AlbumPhotoMonitor(subject Subject) (*AlbumPhotoMonitorParam, error) {
 	sender := fmt.Sprintf("%v's album photo monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга фотографий
-	albumPhotoMonitorParam, err := SelectDBAlbumPhotoMonitorParam(subject.ID)
+	var albumPhotoMonitorParam AlbumPhotoMonitorParam
+	err := albumPhotoMonitorParam.selectFromDBBySubjectID(subject.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +75,7 @@ func AlbumPhotoMonitor(subject Subject) (*AlbumPhotoMonitorParam, error) {
 			outputReportAboutNewAlbumPhoto(sender, albumPhoto)
 
 			// обновляем дату последнего проверенного поста в БД
-			if err := UpdateDBAlbumPhotoMonitorLastDate(subject.ID, albumPhoto.Date,
-				albumPhotoMonitorParam); err != nil {
+			if err := albumPhotoMonitorParam.updateInDBFieldLastDate(subject.ID, albumPhoto.Date); err != nil {
 				return nil, err
 			}
 		}

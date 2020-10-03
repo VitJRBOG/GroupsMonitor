@@ -49,7 +49,8 @@ func MakeThreads() ([]*Thread, error) {
 		}
 
 		// получаем из БД параметры для модуля мониторинга фотографий в альбомах
-		albumPhotoMonitorParam, err := SelectDBAlbumPhotoMonitorParam(subject.ID)
+		var albumPhotoMonitorParam AlbumPhotoMonitorParam
+		err = albumPhotoMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
 			return threads, err
 		}

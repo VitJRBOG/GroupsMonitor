@@ -629,23 +629,21 @@ type AlbumPhotoMonitorParam struct {
 	PhotosCount    int `json:"photos_count"`
 }
 
-// InsertDBAlbumPhotoMonitor добавляет новое поле в таблицу album_photo_monitor
-func InsertDBAlbumPhotoMonitor(aPMP AlbumPhotoMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (apmp *AlbumPhotoMonitorParam) insertIntoDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// добавляем новое поле в таблицу
 	query := fmt.Sprintf(`INSERT INTO album_photo_monitor (subject_id, 
 		need_monitoring, send_to, interval, 
 		last_date, photos_count) 
 		VALUES ('%d', '%d', '%d', '%d', '%d', '%d')`,
-		aPMP.SubjectID, aPMP.NeedMonitoring, aPMP.SendTo, aPMP.Interval,
-		aPMP.LastDate, aPMP.PhotosCount)
-	_, err = db.Exec(query)
+		apmp.SubjectID, apmp.NeedMonitoring, apmp.SendTo, apmp.Interval,
+		apmp.LastDate, apmp.PhotosCount)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -653,63 +651,38 @@ func InsertDBAlbumPhotoMonitor(aPMP AlbumPhotoMonitorParam) error {
 	return nil
 }
 
-// SelectDBAlbumPhotoMonitorParam извлекает поля из таблицы album_photo_monitor
-func SelectDBAlbumPhotoMonitorParam(subjectID int) (AlbumPhotoMonitorParam, error) {
-	var albumPhotoMonitorParam AlbumPhotoMonitorParam
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (apmp *AlbumPhotoMonitorParam) selectFromDBBySubjectID(subjectID int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
-		return albumPhotoMonitorParam, err
+		return err
 	}
 
-	// читаем данные из БД
 	query := fmt.Sprintf("SELECT * FROM album_photo_monitor WHERE subject_id=%d", subjectID)
-	rows, err := db.Query(query)
+	rows, err := dbKit.db.Query(query)
 	defer rows.Close()
 	if err != nil {
-		return albumPhotoMonitorParam, err
+		return err
 	}
 
-	// считываем данные из rows
 	for rows.Next() {
-		err = rows.Scan(&albumPhotoMonitorParam.ID, &albumPhotoMonitorParam.SubjectID,
-			&albumPhotoMonitorParam.NeedMonitoring, &albumPhotoMonitorParam.SendTo,
-			&albumPhotoMonitorParam.Interval, &albumPhotoMonitorParam.LastDate,
-			&albumPhotoMonitorParam.PhotosCount)
+		err = rows.Scan(&apmp.ID, &apmp.SubjectID,
+			&apmp.NeedMonitoring, &apmp.SendTo,
+			&apmp.Interval, &apmp.LastDate,
+			&apmp.PhotosCount)
 		if err != nil {
-			return albumPhotoMonitorParam, err
+			return err
 		}
 	}
 
-	return albumPhotoMonitorParam, nil
-}
-
-// UpdateDBAlbumPhotoMonitorLastDate обновляет значение в поле таблицы album_photo_monitor
-func UpdateDBAlbumPhotoMonitorLastDate(subjectID int, newLastDate int,
-	albumPhotoMonitorParam AlbumPhotoMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
-	if err != nil {
-		return err
-	}
-
-	// обновляем значения в конкретном поле
-	query := fmt.Sprintf(`UPDATE album_photo_monitor SET last_date=%d WHERE subject_id=%d`, newLastDate, subjectID)
-	_, err = db.Exec(query)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-// UpdateDBAlbumPhotoMonitor обновляет значения в поле таблицы album_photo_monitor
-func UpdateDBAlbumPhotoMonitor(albumPhotoMonitorParam AlbumPhotoMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (apmp *AlbumPhotoMonitorParam) updateInDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
@@ -719,10 +692,27 @@ func UpdateDBAlbumPhotoMonitor(albumPhotoMonitorParam AlbumPhotoMonitorParam) er
 		SET subject_id='%d', need_monitoring='%d', send_to='%d', 
 		interval='%d', last_date='%d', photos_count='%d'
 		WHERE id=%d`,
-		albumPhotoMonitorParam.SubjectID, albumPhotoMonitorParam.NeedMonitoring, albumPhotoMonitorParam.SendTo,
-		albumPhotoMonitorParam.Interval, albumPhotoMonitorParam.LastDate, albumPhotoMonitorParam.PhotosCount,
-		albumPhotoMonitorParam.ID)
-	_, err = db.Exec(query)
+		apmp.SubjectID, apmp.NeedMonitoring, apmp.SendTo,
+		apmp.Interval, apmp.LastDate, apmp.PhotosCount,
+		apmp.ID)
+	_, err = dbKit.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (apmp *AlbumPhotoMonitorParam) updateInDBFieldLastDate(subjectID, newLastDate int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf(`UPDATE album_photo_monitor SET last_date=%d WHERE subject_id=%d`, newLastDate, subjectID)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}

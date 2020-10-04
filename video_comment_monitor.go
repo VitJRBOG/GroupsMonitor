@@ -10,7 +10,8 @@ func VideoCommentMonitor(subject Subject) (*VideoCommentMonitorParam, error) {
 	sender := fmt.Sprintf("%v's video comment monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга комментариев под видео
-	videoCommentMonitorParam, err := SelectDBVideoCommentMonitorParam(subject.ID)
+	var videoCommentMonitorParam VideoCommentMonitorParam
+	err := videoCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +76,7 @@ func VideoCommentMonitor(subject Subject) (*VideoCommentMonitorParam, error) {
 			outputReportAboutNewVideoComment(sender, videoComment)
 
 			// обновляем дату последнего проверенного комментария в БД
-			if err := UpdateDBVideoCommentMonitorLastDate(subject.ID, videoComment.Date); err != nil {
+			if err := videoCommentMonitorParam.updateInDBFieldLastDate(subject.ID, videoComment.Date); err != nil {
 				return nil, err
 			}
 		}

@@ -109,7 +109,8 @@ func MakeThreads() ([]*Thread, error) {
 		}
 
 		// получаем из БД параметры для модуля мониторинга комментариев под видеозаписями
-		videoCommentMonitorParam, err := SelectDBVideoCommentMonitorParam(subject.ID)
+		var videoCommentMonitorParam VideoCommentMonitorParam
+		err = videoCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
 			return threads, err
 		}

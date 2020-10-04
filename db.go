@@ -933,22 +933,20 @@ type VideoCommentMonitorParam struct {
 	LastDate       int `json:"last_date"`
 }
 
-// InsertDBVideoCommentMonitor добавляет новое поле в таблицу video_comment_monitor
-func InsertDBVideoCommentMonitor(vCMP VideoCommentMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (vcmp *VideoCommentMonitorParam) insertIntoDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// добавляем новое поле в таблицу
 	query := fmt.Sprintf(`INSERT INTO video_comment_monitor (subject_id, need_monitoring, videos_count, 
 		interval, comments_count, send_to, last_date) 
 		VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d')`,
-		vCMP.SubjectID, vCMP.NeedMonitoring, vCMP.VideosCount, vCMP.Interval, vCMP.CommentsCount, vCMP.SendTo,
-		vCMP.LastDate)
-	_, err = db.Exec(query)
+		vcmp.SubjectID, vcmp.NeedMonitoring, vcmp.VideosCount, vcmp.Interval, vcmp.CommentsCount, vcmp.SendTo,
+		vcmp.LastDate)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -956,76 +954,68 @@ func InsertDBVideoCommentMonitor(vCMP VideoCommentMonitorParam) error {
 	return nil
 }
 
-// SelectDBVideoCommentMonitorParam извлекает поля из таблицы video_comment_monitor
-func SelectDBVideoCommentMonitorParam(subjectID int) (VideoCommentMonitorParam, error) {
-	var videoCommentMonitorParam VideoCommentMonitorParam
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (vcmp *VideoCommentMonitorParam) selectFromDBBySubjectID(subjectID int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
-		return videoCommentMonitorParam, err
+		return err
 	}
 
-	// читаем данные из БД
 	query := fmt.Sprintf("SELECT * FROM video_comment_monitor WHERE subject_id=%d", subjectID)
-	rows, err := db.Query(query)
+	rows, err := dbKit.db.Query(query)
 	defer rows.Close()
 	if err != nil {
-		return videoCommentMonitorParam, err
+		return err
 	}
 
-	// считываем данные из rows
 	for rows.Next() {
-		err = rows.Scan(&videoCommentMonitorParam.ID, &videoCommentMonitorParam.SubjectID,
-			&videoCommentMonitorParam.NeedMonitoring, &videoCommentMonitorParam.VideosCount,
-			&videoCommentMonitorParam.Interval, &videoCommentMonitorParam.CommentsCount,
-			&videoCommentMonitorParam.SendTo, &videoCommentMonitorParam.LastDate)
+		err = rows.Scan(&vcmp.ID, &vcmp.SubjectID,
+			&vcmp.NeedMonitoring, &vcmp.VideosCount,
+			&vcmp.Interval, &vcmp.CommentsCount,
+			&vcmp.SendTo, &vcmp.LastDate)
 		if err != nil {
-			return videoCommentMonitorParam, err
+			return err
 		}
 	}
 
-	return videoCommentMonitorParam, nil
-}
-
-// UpdateDBVideoCommentMonitorLastDate обновляет значение в поле таблицы video_comment_monitor
-func UpdateDBVideoCommentMonitorLastDate(subjectID int, newLastDate int) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
-	if err != nil {
-		return err
-	}
-
-	// обновляем значения в конкретном поле
-	query := fmt.Sprintf(`UPDATE video_comment_monitor SET last_date=%d WHERE subject_id=%d`,
-		newLastDate, subjectID)
-	_, err = db.Exec(query)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-// UpdateDBVideoCommentMonitor обновляет значения в поле таблицы video_comment_monitor
-func UpdateDBVideoCommentMonitor(videoCommentMonitorParam VideoCommentMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (vcmp *VideoCommentMonitorParam) updateInDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// обновляем значения в конкретном поле
 	query := fmt.Sprintf(`UPDATE video_comment_monitor 
 		SET subject_id='%d', need_monitoring='%d', send_to='%d', 
 		comments_count='%d', last_date='%d', interval='%d',
 		videos_count='%d' WHERE id=%d`,
-		videoCommentMonitorParam.SubjectID, videoCommentMonitorParam.NeedMonitoring, videoCommentMonitorParam.SendTo,
-		videoCommentMonitorParam.CommentsCount, videoCommentMonitorParam.LastDate, videoCommentMonitorParam.Interval,
-		videoCommentMonitorParam.VideosCount, videoCommentMonitorParam.ID)
-	_, err = db.Exec(query)
+		vcmp.SubjectID, vcmp.NeedMonitoring, vcmp.SendTo,
+		vcmp.CommentsCount, vcmp.LastDate, vcmp.Interval,
+		vcmp.VideosCount, vcmp.ID)
+	_, err = dbKit.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (vcmp *VideoCommentMonitorParam) updateInDBFieldLastDate(subjectID, newLastDate int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf(`UPDATE video_comment_monitor SET last_date=%d WHERE subject_id=%d`,
+		newLastDate, subjectID)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}

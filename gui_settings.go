@@ -1681,7 +1681,7 @@ func additionVideoCommentMonitor(newMonitorModuleData NewMonitorModuleData) {
 	videoCommentMonitorParam.SendTo = newMonitorModuleData.SendTo
 	videoCommentMonitorParam.LastDate = 0
 
-	err := InsertDBVideoCommentMonitor(videoCommentMonitorParam)
+	err := videoCommentMonitorParam.insertIntoDB()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2297,7 +2297,8 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 
 func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName string) {
 	// запрашиваем параметры мониторинга из базы данных
-	videoCommentMonitorParam, err := SelectDBVideoCommentMonitorParam(IDSubject)
+	var videoCommentMonitorParam VideoCommentMonitorParam
+	err := videoCommentMonitorParam.selectFromDBBySubjectID(IDSubject)
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2374,7 +2375,7 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 		updatedVideoCommentMonitorParam.CommentsCount = kitWndVCCommentsCount.Spinbox.Value()
 		updatedVideoCommentMonitorParam.VideosCount = kitWndVCVideosCount.Spinbox.Value()
 
-		err = UpdateDBVideoCommentMonitor(updatedVideoCommentMonitorParam)
+		err = updatedVideoCommentMonitorParam.updateInDB()
 		if err != nil {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())

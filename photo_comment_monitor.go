@@ -11,7 +11,8 @@ func PhotoCommentMonitor(subject Subject) (*PhotoCommentMonitorParam, error) {
 	sender := fmt.Sprintf("%v's photo comment monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга постов
-	photoCommentMonitorParam, err := SelectDBPhotoCommentMonitorParam(subject.ID)
+	var photoCommentMonitorParam PhotoCommentMonitorParam
+	err := photoCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func PhotoCommentMonitor(subject Subject) (*PhotoCommentMonitorParam, error) {
 			outputReportAboutNewPhotoComment(sender, photoComment)
 
 			// обновляем дату последнего проверенного поста в БД
-			if err := UpdateDBPhotoCommentMonitorLastDate(subject.ID, photoComment.Date); err != nil {
+			if err := photoCommentMonitorParam.updateInDBFieldLastDate(subject.ID, photoComment.Date); err != nil {
 				return nil, err
 			}
 		}

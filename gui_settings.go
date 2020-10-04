@@ -1663,7 +1663,7 @@ func additionPhotoCommentMonitor(newMonitorModuleData NewMonitorModuleData) {
 	photoCommentMonitorParam.Interval = 60
 	photoCommentMonitorParam.SendTo = newMonitorModuleData.SendTo
 
-	err := InsertDBPhotoCommentMonitor(photoCommentMonitorParam)
+	err := photoCommentMonitorParam.insertIntoDB()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2203,7 +2203,8 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 
 func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName string) {
 	// запрашиваем параметры мониторинга из базы данных
-	photoCommentMonitorParam, err := SelectDBPhotoCommentMonitorParam(IDSubject)
+	var photoCommentMonitorParam PhotoCommentMonitorParam
+	err := photoCommentMonitorParam.selectFromDBBySubjectID(IDSubject)
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2275,7 +2276,7 @@ func showSubjectPhotoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 		updatedPhotoCommentMonitorParam.LastDate = photoCommentMonitorParam.LastDate
 		updatedPhotoCommentMonitorParam.CommentsCount = kitWndPCCommentsCount.Spinbox.Value()
 
-		err = UpdateDBPhotoCommentMonitor(updatedPhotoCommentMonitorParam)
+		err = updatedPhotoCommentMonitorParam.updateInDB()
 		if err != nil {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())

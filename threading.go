@@ -89,7 +89,8 @@ func MakeThreads() ([]*Thread, error) {
 		}
 
 		// получаем из БД параметры для модуля мониторинга комментариев под фотографиями
-		photoCommentMonitorParam, err := SelectDBPhotoCommentMonitorParam(subject.ID)
+		var photoCommentMonitorParam PhotoCommentMonitorParam
+		err = photoCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
 			return threads, err
 		}

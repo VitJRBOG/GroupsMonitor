@@ -69,7 +69,8 @@ func MakeThreads() ([]*Thread, error) {
 		}
 
 		// получаем из БД параметры для модуля мониторинга видео в альбомах
-		videoMonitorParam, err := SelectDBVideoMonitorParam(subject.ID)
+		var videoMonitorParam VideoMonitorParam
+		err = videoMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
 			return threads, err
 		}

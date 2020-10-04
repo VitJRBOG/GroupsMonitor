@@ -1646,7 +1646,7 @@ func additionNewVideoMonitor(newMonitorModuleData NewMonitorModuleData) {
 	videoMonitorParam.LastDate = 0
 	videoMonitorParam.Interval = 60
 
-	err := InsertDBVideoMonitor(videoMonitorParam)
+	err := videoMonitorParam.insertIntoDB()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2109,7 +2109,8 @@ func showSubjectAlbumPhotoSettingWindow(IDSubject int, nameSubject, btnName stri
 
 func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 	// запрашиваем параметры мониторинга из базы данных
-	videoMonitorParam, err := SelectDBVideoMonitorParam(IDSubject)
+	var videoMonitorParam VideoMonitorParam
+	err := videoMonitorParam.selectFromDBBySubjectID(IDSubject)
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2181,7 +2182,7 @@ func showSubjectVideoSettingWindow(IDSubject int, nameSubject, btnName string) {
 		updatedVideoMonitorParam.LastDate = videoMonitorParam.LastDate
 		updatedVideoMonitorParam.VideoCount = kitWndVVideoCount.Spinbox.Value()
 
-		err = UpdateDBVideoMonitor(updatedVideoMonitorParam)
+		err = updatedVideoMonitorParam.updateInDB()
 		if err != nil {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())

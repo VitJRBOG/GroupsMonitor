@@ -10,7 +10,8 @@ func VideoMonitor(subject Subject) (*VideoMonitorParam, error) {
 	sender := fmt.Sprintf("%v's video monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга видео
-	videoMonitorParam, err := SelectDBVideoMonitorParam(subject.ID)
+	var videoMonitorParam VideoMonitorParam
+	err := videoMonitorParam.selectFromDBBySubjectID(subject.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +67,7 @@ func VideoMonitor(subject Subject) (*VideoMonitorParam, error) {
 			outputReportAboutNewVideo(sender, video)
 
 			// обновляем дату последнего проверенного поста в БД
-			if err := UpdateDBVideoMonitorLastDate(subject.ID, video.Date); err != nil {
+			if err := videoMonitorParam.updateInDBFieldLastDate(subject.ID, video.Date); err != nil {
 				return nil, err
 			}
 		}

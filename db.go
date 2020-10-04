@@ -731,22 +731,20 @@ type VideoMonitorParam struct {
 	VideoCount     int `json:"video_count"`
 }
 
-// InsertDBVideoMonitor добавляет новое поле в таблицу video_monitor
-func InsertDBVideoMonitor(vMP VideoMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (vmp *VideoMonitorParam) insertIntoDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// добавляем новое поле в таблицу
 	query := fmt.Sprintf(`INSERT INTO video_monitor (subject_id, 
 		need_monitoring, send_to, interval, last_date, video_count) 
 		VALUES ('%d', '%d', '%d', '%d', '%d', '%d')`,
-		vMP.SubjectID, vMP.NeedMonitoring, vMP.SendTo, vMP.Interval,
-		vMP.LastDate, vMP.VideoCount)
-	_, err = db.Exec(query)
+		vmp.SubjectID, vmp.NeedMonitoring, vmp.SendTo, vmp.Interval,
+		vmp.LastDate, vmp.VideoCount)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -754,75 +752,67 @@ func InsertDBVideoMonitor(vMP VideoMonitorParam) error {
 	return nil
 }
 
-// SelectDBVideoMonitorParam извлекает поля из таблицы video_monitor
-func SelectDBVideoMonitorParam(subjectID int) (VideoMonitorParam, error) {
-	var videoMonitorParam VideoMonitorParam
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (vmp *VideoMonitorParam) selectFromDBBySubjectID(subjectID int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
-		return videoMonitorParam, err
+		return err
 	}
 
-	// читаем данные из БД
 	query := fmt.Sprintf("SELECT * FROM video_monitor WHERE subject_id=%d", subjectID)
-	rows, err := db.Query(query)
+	rows, err := dbKit.db.Query(query)
 	defer rows.Close()
 	if err != nil {
-		return videoMonitorParam, err
+		return err
 	}
 
-	// считываем данные из rows
 	for rows.Next() {
-		err = rows.Scan(&videoMonitorParam.ID, &videoMonitorParam.SubjectID,
-			&videoMonitorParam.NeedMonitoring, &videoMonitorParam.SendTo,
-			&videoMonitorParam.VideoCount, &videoMonitorParam.LastDate,
-			&videoMonitorParam.Interval)
+		err = rows.Scan(&vmp.ID, &vmp.SubjectID,
+			&vmp.NeedMonitoring, &vmp.SendTo,
+			&vmp.VideoCount, &vmp.LastDate,
+			&vmp.Interval)
 		if err != nil {
-			return videoMonitorParam, err
+			return err
 		}
 	}
 
-	return videoMonitorParam, nil
-}
-
-// UpdateDBVideoMonitorLastDate обновляет значение в поле таблицы video_monitor
-func UpdateDBVideoMonitorLastDate(subjectID int, newLastDate int) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
-	if err != nil {
-		return err
-	}
-
-	// обновляем значения в конкретном поле
-	query := fmt.Sprintf(`UPDATE video_monitor SET last_date=%d WHERE subject_id=%d`, newLastDate, subjectID)
-	_, err = db.Exec(query)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-// UpdateDBVideoMonitor обновляет значения в поле таблицы video_monitor
-func UpdateDBVideoMonitor(videoMonitorParam VideoMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (vmp *VideoMonitorParam) updateInDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// обновляем значения в конкретном поле
 	query := fmt.Sprintf(`UPDATE video_monitor 
 		SET subject_id='%d', need_monitoring='%d', send_to='%d', 
 		video_count='%d', last_date='%d', interval='%d'
 		WHERE id=%d`,
-		videoMonitorParam.SubjectID, videoMonitorParam.NeedMonitoring, videoMonitorParam.SendTo,
-		videoMonitorParam.VideoCount, videoMonitorParam.LastDate, videoMonitorParam.Interval,
-		videoMonitorParam.ID)
-	_, err = db.Exec(query)
+		vmp.SubjectID, vmp.NeedMonitoring, vmp.SendTo,
+		vmp.VideoCount, vmp.LastDate, vmp.Interval,
+		vmp.ID)
+	_, err = dbKit.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (vmp *VideoMonitorParam) updateInDBFieldLastDate(subjectID, newLastDate int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf(`UPDATE video_monitor SET last_date=%d WHERE subject_id=%d`, newLastDate, subjectID)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}

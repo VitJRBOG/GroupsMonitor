@@ -239,44 +239,6 @@ func (dbKit *DataBaseKit) selectTableSubject() ([]Subject, error) {
 	return subjects, nil
 }
 
-// TODO: убрать эту функцию после завершения рефакторинга модуля db
-// openDB читает и возвращает базу данных
-func openDB() (*sql.DB, error) {
-	// определяем путь к файлу базы данных
-	path, err := ReadPathFile()
-	if err != nil {
-		return nil, err
-	}
-	pathToDB := path + "groupsmonitor_db.db"
-	// читаем db sqlite
-	db, err := sql.Open("sqlite3", pathToDB)
-	if err != nil {
-		// если словил ошибку, то преобразуем ее в текст
-		errorMessage := fmt.Sprintf("%v", err)
-
-		// и отправляем в обработчик ошибок
-		typeError, causeError := DBIOError(errorMessage)
-
-		// потом проверяем тип полученной ошибки
-		switch typeError {
-
-		// задержка, если получена ошибка, которую можно решить таким образом
-		case "timeout error":
-			interval := 1 * time.Second
-			sender := "Database"
-			message := fmt.Sprintf("Error: %v. Timeout for %v...", causeError, interval)
-			OutputMessage(sender, message)
-			time.Sleep(interval)
-			return openDB()
-		}
-
-		// если пойманная ошибка не обрабатывается, то возвращаем ее стандартным путем
-		return nil, err
-	}
-
-	return db, nil
-}
-
 // AccessToken - структура для полей из таблицы access_token
 type AccessToken struct {
 	ID    int
@@ -285,15 +247,16 @@ type AccessToken struct {
 }
 
 func (at *AccessToken) insertIntoDB() error {
-	db, err := openDB()
-	defer db.Close()
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
 	query := fmt.Sprintf(`INSERT INTO access_token (name, value) VALUES ('%v', '%v')`,
 		at.Name, at.Value)
-	_, err = db.Exec(query)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -301,14 +264,15 @@ func (at *AccessToken) insertIntoDB() error {
 }
 
 func (at *AccessToken) selectFromDBByID(accessTokenID int) error {
-	db, err := openDB()
-	defer db.Close()
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
 	query := fmt.Sprintf("SELECT * FROM access_token WHERE id=%d", accessTokenID)
-	rows, err := db.Query(query)
+	rows, err := dbKit.db.Query(query)
 	defer rows.Close()
 	if err != nil {
 		return err
@@ -324,14 +288,15 @@ func (at *AccessToken) selectFromDBByID(accessTokenID int) error {
 }
 
 func (at *AccessToken) selectFromDBByName(accessTokenName string) error {
-	db, err := openDB()
-	defer db.Close()
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
 	query := fmt.Sprintf("SELECT * FROM access_token WHERE name='%v'", accessTokenName)
-	rows, err := db.Query(query)
+	rows, err := dbKit.db.Query(query)
 	defer rows.Close()
 	if err != nil {
 		return err
@@ -347,15 +312,16 @@ func (at *AccessToken) selectFromDBByName(accessTokenName string) error {
 }
 
 func (at *AccessToken) updateInDB() error {
-	db, err := openDB()
-	defer db.Close()
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
 	query := fmt.Sprintf(`UPDATE access_token SET name='%v', value='%v' WHERE id=%d`,
 		at.Name, at.Value, at.ID)
-	_, err = db.Exec(query)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}

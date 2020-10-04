@@ -129,7 +129,8 @@ func MakeThreads() ([]*Thread, error) {
 		}
 
 		// получаем из БД параметры для модуля мониторинга комментариев в топиках обсуждений
-		topicMonitorParam, err := SelectDBTopicMonitorParam(subject.ID)
+		var topicMonitorParam TopicMonitorParam
+		err = topicMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
 			return threads, err
 		}

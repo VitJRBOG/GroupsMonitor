@@ -1035,23 +1035,21 @@ type TopicMonitorParam struct {
 	LastDate       int `json:"last_date"`
 }
 
-// InsertDBTopicMonitor добавляет новое поле в таблицу topic_monitor
-func InsertDBTopicMonitor(tMP TopicMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (tmp *TopicMonitorParam) insertIntoDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// добавляем новое поле в таблицу
 	query := fmt.Sprintf(`INSERT INTO topic_monitor (subject_id, 
 		need_monitoring, topics_count, comments_count, 
 		interval, send_to, last_date) 
 		VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d')`,
-		tMP.SubjectID, tMP.NeedMonitoring, tMP.TopicsCount, tMP.CommentsCount,
-		tMP.Interval, tMP.SendTo, tMP.LastDate)
-	_, err = db.Exec(query)
+		tmp.SubjectID, tmp.NeedMonitoring, tmp.TopicsCount, tmp.CommentsCount,
+		tmp.Interval, tmp.SendTo, tmp.LastDate)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -1059,76 +1057,68 @@ func InsertDBTopicMonitor(tMP TopicMonitorParam) error {
 	return nil
 }
 
-// SelectDBTopicMonitorParam извлекает поля из таблицы topic_monitor
-func SelectDBTopicMonitorParam(subjectID int) (TopicMonitorParam, error) {
-	var topicMonitorParam TopicMonitorParam
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (tmp *TopicMonitorParam) selectFromDBBySubjectID(subjectID int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
-		return topicMonitorParam, err
+		return err
 	}
 
-	// читаем данные из БД
 	query := fmt.Sprintf("SELECT * FROM topic_monitor WHERE subject_id=%d", subjectID)
-	rows, err := db.Query(query)
+	rows, err := dbKit.db.Query(query)
 	defer rows.Close()
 	if err != nil {
-		return topicMonitorParam, err
+		return err
 	}
 
-	// считываем данные из rows
 	for rows.Next() {
-		err = rows.Scan(&topicMonitorParam.ID, &topicMonitorParam.SubjectID,
-			&topicMonitorParam.NeedMonitoring, &topicMonitorParam.TopicsCount,
-			&topicMonitorParam.CommentsCount, &topicMonitorParam.Interval,
-			&topicMonitorParam.SendTo, &topicMonitorParam.LastDate)
+		err = rows.Scan(&tmp.ID, &tmp.SubjectID,
+			&tmp.NeedMonitoring, &tmp.TopicsCount,
+			&tmp.CommentsCount, &tmp.Interval,
+			&tmp.SendTo, &tmp.LastDate)
 		if err != nil {
-			return topicMonitorParam, err
+			return err
 		}
 	}
 
-	return topicMonitorParam, nil
-}
-
-// UpdateDBTopicMonitorLastDate обновляет значение в поле таблицы topic_monitor
-func UpdateDBTopicMonitorLastDate(subjectID int, newLastDate int) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
-	if err != nil {
-		return err
-	}
-
-	// обновляем значения в конкретном поле
-	query := fmt.Sprintf(`UPDATE topic_monitor SET last_date=%d WHERE subject_id=%d`,
-		newLastDate, subjectID)
-	_, err = db.Exec(query)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-// UpdateDBTopicMonitor обновляет значения в поле таблицы topic_monitor
-func UpdateDBTopicMonitor(topicMonitorParam TopicMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (tmp *TopicMonitorParam) updateInDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// обновляем значения в конкретном поле
 	query := fmt.Sprintf(`UPDATE topic_monitor 
 		SET subject_id='%d', need_monitoring='%d', send_to='%d', 
 		comments_count='%d', last_date='%d', interval='%d',
 		topics_count='%d' WHERE id=%d`,
-		topicMonitorParam.SubjectID, topicMonitorParam.NeedMonitoring, topicMonitorParam.SendTo,
-		topicMonitorParam.CommentsCount, topicMonitorParam.LastDate, topicMonitorParam.Interval,
-		topicMonitorParam.TopicsCount, topicMonitorParam.ID)
-	_, err = db.Exec(query)
+		tmp.SubjectID, tmp.NeedMonitoring, tmp.SendTo,
+		tmp.CommentsCount, tmp.LastDate, tmp.Interval,
+		tmp.TopicsCount, tmp.ID)
+	_, err = dbKit.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tmp *TopicMonitorParam) updateInDBFieldLastDate(subjectID, newLastDate int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf(`UPDATE topic_monitor SET last_date=%d WHERE subject_id=%d`,
+		newLastDate, subjectID)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}

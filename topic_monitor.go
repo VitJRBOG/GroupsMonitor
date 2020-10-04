@@ -10,7 +10,8 @@ func TopicMonitor(subject Subject) (*TopicMonitorParam, error) {
 	sender := fmt.Sprintf("%v's topic monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга топиков обсуждений
-	topicMonitorParam, err := SelectDBTopicMonitorParam(subject.ID)
+	var topicMonitorParam TopicMonitorParam
+	err := topicMonitorParam.selectFromDBBySubjectID(subject.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +89,7 @@ func TopicMonitor(subject Subject) (*TopicMonitorParam, error) {
 				outputReportAboutNewTopicComment(sender, topicComment)
 
 				// обновляем дату последнего проверенного комментария в БД
-				if err := UpdateDBTopicMonitorLastDate(subject.ID, topicComment.Date); err != nil {
+				if err := topicMonitorParam.updateInDBFieldLastDate(subject.ID, topicComment.Date); err != nil {
 					return nil, err
 				}
 			}

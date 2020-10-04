@@ -1699,7 +1699,7 @@ func additionTopicMonitor(newMonitorModuleData NewMonitorModuleData) {
 	topicMonitorParam.SendTo = newMonitorModuleData.SendTo
 	topicMonitorParam.LastDate = 0
 
-	err := InsertDBTopicMonitor(topicMonitorParam)
+	err := topicMonitorParam.insertIntoDB()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2396,7 +2396,8 @@ func showSubjectVideoCommentSettingWindow(IDSubject int, nameSubject, btnName st
 
 func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 	// запрашиваем параметры мониторинга из базы данных
-	topicMonitorParam, err := SelectDBTopicMonitorParam(IDSubject)
+	var topicMonitorParam TopicMonitorParam
+	err := topicMonitorParam.selectFromDBBySubjectID(IDSubject)
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2473,7 +2474,7 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 		updatedTopicMonitorParam.CommentsCount = kitWndTCommentsCount.Spinbox.Value()
 		updatedTopicMonitorParam.TopicsCount = kitWndTTopicsCount.Spinbox.Value()
 
-		err = UpdateDBTopicMonitor(updatedTopicMonitorParam)
+		err = updatedTopicMonitorParam.updateInDB()
 		if err != nil {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())

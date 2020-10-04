@@ -149,7 +149,8 @@ func MakeThreads() ([]*Thread, error) {
 		}
 
 		// получаем из БД параметры для модуля мониторинга комментариев под постами на стене
-		wallPostCommentMonitorParam, err := SelectDBWallPostCommentMonitorParam(subject.ID)
+		var wallPostCommentMonitorParam WallPostCommentMonitorParam
+		err = wallPostCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
 			return threads, err
 		}

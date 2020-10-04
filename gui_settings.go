@@ -1728,7 +1728,7 @@ func additionWallPostCommentMonitor(newMonitorModuleData NewMonitorModuleData) {
 	wallPostCommentMonitorParam.DigitsCountForPhoneNumberMonitoring = "{\"list\":[\"6\",\"11\"]}"
 	wallPostCommentMonitorParam.MonitorByCommunity = 1
 
-	err := InsertDBWallPostCommentMonitor(wallPostCommentMonitorParam)
+	err := wallPostCommentMonitorParam.insertIntoDB()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2495,7 +2495,8 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 
 func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName string) {
 	// запрашиваем параметры мониторинга из базы данных
-	wallPostCommentMonitorParam, err := SelectDBWallPostCommentMonitorParam(IDSubject)
+	var wallPostCommentMonitorParam WallPostCommentMonitorParam
+	err := wallPostCommentMonitorParam.selectFromDBBySubjectID(IDSubject)
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
@@ -2638,7 +2639,7 @@ func showSubjectWallPostCommentSettings(IDSubject int, nameSubject, btnName stri
 			updatedWallPostCommentMonitorParam.MonitorByCommunity = 0
 		}
 
-		err = UpdateDBWallPostCommentMonitor(updatedWallPostCommentMonitorParam)
+		err = updatedWallPostCommentMonitorParam.updateInDB()
 		if err != nil {
 			ToLogFile(err.Error(), string(debug.Stack()))
 			panic(err.Error())

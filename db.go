@@ -1149,16 +1149,14 @@ type WallPostCommentMonitorParam struct {
 	MonitorByCommunity                  int    `json:"monitor_by_community"`
 }
 
-// InsertDBWallPostCommentMonitor добавляет новое поле в таблицу wall_post_comment_monitor
-func InsertDBWallPostCommentMonitor(wPCMP WallPostCommentMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (wpcmp *WallPostCommentMonitorParam) insertIntoDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// добавляем новое поле в таблицу
 	query := fmt.Sprintf(`INSERT INTO wall_post_comment_monitor (subject_id, 
 		need_monitoring, posts_count, comments_count, monitoring_all, 
    		users_ids_for_monitoring, users_names_for_monitoring, attachments_types_for_monitoring, 
@@ -1168,13 +1166,13 @@ func InsertDBWallPostCommentMonitor(wPCMP WallPostCommentMonitorParam) error {
 		digits_count_for_phone_number_monitoring, monitor_by_community)
 		VALUES ('%d', '%d', '%d', '%d', '%d', '%v', '%v', '%v', '%v', '%d', 
 		'%d', '%v', '%d', '%v', '%v', '%v', '%v', '%d')`,
-		wPCMP.SubjectID, wPCMP.NeedMonitoring, wPCMP.PostsCount, wPCMP.CommentsCount,
-		wPCMP.MonitoringAll, wPCMP.UsersIDsForMonitoring, wPCMP.UsersNamesForMonitoring,
-		wPCMP.AttachmentsTypesForMonitoring, wPCMP.UsersIDsForIgnore, wPCMP.Interval,
-		wPCMP.SendTo, wPCMP.Filter, wPCMP.LastDate, wPCMP.KeywordsForMonitoring,
-		wPCMP.SmallCommentsForMonitoring, wPCMP.DigitsCountForCardNumberMonitoring,
-		wPCMP.DigitsCountForPhoneNumberMonitoring, wPCMP.MonitorByCommunity)
-	_, err = db.Exec(query)
+		wpcmp.SubjectID, wpcmp.NeedMonitoring, wpcmp.PostsCount, wpcmp.CommentsCount,
+		wpcmp.MonitoringAll, wpcmp.UsersIDsForMonitoring, wpcmp.UsersNamesForMonitoring,
+		wpcmp.AttachmentsTypesForMonitoring, wpcmp.UsersIDsForIgnore, wpcmp.Interval,
+		wpcmp.SendTo, wpcmp.Filter, wpcmp.LastDate, wpcmp.KeywordsForMonitoring,
+		wpcmp.SmallCommentsForMonitoring, wpcmp.DigitsCountForCardNumberMonitoring,
+		wpcmp.DigitsCountForPhoneNumberMonitoring, wpcmp.MonitorByCommunity)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -1182,78 +1180,52 @@ func InsertDBWallPostCommentMonitor(wPCMP WallPostCommentMonitorParam) error {
 	return nil
 }
 
-// SelectDBWallPostCommentMonitorParam извлекает поля из таблицы wall_post_comment_monitor
-func SelectDBWallPostCommentMonitorParam(subjectID int) (WallPostCommentMonitorParam, error) {
-	var wallPostCommentMonitorParam WallPostCommentMonitorParam
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (wpcmp *WallPostCommentMonitorParam) selectFromDBBySubjectID(subjectID int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
-		return wallPostCommentMonitorParam, err
+		return err
 	}
 
-	// читаем данные из БД
 	query := fmt.Sprintf("SELECT * FROM wall_post_comment_monitor WHERE subject_id=%d", subjectID)
-	rows, err := db.Query(query)
+	rows, err := dbKit.db.Query(query)
 	defer rows.Close()
 	if err != nil {
-		return wallPostCommentMonitorParam, err
+		return err
 	}
 
-	// считываем данные из rows
 	for rows.Next() {
-		err = rows.Scan(&wallPostCommentMonitorParam.ID, &wallPostCommentMonitorParam.SubjectID,
-			&wallPostCommentMonitorParam.NeedMonitoring, &wallPostCommentMonitorParam.PostsCount,
-			&wallPostCommentMonitorParam.CommentsCount, &wallPostCommentMonitorParam.MonitoringAll,
-			&wallPostCommentMonitorParam.UsersIDsForMonitoring,
-			&wallPostCommentMonitorParam.UsersNamesForMonitoring,
-			&wallPostCommentMonitorParam.AttachmentsTypesForMonitoring,
-			&wallPostCommentMonitorParam.UsersIDsForIgnore,
-			&wallPostCommentMonitorParam.Interval, &wallPostCommentMonitorParam.SendTo,
-			&wallPostCommentMonitorParam.Filter, &wallPostCommentMonitorParam.LastDate,
-			&wallPostCommentMonitorParam.KeywordsForMonitoring,
-			&wallPostCommentMonitorParam.SmallCommentsForMonitoring,
-			&wallPostCommentMonitorParam.DigitsCountForCardNumberMonitoring,
-			&wallPostCommentMonitorParam.DigitsCountForPhoneNumberMonitoring,
-			&wallPostCommentMonitorParam.MonitorByCommunity)
+		err = rows.Scan(&wpcmp.ID, &wpcmp.SubjectID,
+			&wpcmp.NeedMonitoring, &wpcmp.PostsCount,
+			&wpcmp.CommentsCount, &wpcmp.MonitoringAll,
+			&wpcmp.UsersIDsForMonitoring,
+			&wpcmp.UsersNamesForMonitoring,
+			&wpcmp.AttachmentsTypesForMonitoring,
+			&wpcmp.UsersIDsForIgnore,
+			&wpcmp.Interval, &wpcmp.SendTo,
+			&wpcmp.Filter, &wpcmp.LastDate,
+			&wpcmp.KeywordsForMonitoring,
+			&wpcmp.SmallCommentsForMonitoring,
+			&wpcmp.DigitsCountForCardNumberMonitoring,
+			&wpcmp.DigitsCountForPhoneNumberMonitoring,
+			&wpcmp.MonitorByCommunity)
 		if err != nil {
-			return wallPostCommentMonitorParam, err
+			return err
 		}
 	}
 
-	return wallPostCommentMonitorParam, nil
-}
-
-// UpdateDBWallPostCommentMonitorLastDate обновляет значение в поле таблицы wall_post_comment_monitor
-func UpdateDBWallPostCommentMonitorLastDate(subjectID int, newLastDate int) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
-	if err != nil {
-		return err
-	}
-
-	// обновляем значения в конкретном поле
-	query := fmt.Sprintf(`UPDATE wall_post_comment_monitor SET last_date=%d WHERE subject_id=%d`,
-		newLastDate, subjectID)
-	_, err = db.Exec(query)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-// UpdateDBWallPostCommentMonitor обновляет значения в поле таблицы wall_post_comment_monitor
-func UpdateDBWallPostCommentMonitor(wPCMP WallPostCommentMonitorParam) error {
-	// получаем ссылку на db
-	db, err := openDB()
-	defer db.Close()
+func (wpcmp *WallPostCommentMonitorParam) updateInDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
 	if err != nil {
 		return err
 	}
 
-	// обновляем значения в конкретном поле
 	query := fmt.Sprintf(`UPDATE wall_post_comment_monitor SET subject_id='%d', need_monitoring='%d',
 		posts_count='%d', comments_count='%d', monitoring_all='%d', users_ids_for_monitoring='%v',
 		users_names_for_monitoring='%v', attachments_types_for_monitoring='%v',
@@ -1262,15 +1234,34 @@ func UpdateDBWallPostCommentMonitor(wPCMP WallPostCommentMonitorParam) error {
 		digits_count_for_card_number_monitoring='%v', digits_count_for_phone_number_monitoring='%v', 
 		monitor_by_community='%d'
 		WHERE id=%d`,
-		wPCMP.SubjectID, wPCMP.NeedMonitoring,
-		wPCMP.PostsCount, wPCMP.CommentsCount, wPCMP.MonitoringAll, wPCMP.UsersIDsForMonitoring,
-		wPCMP.UsersNamesForMonitoring, wPCMP.AttachmentsTypesForMonitoring,
-		wPCMP.UsersIDsForIgnore, wPCMP.Interval, wPCMP.SendTo, wPCMP.Filter,
-		wPCMP.LastDate, wPCMP.KeywordsForMonitoring, wPCMP.SmallCommentsForMonitoring,
-		wPCMP.DigitsCountForCardNumberMonitoring, wPCMP.DigitsCountForPhoneNumberMonitoring,
-		wPCMP.MonitorByCommunity,
-		wPCMP.ID)
-	_, err = db.Exec(query)
+		wpcmp.SubjectID, wpcmp.NeedMonitoring,
+		wpcmp.PostsCount, wpcmp.CommentsCount, wpcmp.MonitoringAll, wpcmp.UsersIDsForMonitoring,
+		wpcmp.UsersNamesForMonitoring, wpcmp.AttachmentsTypesForMonitoring,
+		wpcmp.UsersIDsForIgnore, wpcmp.Interval, wpcmp.SendTo, wpcmp.Filter,
+		wpcmp.LastDate, wpcmp.KeywordsForMonitoring, wpcmp.SmallCommentsForMonitoring,
+		wpcmp.DigitsCountForCardNumberMonitoring, wpcmp.DigitsCountForPhoneNumberMonitoring,
+		wpcmp.MonitorByCommunity,
+		wpcmp.ID)
+	_, err = dbKit.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (wpcmp *WallPostCommentMonitorParam) updateInDBFieldLastDate(subjectID, newLastDate int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
+	if err != nil {
+		return err
+	}
+
+	// обновляем значения в конкретном поле
+	query := fmt.Sprintf(`UPDATE wall_post_comment_monitor SET last_date=%d WHERE subject_id=%d`,
+		newLastDate, subjectID)
+	_, err = dbKit.db.Exec(query)
 	if err != nil {
 		return err
 	}

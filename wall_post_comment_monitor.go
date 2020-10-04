@@ -13,7 +13,8 @@ func WallPostCommentMonitor(subject Subject) (*WallPostCommentMonitorParam, erro
 	sender := fmt.Sprintf("%v's wall post comment monitoring", subject.Name)
 
 	// запрашиваем структуру с параметрами модуля мониторинга комментариев под постами
-	wallPostCommentMonitorParam, err := SelectDBWallPostCommentMonitorParam(subject.ID)
+	var wallPostCommentMonitorParam WallPostCommentMonitorParam
+	err := wallPostCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +96,7 @@ func WallPostCommentMonitor(subject Subject) (*WallPostCommentMonitorParam, erro
 			}
 
 			// обновляем дату последнего проверенного комментария в БД
-			if err := UpdateDBWallPostCommentMonitorLastDate(subject.ID, wallPostComment.Date); err != nil {
+			if err := wallPostCommentMonitorParam.updateInDBFieldLastDate(subject.ID, wallPostComment.Date); err != nil {
 				return nil, err
 			}
 		}

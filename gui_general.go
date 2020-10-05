@@ -7,54 +7,91 @@ import (
 	"github.com/andlabs/ui"
 )
 
-func makeGeneralBox(threads []*Thread) *ui.Box {
-	boxGeneral := ui.NewHorizontalBox()
+// boxGeneral хранит данные о боксе с кнопками запуска, перезапуска и остановки модулей мониторинга
+type boxGeneral struct {
+	box *ui.Box
+}
 
-	// описываем левую нижнюю коробку
-	boxBottomLeft := ui.NewHorizontalBox()
-	// и добавляем ее на основную коробку
-	boxGeneral.Append(boxBottomLeft, true)
+func (bg *boxGeneral) init() {
+	bg.box = ui.NewHorizontalBox()
+}
 
-	// описываем коробку для основных кнопок
-	buttonsBox := ui.NewVerticalBox()
-	buttonsBox.SetPadded(true)
-	// и добавляем ее на основную коробку
-	boxGeneral.Append(buttonsBox, false)
+func (bg *boxGeneral) setBtnsBox(btnsBox generalButtonsBox) {
+	bg.box.Append(btnsBox.box, false)
+}
 
-	// описываем основные кнопки программы
-	btnStart := ui.NewButton("Start")
-	btnRestart := ui.NewButton("Restart")
-	btnRestart.Disable()
-	btnStop := ui.NewButton("Stop")
-	btnStop.Disable()
+func (bg *boxGeneral) initFlexibleSpaceBox() {
+	box := ui.NewHorizontalBox()
+	bg.box.Append(box, true)
+}
 
-	// и привязываем к каждой соответствующую процедуру
-	btnStart.OnClicked(func(*ui.Button) {
+// generalButtonsBox хранит данные о кнопках запуска, перезапуска и остановки модулей мониторинга
+type generalButtonsBox struct {
+	box        *ui.Box
+	btnStart   *ui.Button
+	btnRestart *ui.Button
+	btnStop    *ui.Button
+}
+
+func (gbb *generalButtonsBox) init() {
+	gbb.box = ui.NewVerticalBox()
+	gbb.box.SetPadded(true)
+}
+
+func (gbb *generalButtonsBox) initBtnStart(threads []*Thread) {
+	gbb.btnStart = ui.NewButton("Start")
+
+	gbb.btnStart.OnClicked(func(*ui.Button) {
 		go StartThreads(threads)
-		btnStart.Disable()
-		btnRestart.Enable()
-		btnStop.Enable()
+		gbb.btnStart.Disable()
+		gbb.btnRestart.Enable()
+		gbb.btnStop.Enable()
 	})
-	btnRestart.OnClicked(func(*ui.Button) {
+
+	gbb.box.Append(gbb.btnStart, false)
+}
+
+func (gbb *generalButtonsBox) initBtnRestart(threads []*Thread) {
+	gbb.btnRestart = ui.NewButton("Restart")
+	gbb.btnRestart.Disable()
+
+	gbb.btnRestart.OnClicked(func(*ui.Button) {
 		go RestartThreads(threads)
 	})
-	btnStop.OnClicked(func(*ui.Button) {
+
+	gbb.box.Append(gbb.btnRestart, false)
+}
+
+func (gbb *generalButtonsBox) initBtnStop(threads []*Thread) {
+	gbb.btnStop = ui.NewButton("Stop")
+	gbb.btnStop.Disable()
+
+	gbb.btnStop.OnClicked(func(*ui.Button) {
 		go StopThreads(threads)
-		btnRestart.Disable()
-		btnStop.Disable()
+		gbb.btnRestart.Disable()
+		gbb.btnStop.Disable()
 	})
 
-	// затем добавляем эти кнопки в коробку для основных кнопок
-	buttonsBox.Append(btnStart, false)
-	buttonsBox.Append(btnRestart, false)
-	buttonsBox.Append(btnStop, false)
+	gbb.box.Append(gbb.btnStop, false)
+}
 
-	// описываем правую нижнюю коробку
-	boxBottomRight := ui.NewHorizontalBox()
-	// и добавляем ее на нижнюю коробку
-	boxGeneral.Append(boxBottomRight, true)
+// makeGeneralBox собирает бокс с кнопками запуска, перезапуска и остановки модулей мониторинга
+func makeGeneralBox(threads []*Thread) *ui.Box {
 
-	return boxGeneral
+	var gbb generalButtonsBox
+
+	gbb.init()
+	gbb.initBtnStart(threads)
+	gbb.initBtnRestart(threads)
+	gbb.initBtnStop(threads)
+
+	var bg boxGeneral
+	bg.init()
+	bg.initFlexibleSpaceBox()
+	bg.setBtnsBox(gbb)
+	bg.initFlexibleSpaceBox()
+
+	return bg.box
 }
 
 // StartThreads запускает потоки, находящиеся в режиме ожидания после запуска программы

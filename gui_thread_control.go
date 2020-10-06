@@ -216,7 +216,9 @@ func makeSubjectBox(subjectName string, threads []*Thread) *ui.Box {
 func threadStatusChecking(statusLabel *ui.Label, threadData *Thread) {
 	for true {
 		if statusLabel.Text() != threadData.Status {
+			ui.QueueMain(func() {
 			statusLabel.SetText(threadData.Status)
+			})
 		}
 		time.Sleep(1 * time.Second)
 	}

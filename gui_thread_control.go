@@ -59,10 +59,10 @@ type subjSelectingBtnData struct {
 	box    *ui.Box
 }
 
-func (ssbd *subjSelectingBtnData) init(threads []*Thread, subjectName string) {
-	ssbd.title = subjectName
-	ssbd.button = ui.NewButton(subjectName)
-	ssbd.box = makeSubjectBox(subjectName, threads)
+func (ssbd *subjSelectingBtnData) init(threads *[]*Thread, subject Subject) {
+	ssbd.title = subject.Name
+	ssbd.button = ui.NewButton(subject.Name)
+	ssbd.box = makeSubjectBox(subject, threads)
 }
 
 func (ssbd *subjSelectingBtnData) setFuncToBtn(listSSBD []subjSelectingBtnData, btc boxThreadControl) {
@@ -80,18 +80,23 @@ func (ssbd *subjSelectingBtnData) setFuncToBtn(listSSBD []subjSelectingBtnData, 
 }
 
 // makeThreadControlBox собирает бокс для контроля потоков мониторинга субъектов
-func makeThreadControlBox(threads []*Thread) *ui.Box {
-
-	subjectNames := getSubjectsNames()
+func makeThreadControlBox(threads *[]*Thread) *ui.Box {
 
 	var btc boxThreadControl
 	btc.init()
 
+	var dbKit DataBaseKit
+	subjects, err := dbKit.selectTableSubject()
+	if err != nil {
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
+	}
+
 	var listSSBD []subjSelectingBtnData
-	if len(subjectNames) > 0 {
-		for i := 0; i < len(subjectNames); i++ {
+	if len(subjects) > 0 {
+		for i := 0; i < len(subjects); i++ {
 			var ssbd subjSelectingBtnData
-			ssbd.init(threads, subjectNames[i])
+			ssbd.init(threads, subjects[i])
 			listSSBD = append(listSSBD, ssbd)
 		}
 	} else {
@@ -116,24 +121,6 @@ func makeThreadControlBox(threads []*Thread) *ui.Box {
 	return btc.box
 }
 
-func getSubjectsNames() []string {
-	var subjectsNames []string
-
-	// запрашиваем список субъектов из базы данных
-	var dbKit DataBaseKit
-	subjects, err := dbKit.selectTableSubject()
-	if err != nil {
-		ToLogFile(err.Error(), string(debug.Stack()))
-		panic(err.Error())
-	}
-	// и добавляем их названия в список
-	for _, subject := range subjects {
-		subjectsNames = append(subjectsNames, subject.Name)
-	}
-
-	return subjectsNames
-}
-
 // subjectBoxData хранит данные о боксе с кнопками для управления потоками мониторинга одного из субъектов
 type subjectBoxData struct {
 	box *ui.Box
@@ -149,41 +136,73 @@ func (sbd *subjectBoxData) appendMonitorControlBoxes(listMCB []monitorControlBox
 	}
 }
 
-// monitorControlBox хранит данные о кнопке для управления одним из потоков мониторинга субъекта
+// monitorControlBox хранит данные о кнопках включения и отключения одного из потоков мониторинга субъекта
 type monitorControlBox struct {
-	box    *ui.Box
-	title  string
-	button *ui.Button
-	label  *ui.Label
+	title            string
+	box              *ui.Box
+	monitorNameLabel *ui.Label
+	btnsBox          *ui.Box
+	buttonOn         *ui.Button
+	buttonOff        *ui.Button
+	statusLabel      *ui.Label
 }
 
-func (mcb *monitorControlBox) init(buttonName string) {
+func (mcb *monitorControlBox) init(monitorName string) {
+	mcb.title = monitorName
+	mcb.monitorNameLabel = ui.NewLabel(monitorName)
+	mcb.btnsBox = ui.NewHorizontalBox()
+	mcb.buttonOn = ui.NewButton("On")
+	mcb.buttonOn.Disable()
+	mcb.btnsBox.Append(mcb.buttonOn, true)
+	mcb.buttonOff = ui.NewButton("Off")
+	mcb.buttonOff.Disable()
+	mcb.btnsBox.Append(mcb.buttonOff, true)
+	mcb.statusLabel = ui.NewLabel("inactive")
 	mcb.box = ui.NewHorizontalBox()
-	mcb.title = buttonName
-	mcb.button = ui.NewButton(buttonName)
-	mcb.button.Disable()
-	mcb.label = ui.NewLabel("inactive")
-	mcb.box.Append(mcb.button, true)
-	mcb.box.Append(mcb.label, true)
+	mcb.box.Append(mcb.monitorNameLabel, true)
+	mcb.box.Append(mcb.btnsBox, true)
+	mcb.box.Append(mcb.statusLabel, true)
 }
 
-func (mcb *monitorControlBox) setFuncToBtn(threadData *Thread) {
-	mcb.button.OnClicked(func(*ui.Button) {
-		if threadData.ActionFlag == 3 {
-			threadData.ActionFlag = 2
-		} else {
-			if threadData.ActionFlag != 1 {
-				threadData.ActionFlag = 3
-			}
+func (mcb *monitorControlBox) setFuncToBtnOn(monitorName string, threadData *Thread) {
+	mcb.buttonOn.OnClicked(func(*ui.Button) {
+		switch monitorName {
+		case "wall post monitoring":
+			threadData.runWallPostMonitoring()
+		case "album photo monitoring":
+			threadData.runAlbumPhotoMonitoring()
+		case "video monitoring":
+			threadData.runVideoMonitoring()
+		case "photo comment monitoring":
+			threadData.runPhotoCommentMonitoring()
+		case "video comment monitoring":
+			threadData.runVideoCommentMonitoring()
+		case "topic monitoring":
+			threadData.runTopicMonitoring()
+		case "wall post comment monitoring":
+			threadData.runWallPostCommentMonitoring()
 		}
-	})
 
-	mcb.button.Enable()
-	go threadStatusChecking(mcb.label, threadData)
+		mcb.buttonOn.Disable()
+		mcb.buttonOff.Enable()
+	})
+}
+
+func (mcb *monitorControlBox) setFuncToBtnOff(threadData *Thread) {
+	mcb.buttonOff.OnClicked(func(*ui.Button) {
+		threadData.ActionFlag = 1
+
+		mcb.buttonOn.Enable()
+		mcb.buttonOff.Disable()
+	})
+}
+
+func (mcb *monitorControlBox) setThreadStatusChecking(threadData *Thread) {
+	go threadStatusChecking(mcb, threadData)
 }
 
 // makeSubjectBox собирает бокс для управления потоками мониторинга одного из субъектов
-func makeSubjectBox(subjectName string, threads []*Thread) *ui.Box {
+func makeSubjectBox(subject Subject, threads *[]*Thread) *ui.Box {
 	monitorsNames := []string{"Wall post monitoring", "Album photo monitoring", "Video monitoring",
 		"Photo comment monitoring", "Video comment monitoring", "Topic monitoring",
 		"Wall post comment monitoring"}
@@ -197,10 +216,13 @@ func makeSubjectBox(subjectName string, threads []*Thread) *ui.Box {
 	}
 
 	for i := 0; i < len(listMCB); i++ {
-		for n := 0; n < len(threads); n++ {
-			if strings.Contains(strings.ToLower(threads[n].Name), strings.ToLower(subjectName)) {
-				if strings.ToLower(threads[n].Name) == strings.ToLower(subjectName+"'s "+listMCB[i].title) {
-					listMCB[i].setFuncToBtn(threads[n])
+		for n := 0; n < len(*threads); n++ {
+			if (*threads)[n].Status != "inactive" {
+				if strings.ToLower((*threads)[n].Name) == strings.ToLower(subject.Name+"'s "+listMCB[i].title) {
+					monitorName := strings.ReplaceAll((*threads)[i].Name, (*threads)[i].Subject.Name+"'s ", "")
+					listMCB[i].setFuncToBtnOn(monitorName, (*threads)[n])
+					listMCB[i].setFuncToBtnOff((*threads)[n])
+					listMCB[i].setThreadStatusChecking((*threads)[n])
 				}
 			}
 		}
@@ -213,11 +235,28 @@ func makeSubjectBox(subjectName string, threads []*Thread) *ui.Box {
 	return sbd.box
 }
 
-func threadStatusChecking(statusLabel *ui.Label, threadData *Thread) {
+func threadStatusChecking(mcb *monitorControlBox, threadData *Thread) {
 	for true {
-		if statusLabel.Text() != threadData.Status {
+		if mcb.statusLabel.Text() != threadData.Status {
 			ui.QueueMain(func() {
-			statusLabel.SetText(threadData.Status)
+				mcb.statusLabel.SetText(threadData.Status)
+			})
+		}
+		switch threadData.Status {
+		case "inactive":
+			ui.QueueMain(func() {
+				mcb.buttonOn.Disable()
+				mcb.buttonOff.Disable()
+			})
+		case "stopped":
+			ui.QueueMain(func() {
+				mcb.buttonOn.Enable()
+				mcb.buttonOff.Disable()
+			})
+		default:
+			ui.QueueMain(func() {
+				mcb.buttonOn.Disable()
+				mcb.buttonOff.Enable()
 			})
 		}
 		time.Sleep(1 * time.Second)

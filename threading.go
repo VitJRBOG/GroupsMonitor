@@ -2,171 +2,196 @@ package main
 
 import (
 	"fmt"
-	"runtime/debug"
 	"time"
 )
 
 // Thread - структура для хранения данных о потоке
 type Thread struct {
 	Name       string
-	ActionFlag int // 0 - nothing, 1 - stopping, 2 - restarting, 3 - waiting
+	ActionFlag int // 0 - nothing, 1 - stopping, 2 - restarting
 	Status     string
+	Subject    Subject
 }
 
-// MakeThreads создает и запускает потоки
-func MakeThreads() ([]*Thread, error) {
+func (thread *Thread) initWallPostMonitoring(subject Subject) {
+	thread.ActionFlag = 0
+	thread.Name = fmt.Sprintf("%v's wall post monitoring", subject.Name)
+	thread.Status = "stopped"
+	thread.Subject = subject
+}
+
+func (thread *Thread) runWallPostMonitoring() {
+	thread.ActionFlag = 0
+	go wallPostMonitoring(thread, thread.Subject)
+}
+
+func (thread *Thread) initAlbumPhotoMonitoring(subject Subject) {
+	thread.ActionFlag = 0
+	thread.Name = fmt.Sprintf("%v's album photo monitoring", subject.Name)
+	thread.Status = "stopped"
+	thread.Subject = subject
+}
+
+func (thread *Thread) runAlbumPhotoMonitoring() {
+	thread.ActionFlag = 0
+	go albumPhotoMonitoring(thread, thread.Subject)
+}
+
+func (thread *Thread) initVideoMonitoring(subject Subject) {
+	thread.ActionFlag = 0
+	thread.Name = fmt.Sprintf("%v's video monitoring", subject.Name)
+	thread.Status = "stopped"
+	thread.Subject = subject
+}
+
+func (thread *Thread) runVideoMonitoring() {
+	thread.ActionFlag = 0
+	go videoMonitoring(thread, thread.Subject)
+}
+
+func (thread *Thread) initPhotoCommentMonitoring(subject Subject) {
+	thread.ActionFlag = 0
+	thread.Name = fmt.Sprintf("%v's photo comment monitoring", subject.Name)
+	thread.Status = "stopped"
+	thread.Subject = subject
+}
+
+func (thread *Thread) runPhotoCommentMonitoring() {
+	thread.ActionFlag = 0
+	go photoCommentMonitoring(thread, thread.Subject)
+}
+
+func (thread *Thread) initVideoCommentMonitoring(subject Subject) {
+	thread.ActionFlag = 0
+	thread.Name = fmt.Sprintf("%v's video comment monitoring", subject.Name)
+	thread.Status = "stopped"
+	thread.Subject = subject
+}
+
+func (thread *Thread) runVideoCommentMonitoring() {
+	thread.ActionFlag = 0
+	go videoCommentMonitoring(thread, thread.Subject)
+}
+
+func (thread *Thread) initTopicMonitoring(subject Subject) {
+	thread.ActionFlag = 0
+	thread.Name = fmt.Sprintf("%v's topic monitoring", subject.Name)
+	thread.Status = "stopped"
+	thread.Subject = subject
+}
+
+func (thread *Thread) runTopicMonitoring() {
+	thread.ActionFlag = 0
+	go topicMonitoring(thread, thread.Subject)
+}
+
+func (thread *Thread) initWallPostCommentMonitoring(subject Subject) {
+	thread.ActionFlag = 0
+	thread.Name = fmt.Sprintf("%v's wall post comment monitoring", subject.Name)
+	thread.Status = "stopped"
+	thread.Subject = subject
+}
+
+func (thread *Thread) runWallPostCommentMonitoring() {
+	thread.ActionFlag = 0
+	go wallPostCommentMonitoring(thread, thread.Subject)
+}
+
+// InitThreads инициализирует потоки и заполняет данными о них список для них
+func InitThreads() (*[]*Thread, error) {
 	var threads []*Thread
 
-	// получаем из БД список субъектов
 	var dbKit DataBaseKit
 	subjects, err := dbKit.selectTableSubject()
 	if err != nil {
-		return threads, err
+		return nil, err
 	}
 
-	// перебираем список субъектов и запускаем модули мониторинга в отдельных потоках
 	for _, subject := range subjects {
 
-		// получаем из БД параметры для модуля мониторинга постов на стене
 		var wallPostMonitorParam WallPostMonitorParam
 		err := wallPostMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			ToLogFile(err.Error(), string(debug.Stack()))
-			panic(err.Error())
+			return nil, err
 		}
-
-		// проверяем параметр и определяем, нужно ли запускать этот модуль
-		if wallPostMonitorParam.NeedMonitoring == 1 {
-
-			// создаем структуру с данными о потоке и наполняем ее данными
-			var thread Thread
-			thread.Name = fmt.Sprintf("%v's wall post monitoring", subject.Name)
-			thread.Status = "waiting"
-
-			// запускаем поток
-			go wallPostMonitoring(&thread, subject)
-			threads = append(threads, &thread)
+		var threadWPM Thread
+		threadWPM.initWallPostMonitoring(subject)
+		if wallPostMonitorParam.NeedMonitoring == 0 {
+			threadWPM.Status = "inactive"
 		}
+		threads = append(threads, &threadWPM)
 
-		// получаем из БД параметры для модуля мониторинга фотографий в альбомах
 		var albumPhotoMonitorParam AlbumPhotoMonitorParam
 		err = albumPhotoMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return threads, err
+			return nil, err
 		}
-
-		// проверяем параметр и определяем, нужно ли запускать этот модуль
-		if albumPhotoMonitorParam.NeedMonitoring == 1 {
-
-			// создаем структуру с данными о потоке и наполняем ее данными
-			var thread Thread
-			thread.Name = fmt.Sprintf("%v's album photo monitoring", subject.Name)
-			thread.Status = "waiting"
-
-			// запускаем поток
-			go albumPhotoMonitoring(&thread, subject)
-			threads = append(threads, &thread)
+		var threadAPM Thread
+		threadAPM.initAlbumPhotoMonitoring(subject)
+		if albumPhotoMonitorParam.NeedMonitoring == 0 {
+			threadAPM.Status = "inactive"
 		}
+		threads = append(threads, &threadAPM)
 
-		// получаем из БД параметры для модуля мониторинга видео в альбомах
 		var videoMonitorParam VideoMonitorParam
 		err = videoMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return threads, err
+			return nil, err
 		}
-
-		// проверяем параметр и определяем, нужно ли запускать этот модуль
-		if videoMonitorParam.NeedMonitoring == 1 {
-
-			// создаем структуру с данными о потоке и наполняем ее данными
-			var thread Thread
-			thread.Name = fmt.Sprintf("%v's video monitoring", subject.Name)
-			thread.Status = "waiting"
-
-			// запускаем поток
-			go videoMonitoring(&thread, subject)
-			threads = append(threads, &thread)
+		var threadVM Thread
+		threadVM.initVideoMonitoring(subject)
+		if videoMonitorParam.NeedMonitoring == 0 {
+			threadVM.Status = "inactive"
 		}
+		threads = append(threads, &threadVM)
 
-		// получаем из БД параметры для модуля мониторинга комментариев под фотографиями
 		var photoCommentMonitorParam PhotoCommentMonitorParam
 		err = photoCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return threads, err
+			return nil, err
 		}
-
-		// проверяем параметр и определяем, нужно ли запускать этот модуль
-		if photoCommentMonitorParam.NeedMonitoring == 1 {
-
-			// создаем структуру с данными о потоке и наполняем ее данными
-			var thread Thread
-			thread.Name = fmt.Sprintf("%v's photo comment monitoring", subject.Name)
-			thread.Status = "waiting"
-
-			// запускаем поток
-			go photoCommentMonitoring(&thread, subject)
-			threads = append(threads, &thread)
+		var threadPCM Thread
+		threadPCM.initPhotoCommentMonitoring(subject)
+		if photoCommentMonitorParam.NeedMonitoring == 0 {
+			threadPCM.Status = "inactive"
 		}
+		threads = append(threads, &threadPCM)
 
-		// получаем из БД параметры для модуля мониторинга комментариев под видеозаписями
 		var videoCommentMonitorParam VideoCommentMonitorParam
 		err = videoCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return threads, err
+			return nil, err
 		}
-
-		// проверяем параметр и определяем, нужно ли запускать этот модуль
-		if videoCommentMonitorParam.NeedMonitoring == 1 {
-
-			// создаем структуру с данными о потоке и наполняем ее данными
-			var thread Thread
-			thread.Name = fmt.Sprintf("%v's video comment monitoring", subject.Name)
-			thread.Status = "waiting"
-
-			// запускаем поток
-			go videoCommentMonitoring(&thread, subject)
-			threads = append(threads, &thread)
+		var threadVCM Thread
+		threadVCM.initVideoCommentMonitoring(subject)
+		if videoCommentMonitorParam.NeedMonitoring == 0 {
+			threadVCM.Status = "inactive"
 		}
+		threads = append(threads, &threadVCM)
 
-		// получаем из БД параметры для модуля мониторинга комментариев в топиках обсуждений
 		var topicMonitorParam TopicMonitorParam
 		err = topicMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return threads, err
+			return nil, err
 		}
-
-		// проверяем параметр и определяем, нужно ли запускать этот модуль
-		if topicMonitorParam.NeedMonitoring == 1 {
-
-			// создаем структуру с данными о потоке и наполняем ее данными
-			var thread Thread
-			thread.Name = fmt.Sprintf("%v's topic monitoring", subject.Name)
-			thread.Status = "waiting"
-
-			// запускаем поток
-			go topicMonitoring(&thread, subject)
-			threads = append(threads, &thread)
+		var threadTM Thread
+		threadTM.initTopicMonitoring(subject)
+		if topicMonitorParam.NeedMonitoring == 0 {
+			threadTM.Status = "inactive"
 		}
+		threads = append(threads, &threadTM)
 
-		// получаем из БД параметры для модуля мониторинга комментариев под постами на стене
 		var wallPostCommentMonitorParam WallPostCommentMonitorParam
 		err = wallPostCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return threads, err
+			return nil, err
 		}
-
-		// проверяем параметр и определяем, нужно ли запускать этот модуль
-		if wallPostCommentMonitorParam.NeedMonitoring == 1 {
-
-			// создаем структуру с данными о потоке и наполняем ее данными
-			var thread Thread
-			thread.Name = fmt.Sprintf("%v's wall post comment monitoring", subject.Name)
-			thread.Status = "waiting"
-
-			// запускаем поток
-			go wallPostCommentMonitoring(&thread, subject)
-			threads = append(threads, &thread)
+		var threadWPCM Thread
+		threadWPCM.initWallPostCommentMonitoring(subject)
+		if wallPostCommentMonitorParam.NeedMonitoring == 0 {
+			threadWPCM.Status = "inactive"
 		}
+		threads = append(threads, &threadWPCM)
 
 	}
 
@@ -180,23 +205,23 @@ func MakeThreads() ([]*Thread, error) {
 	if len(threads) > 0 {
 
 		// если их больше 0, то запускаем функцию поиска потоков, завершивших свою работу из-за ошибки
-		go threadsStatusMonitoring(threads)
+		go threadsStatusMonitoring(&threads)
 	}
 
-	return threads, nil
+	return &threads, nil
 }
 
 // threadsStatusMonitoring ищет потоки, завершившие свою работу из-за ошибки
-func threadsStatusMonitoring(threads []*Thread) {
+func threadsStatusMonitoring(threads *[]*Thread) {
 
 	// перебираем структуры с данными о потоках
-	for j, thread := range threads {
+	for j, thread := range *threads {
 
 		// если статус потока "error", то сообщаем об этом пользователю
 		if thread.Status == "error" {
 			message := "WARNING! Thread is stopped with error!"
 			OutputMessage(thread.Name, message)
-			threads[j] = nil
+			(*threads)[j] = nil
 		}
 	}
 
@@ -205,18 +230,6 @@ func threadsStatusMonitoring(threads []*Thread) {
 }
 
 func wallPostMonitoring(threadData *Thread, subject Subject) {
-
-	// включаем режим ожидания команды запуска
-	needWaiting := true
-	for needWaiting {
-		// если статус - ожидание, то ждем
-		if threadData.Status == "waiting" {
-			time.Sleep(1 * time.Second)
-		} else {
-			// если нет, то выходим из цикла
-			needWaiting = false
-		}
-	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
@@ -228,6 +241,8 @@ func wallPostMonitoring(threadData *Thread, subject Subject) {
 
 	// запускаем бесконечный цикл
 	for true {
+		// меняем статус потока
+		threadData.Status = "alive"
 		// заранее присваиваем значение интервала
 		interval := 20
 
@@ -248,8 +263,8 @@ func wallPostMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус waiting
-				threadData.Status = "waiting"
+				// и ставим потоку статус error
+				threadData.Status = "error"
 			}
 		}
 
@@ -260,10 +275,12 @@ func wallPostMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока waiting
-			if threadData.Status == "waiting" {
+			// если статус потока error
+			if threadData.Status == "error" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
+			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
+				threadData.Status = fmt.Sprintf("waiting for %d sec", interval-i)
 			}
 			time.Sleep(1 * time.Second)
 
@@ -271,6 +288,8 @@ func wallPostMonitoring(threadData *Thread, subject Subject) {
 			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
+				// и завершаем работу потока
+				return
 			}
 
 			// если выставлен флаг рестарта
@@ -281,34 +300,11 @@ func wallPostMonitoring(threadData *Thread, subject Subject) {
 				threadData.ActionFlag = 0
 				wallPostMonitoring(threadData, subject)
 			}
-
-			// если выставлен флаг ожидания
-			if threadData.ActionFlag == 3 {
-				// то обновляем статус потока
-				threadData.Status = "waiting"
-			}
-		}
-
-		// если статус потока "stopped", то завершаем его работу
-		if threadData.Status == "stopped" {
-			return
 		}
 	}
 }
 
 func albumPhotoMonitoring(threadData *Thread, subject Subject) {
-
-	// включаем режим ожидания команды запуска
-	needWaiting := true
-	for needWaiting {
-		// если статус - ожидание, то ждем
-		if threadData.Status == "waiting" {
-			time.Sleep(1 * time.Second)
-		} else {
-			// если нет, то выходим из цикла
-			needWaiting = false
-		}
-	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
@@ -320,6 +316,8 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 
 	// запускаем бесконечный цикл
 	for true {
+		// меняем статус потока
+		threadData.Status = "alive"
 		// заранее присваиваем значение интервала
 		interval := 20
 
@@ -340,8 +338,8 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус waiting
-				threadData.Status = "waiting"
+				// и ставим потоку статус error
+				threadData.Status = "error"
 			}
 		}
 
@@ -352,10 +350,12 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока waiting
-			if threadData.Status == "waiting" {
+			// если статус потока error
+			if threadData.Status == "error" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
+			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
+				threadData.Status = fmt.Sprintf("waiting for %d sec", interval-i)
 			}
 			time.Sleep(1 * time.Second)
 
@@ -363,6 +363,8 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
+				// и завершаем работу потока
+				return
 			}
 
 			// если выставлен флаг рестарта
@@ -373,34 +375,11 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 				threadData.ActionFlag = 0
 				albumPhotoMonitoring(threadData, subject)
 			}
-
-			// если выставлен флаг ожидания
-			if threadData.ActionFlag == 3 {
-				// то обновляем статус потока
-				threadData.Status = "waiting"
-			}
-		}
-
-		// если статус потока "stopped", то завершаем его работу
-		if threadData.Status == "stopped" {
-			return
 		}
 	}
 }
 
 func videoMonitoring(threadData *Thread, subject Subject) {
-
-	// включаем режим ожидания команды запуска
-	needWaiting := true
-	for needWaiting {
-		// если статус - ожидание, то ждем
-		if threadData.Status == "waiting" {
-			time.Sleep(1 * time.Second)
-		} else {
-			// если нет, то выходим из цикла
-			needWaiting = false
-		}
-	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
@@ -412,6 +391,8 @@ func videoMonitoring(threadData *Thread, subject Subject) {
 
 	// запускаем бесконечный цикл
 	for true {
+		// меняем статус потока
+		threadData.Status = "alive"
 		// заранее присваиваем значение интервала
 		interval := 20
 
@@ -432,8 +413,8 @@ func videoMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус waiting
-				threadData.Status = "waiting"
+				// и ставим потоку статус error
+				threadData.Status = "error"
 			}
 		}
 
@@ -446,10 +427,12 @@ func videoMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока waiting
-			if threadData.Status == "waiting" {
+			// если статус потока error
+			if threadData.Status == "error" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
+			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
+				threadData.Status = fmt.Sprintf("waiting for %d sec", interval-i)
 			}
 			time.Sleep(1 * time.Second)
 
@@ -457,6 +440,8 @@ func videoMonitoring(threadData *Thread, subject Subject) {
 			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
+				// и завершаем работу потока
+				return
 			}
 
 			// если выставлен флаг рестарта
@@ -467,34 +452,11 @@ func videoMonitoring(threadData *Thread, subject Subject) {
 				threadData.ActionFlag = 0
 				videoMonitoring(threadData, subject)
 			}
-
-			// если выставлен флаг ожидания
-			if threadData.ActionFlag == 3 {
-				// то обновляем статус потока
-				threadData.Status = "waiting"
-			}
-		}
-
-		// если статус потока "stopped", то завершаем его работу
-		if threadData.Status == "stopped" {
-			return
 		}
 	}
 }
 
 func photoCommentMonitoring(threadData *Thread, subject Subject) {
-
-	// включаем режим ожидания команды запуска
-	needWaiting := true
-	for needWaiting {
-		// если статус - ожидание, то ждем
-		if threadData.Status == "waiting" {
-			time.Sleep(1 * time.Second)
-		} else {
-			// если нет, то выходим из цикла
-			needWaiting = false
-		}
-	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
@@ -506,6 +468,8 @@ func photoCommentMonitoring(threadData *Thread, subject Subject) {
 
 	// запускаем бесконечный цикл
 	for true {
+		// меняем статус потока
+		threadData.Status = "alive"
 		// заранее присваиваем значение интервала
 		interval := 20
 
@@ -526,8 +490,8 @@ func photoCommentMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус waiting
-				threadData.Status = "waiting"
+				// и ставим потоку статус error
+				threadData.Status = "error"
 			}
 		}
 
@@ -540,10 +504,12 @@ func photoCommentMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока waiting
-			if threadData.Status == "waiting" {
+			// если статус потока error
+			if threadData.Status == "error" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
+			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
+				threadData.Status = fmt.Sprintf("waiting for %d sec", interval-i)
 			}
 			time.Sleep(1 * time.Second)
 
@@ -551,6 +517,8 @@ func photoCommentMonitoring(threadData *Thread, subject Subject) {
 			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
+				// и завершаем работу потока
+				return
 			}
 
 			// если выставлен флаг рестарта
@@ -561,34 +529,11 @@ func photoCommentMonitoring(threadData *Thread, subject Subject) {
 				threadData.ActionFlag = 0
 				photoCommentMonitoring(threadData, subject)
 			}
-
-			// если выставлен флаг ожидания
-			if threadData.ActionFlag == 3 {
-				// то обновляем статус потока
-				threadData.Status = "waiting"
-			}
-		}
-
-		// если статус потока "stopped", то завершаем его работу
-		if threadData.Status == "stopped" {
-			return
 		}
 	}
 }
 
 func videoCommentMonitoring(threadData *Thread, subject Subject) {
-
-	// включаем режим ожидания команды запуска
-	needWaiting := true
-	for needWaiting {
-		// если статус - ожидание, то ждем
-		if threadData.Status == "waiting" {
-			time.Sleep(1 * time.Second)
-		} else {
-			// если нет, то выходим из цикла
-			needWaiting = false
-		}
-	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
@@ -600,6 +545,8 @@ func videoCommentMonitoring(threadData *Thread, subject Subject) {
 
 	// запускаем бесконечный цикл
 	for true {
+		// меняем статус потока
+		threadData.Status = "alive"
 		// заранее присваиваем значение интервала
 		interval := 20
 
@@ -620,8 +567,8 @@ func videoCommentMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус waiting
-				threadData.Status = "waiting"
+				// и ставим потоку статус error
+				threadData.Status = "error"
 			}
 		}
 
@@ -634,10 +581,12 @@ func videoCommentMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока waiting
-			if threadData.Status == "waiting" {
+			// если статус потока error
+			if threadData.Status == "error" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
+			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
+				threadData.Status = fmt.Sprintf("waiting for %d sec", interval-i)
 			}
 			time.Sleep(1 * time.Second)
 
@@ -645,6 +594,8 @@ func videoCommentMonitoring(threadData *Thread, subject Subject) {
 			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
+				// и завершаем работу потока
+				return
 			}
 
 			// если выставлен флаг рестарта
@@ -655,34 +606,11 @@ func videoCommentMonitoring(threadData *Thread, subject Subject) {
 				threadData.ActionFlag = 0
 				videoCommentMonitoring(threadData, subject)
 			}
-
-			// если выставлен флаг ожидания
-			if threadData.ActionFlag == 3 {
-				// то обновляем статус потока
-				threadData.Status = "waiting"
-			}
-		}
-
-		// если статус потока "stopped", то завершаем его работу
-		if threadData.Status == "stopped" {
-			return
 		}
 	}
 }
 
 func topicMonitoring(threadData *Thread, subject Subject) {
-
-	// включаем режим ожидания команды запуска
-	needWaiting := true
-	for needWaiting {
-		// если статус - ожидание, то ждем
-		if threadData.Status == "waiting" {
-			time.Sleep(1 * time.Second)
-		} else {
-			// если нет, то выходим из цикла
-			needWaiting = false
-		}
-	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
@@ -694,6 +622,8 @@ func topicMonitoring(threadData *Thread, subject Subject) {
 
 	// запускаем бесконечный цикл
 	for true {
+		// меняем статус потока
+		threadData.Status = "alive"
 		// заранее присваиваем значение интервала
 		interval := 20
 
@@ -714,8 +644,8 @@ func topicMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус waiting
-				threadData.Status = "waiting"
+				// и ставим потоку статус error
+				threadData.Status = "error"
 			}
 		}
 
@@ -726,10 +656,12 @@ func topicMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока waiting
-			if threadData.Status == "waiting" {
+			// если статус потока error
+			if threadData.Status == "error" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
+			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
+				threadData.Status = fmt.Sprintf("waiting for %d sec", interval-i)
 			}
 			time.Sleep(1 * time.Second)
 
@@ -737,6 +669,8 @@ func topicMonitoring(threadData *Thread, subject Subject) {
 			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
+				// и завершаем работу потока
+				return
 			}
 
 			// если выставлен флаг рестарта
@@ -747,34 +681,11 @@ func topicMonitoring(threadData *Thread, subject Subject) {
 				threadData.ActionFlag = 0
 				topicMonitoring(threadData, subject)
 			}
-
-			// если выставлен флаг ожидания
-			if threadData.ActionFlag == 3 {
-				// то обновляем статус потока
-				threadData.Status = "waiting"
-			}
-		}
-
-		// если статус потока "stopped", то завершаем его работу
-		if threadData.Status == "stopped" {
-			return
 		}
 	}
 }
 
 func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
-
-	// включаем режим ожидания команды запуска
-	needWaiting := true
-	for needWaiting {
-		// если статус - ожидание, то ждем
-		if threadData.Status == "waiting" {
-			time.Sleep(1 * time.Second)
-		} else {
-			// если нет, то выходим из цикла
-			needWaiting = false
-		}
-	}
 
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
@@ -786,6 +697,8 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
 
 	// запускаем бесконечный цикл
 	for true {
+		// меняем статус потока
+		threadData.Status = "alive"
 		// заранее присваиваем значение интервала
 		interval := 20
 
@@ -806,8 +719,8 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
 				// если стал, то сообщаем об этом пользователю
 				message := fmt.Sprintf("ERROR: %v. Thread is paused. Type \"restart\" for turn on again...", err)
 				OutputMessage(sender, message)
-				// и ставим потоку статус waiting
-				threadData.Status = "waiting"
+				// и ставим потоку статус error
+				threadData.Status = "error"
 			}
 		}
 
@@ -818,10 +731,12 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
 
 		// и включаем режим ожидания
 		for i := 0; i < interval; i++ {
-			// если статус потока waiting
-			if threadData.Status == "waiting" {
+			// если статус потока error
+			if threadData.Status == "error" {
 				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
 				i = 0
+			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
+				threadData.Status = fmt.Sprintf("waiting for %d sec", interval-i)
 			}
 			time.Sleep(1 * time.Second)
 
@@ -829,6 +744,8 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
 			if threadData.ActionFlag == 1 {
 				// если был, то меняем статус потока на "stopped"
 				threadData.Status = "stopped"
+				// и завершаем работу потока
+				return
 			}
 
 			// если выставлен флаг рестарта
@@ -839,17 +756,6 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
 				threadData.ActionFlag = 0
 				wallPostCommentMonitoring(threadData, subject)
 			}
-
-			// если выставлен флаг ожидания
-			if threadData.ActionFlag == 3 {
-				// то обновляем статус потока
-				threadData.Status = "waiting"
-			}
-		}
-
-		// если статус потока "stopped", то завершаем его работу
-		if threadData.Status == "stopped" {
-			return
 		}
 	}
 }

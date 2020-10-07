@@ -577,8 +577,8 @@ func initFiles() {
 }
 
 // createThreads запускает процесс создания потоков с модулями проверки
-func createThreads() []*Thread {
-	threads, err := MakeThreads()
+func createThreads() *[]*Thread {
+	threads, err := InitThreads()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())

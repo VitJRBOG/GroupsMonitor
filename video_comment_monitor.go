@@ -267,14 +267,14 @@ func makeMessageVideoComment(sender string, subject Subject,
 
 	// добавляем подготовленные фрагменты сообщения в общий текст
 	// сначала сигнатуру
-	text := fmt.Sprintf("New video comment\\nLocation: %v\\nAuthor: %v\\nCreated: %v",
+	text := fmt.Sprintf("Новый комментарий под видео\\nРасположение: %v\\nАвтор: %v\\nСоздан: %v",
 		locationHyperlink, authorHyperlink, creationDate)
 
 	// затем основной текст комментария, если он есть
 	if len(videoComment.Text) > 0 {
 		// но сначала обрезаем его из-за ограничения на длину запроса
 		if len(videoComment.Text) > 800 {
-			videoComment.Text = string(videoComment.Text[0:800]) + "\\n[long_text]"
+			videoComment.Text = string(videoComment.Text[0:800]) + "\\n[много_текста]"
 		}
 		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		videoComment.Text = strings.Replace(videoComment.Text, "\n", "\\n", -1)

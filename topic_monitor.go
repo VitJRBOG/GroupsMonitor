@@ -312,14 +312,14 @@ func makeMessageTopicComment(sender string, subject Subject,
 
 	// добавляем подготовленные фрагменты сообщения в общий текст
 	// сначала сигнатуру
-	text := fmt.Sprintf("New topic comment\\nTopic: %v\\nLocation: %v\\nAuthor: %v\\nCreated: %v",
+	text := fmt.Sprintf("Новый комментарий в обсуждениях\\nОбсуждение: %v\\nРасположение: %v\\nАвтор: %v\\nСоздан: %v",
 		topicName, locationHyperlink, authorHyperlink, creationDate)
 
 	// затем основной текст комментария, если он есть
 	if len(topicComment.Text) > 0 {
 		// но сначала обрезаем его из-за ограничения на длину запроса
 		if len(topicComment.Text) > 800 {
-			topicComment.Text = string(topicComment.Text[0:800]) + "\\n[long_text]"
+			topicComment.Text = string(topicComment.Text[0:800]) + "\\n[много_текста]"
 		}
 		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		topicComment.Text = strings.Replace(topicComment.Text, "\n", "\\n", -1)

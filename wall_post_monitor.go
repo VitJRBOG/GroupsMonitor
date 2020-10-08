@@ -277,7 +277,7 @@ func makeMessageWallPost(sender string, subject Subject,
 	// кто автор, если это пользователь
 	var authorHyperlink string
 	if wallPost.FromID < 0 {
-		authorHyperlink = "[no_data]"
+		authorHyperlink = "[нет_данных]"
 	} else {
 		vkUser, err := GetUserInfo(sender, subject, wallPost.FromID)
 		authorHyperlink = MakeUserHyperlink(vkUser)
@@ -320,14 +320,21 @@ func makeMessageWallPost(sender string, subject Subject,
 
 	// добавляем подготовленные фрагменты сообщения в общий текст
 	// сначала сигнатуру
-	text := fmt.Sprintf("New %v\\nLocation: %v\\nAuthor: %v\\nCreated: %v",
-		postType, locationHyperlink, authorHyperlink, creationDate)
+	var postTypeRu string
+	switch postType {
+	case "post":
+		postTypeRu = "опубликованный"
+	case "suggest":
+		postTypeRu = "предложенный"
+	}
+	text := fmt.Sprintf("Новый %v пост\\nРасположение: %v\\nАвтор: %v\\nСоздан: %v",
+		postTypeRu, locationHyperlink, authorHyperlink, creationDate)
 
 	// затем основной текст поста, если он есть
 	if len(wallPost.Text) > 0 {
 		// но сначала обрезаем его из-за ограничения на длину запроса
 		if len(wallPost.Text) > 800 {
-			wallPost.Text = string(wallPost.Text[0:800]) + "\\n[long_text]"
+			wallPost.Text = string(wallPost.Text[0:800]) + "\\n[много_текста]"
 		}
 		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		wallPost.Text = strings.Replace(wallPost.Text, "\n", "\\n", -1)

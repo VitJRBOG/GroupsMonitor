@@ -38,7 +38,7 @@ func (gbb *generalButtonsBox) init() {
 }
 
 func (gbb *generalButtonsBox) initBtnStart(threads *[]*Thread) {
-	gbb.btnStart = ui.NewButton("Start")
+	gbb.btnStart = ui.NewButton("Запуск")
 
 	gbb.btnStart.OnClicked(func(*ui.Button) {
 		go StartThreads(threads)
@@ -50,7 +50,7 @@ func (gbb *generalButtonsBox) initBtnStart(threads *[]*Thread) {
 }
 
 func (gbb *generalButtonsBox) initBtnRestart(threads *[]*Thread) {
-	gbb.btnRestart = ui.NewButton("Restart")
+	gbb.btnRestart = ui.NewButton("Перезапуск")
 	gbb.btnRestart.Disable()
 
 	gbb.btnRestart.OnClicked(func(*ui.Button) {
@@ -61,7 +61,7 @@ func (gbb *generalButtonsBox) initBtnRestart(threads *[]*Thread) {
 }
 
 func (gbb *generalButtonsBox) initBtnStop(threads *[]*Thread) {
-	gbb.btnStop = ui.NewButton("Stop")
+	gbb.btnStop = ui.NewButton("Остановка")
 	gbb.btnStop.Disable()
 
 	gbb.btnStop.OnClicked(func(*ui.Button) {
@@ -100,34 +100,34 @@ func StartThreads(threads *[]*Thread) {
 	OutputMessage(sender, message)
 
 	for i := 0; i < len(*threads); i++ {
-		monitorName := strings.ReplaceAll((*threads)[i].Name, (*threads)[i].Subject.Name+"'s ", "")
+		monitorName := strings.ReplaceAll((*threads)[i].Name, (*threads)[i].Subject.Name+": ", "")
 		switch monitorName {
-		case "wall post monitoring":
-			if (*threads)[i].Status != "inactive" {
+		case "посты на стене":
+			if (*threads)[i].Status != "неактивен" {
 				(*threads)[i].runWallPostMonitoring()
 			}
-		case "album photo monitoring":
-			if (*threads)[i].Status != "inactive" {
+		case "фото в альбомах":
+			if (*threads)[i].Status != "неактивен" {
 				(*threads)[i].runAlbumPhotoMonitoring()
 			}
-		case "video monitoring":
-			if (*threads)[i].Status != "inactive" {
+		case "видео в альбомах":
+			if (*threads)[i].Status != "неактивен" {
 				(*threads)[i].runVideoMonitoring()
 			}
-		case "photo comment monitoring":
-			if (*threads)[i].Status != "inactive" {
+		case "комментарии под фото":
+			if (*threads)[i].Status != "неактивен" {
 				(*threads)[i].runPhotoCommentMonitoring()
 			}
-		case "video comment monitoring":
-			if (*threads)[i].Status != "inactive" {
+		case "комментарии под видео":
+			if (*threads)[i].Status != "неактивен" {
 				(*threads)[i].runVideoCommentMonitoring()
 			}
-		case "topic monitoring":
-			if (*threads)[i].Status != "inactive" {
+		case "комментарии в обсуждениях":
+			if (*threads)[i].Status != "неактивен" {
 				(*threads)[i].runTopicMonitoring()
 			}
-		case "wall post comment monitoring":
-			if (*threads)[i].Status != "inactive" {
+		case "комментарии под постами":
+			if (*threads)[i].Status != "неактивен" {
 				(*threads)[i].runWallPostCommentMonitoring()
 			}
 		}

@@ -223,14 +223,14 @@ func makeMessagePhotoComment(sender string, subject Subject,
 
 	// добавляем подготовленные фрагменты сообщения в общий текст
 	// сначала сигнатуру
-	text := fmt.Sprintf("New photo comment\\nLocation: %v\\nAuthor: %v\\nCreated: %v",
+	text := fmt.Sprintf("Новый комментарий под фото\\nРасположение: %v\\nАвтор: %v\\nСоздан: %v",
 		locationHyperlink, authorHyperlink, creationDate)
 
 	// затем основной текст комментария, если он есть
 	if len(photoComment.Text) > 0 {
 		// но сначала обрезаем его из-за ограничения на длину запроса
 		if len(photoComment.Text) > 800 {
-			photoComment.Text = string(photoComment.Text[0:800]) + "\\n[long_text]"
+			photoComment.Text = string(photoComment.Text[0:800]) + "\\n[много_текста]"
 		}
 		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		photoComment.Text = strings.Replace(photoComment.Text, "\n", "\\n", -1)

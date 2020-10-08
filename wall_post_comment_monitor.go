@@ -690,14 +690,14 @@ func makeMessageWallPostComment(sender string, subject Subject,
 
 	// добавляем подготовленные фрагменты сообщения в общий текст
 	// сначала сигнатуру
-	text := fmt.Sprintf("New post comment\\nLocation: %v\\nAuthor: %v\\nCreated: %v",
+	text := fmt.Sprintf("Новый комментарий на стене\\nРасположение: %v\\nАвтор: %v\\nСоздан: %v",
 		locationHyperlink, authorHyperlink, creationDate)
 
 	// затем основной текст комментария, если он есть
 	if len(wallPostComment.Text) > 0 {
 		// но сначала обрезаем его из-за ограничения на длину запроса
 		if len(wallPostComment.Text) > 800 {
-			wallPostComment.Text = string(wallPostComment.Text[0:800]) + "\\n[long_text]"
+			wallPostComment.Text = string(wallPostComment.Text[0:800]) + "\\n[много_текста]"
 		}
 		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		wallPostComment.Text = strings.Replace(wallPostComment.Text, "\n", "\\n", -1)

@@ -261,14 +261,14 @@ func makeMessageAlbumPhoto(sender string, subject Subject,
 
 	// добавляем подготовленные фрагменты сообщения в общий текст
 	// сначала сигнатуру
-	text := fmt.Sprintf("New album photo\\nAlbum: %v\\nLocation: %v\\nAuthor: %v\\nCreated: %v",
+	text := fmt.Sprintf("Новое фото\\nАльбом: %v\\nРасположение: %v\\nАвтор: %v\\nЗагружено: %v",
 		albumName, locationHyperlink, authorHyperlink, creationDate)
 
 	// затем описание к фотографии, если оно есть
 	if len(albumPhoto.Text) > 0 {
 		// но сначала обрезаем его из-за ограничения на длину запроса
 		if len(albumPhoto.Text) > 800 {
-			albumPhoto.Text = string(albumPhoto.Text[0:800]) + "\\n[long_text]"
+			albumPhoto.Text = string(albumPhoto.Text[0:800]) + "\\n[много_текста]"
 		}
 		// и экранируем все символы пропуска строки, потому что у json.Unmarshal с ними проблемы
 		albumPhoto.Text = strings.Replace(albumPhoto.Text, "\n", "\\n", -1)

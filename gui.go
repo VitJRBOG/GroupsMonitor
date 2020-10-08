@@ -91,12 +91,12 @@ func (bb *selectingButtonsBox) init() {
 }
 
 func (bb *selectingButtonsBox) initBtnGeneral(bottomPart bottomPartBoxMainWnd, boxGeneral *ui.Box) {
-	bb.btnGeneral = ui.NewButton("General")
+	bb.btnGeneral = ui.NewButton("Общие")
 	bb.btnGeneral.Disable()
 
 	bb.btnGeneral.OnClicked(func(*ui.Button) {
 		bottomPart.group.SetChild(boxGeneral)
-		bottomPart.group.SetTitle("General")
+		bottomPart.group.SetTitle("Общие")
 		bb.btnGeneral.Disable()
 		if !(bb.btnThreadsControl.Enabled()) {
 			bb.btnThreadsControl.Enable()
@@ -110,12 +110,12 @@ func (bb *selectingButtonsBox) initBtnGeneral(bottomPart bottomPartBoxMainWnd, b
 }
 
 func (bb *selectingButtonsBox) initBtnThreadsControl(bottomPart bottomPartBoxMainWnd, boxThreadsControl *ui.Box) {
-	bb.btnThreadsControl = ui.NewButton("Threads")
+	bb.btnThreadsControl = ui.NewButton("Наблюдатели")
 
 	bb.btnThreadsControl.OnClicked(func(*ui.Button) {
 		bottomPart.group.SetChild(boxThreadsControl)
 		bb.btnThreadsControl.Disable()
-		bottomPart.group.SetTitle("Thread control")
+		bottomPart.group.SetTitle("Контроль наблюдателей")
 		if !(bb.btnGeneral.Enabled()) {
 			bb.btnGeneral.Enable()
 		}
@@ -128,11 +128,11 @@ func (bb *selectingButtonsBox) initBtnThreadsControl(bottomPart bottomPartBoxMai
 }
 
 func (bb *selectingButtonsBox) initBtnSettings(bottomPart bottomPartBoxMainWnd, boxSettings *ui.Box) {
-	bb.btnSettings = ui.NewButton("Settings")
+	bb.btnSettings = ui.NewButton("Установки")
 
 	bb.btnSettings.OnClicked(func(*ui.Button) {
 		bottomPart.group.SetChild(boxSettings)
-		bottomPart.group.SetTitle("Settings")
+		bottomPart.group.SetTitle("Установки")
 		bb.btnSettings.Disable()
 		if !(bb.btnGeneral.Enabled()) {
 			bb.btnGeneral.Enable()
@@ -151,7 +151,7 @@ type bottomPartBoxMainWnd struct {
 }
 
 func (bottomPart *bottomPartBoxMainWnd) init() {
-	bottomPart.group = ui.NewGroup("General")
+	bottomPart.group = ui.NewGroup("Общие")
 	bottomPart.group.SetMargined(true)
 }
 
@@ -430,8 +430,8 @@ func (bk *ButtonsKit) initFlexibleSpaceBox() {
 
 func (bk *ButtonsKit) initButtons() {
 	buttonsBox := ui.NewHorizontalBox()
-	bk.ButtonApply = ui.NewButton("Apply")
-	bk.ButtonCancel = ui.NewButton("Cancel")
+	bk.ButtonApply = ui.NewButton("Принять")
+	bk.ButtonCancel = ui.NewButton("Отмена")
 	buttonsBox.Append(bk.ButtonApply, false)
 	buttonsBox.Append(bk.ButtonCancel, false)
 	bk.Box.Append(buttonsBox, false)
@@ -454,7 +454,7 @@ type warningWindow struct {
 }
 
 func (ww *warningWindow) init() {
-	ww.window = ui.NewWindow("WARNING!", 100, 100, true)
+	ww.window = ui.NewWindow("ВНИМАНИЕ!", 100, 100, true)
 	ww.window.SetMargined(true)
 	ww.window.OnClosing(func(*ui.Window) bool {
 		ww.window.Disable()
@@ -496,7 +496,7 @@ func (bwi *boxWarningInfo) init(warningTitle string) {
 	bwi.box.Append(titleLabel, true)
 }
 
-// boxWarningBtn хранит данные о части главного бокса, на которой размещена кнопка OK
+// boxWarningBtn хранит данные о части главного бокса, на которой размещена кнопка «Понятно»
 type boxWarningBtn struct {
 	box   *ui.Box
 	btnOk *ui.Button
@@ -512,7 +512,7 @@ func (bwb *boxWarningBtn) initFlexibleSpaceBox() {
 }
 
 func (bwb *boxWarningBtn) initBtnOk(ww warningWindow) {
-	bwb.btnOk = ui.NewButton("OK")
+	bwb.btnOk = ui.NewButton("Понятно")
 	bwb.btnOk.OnClicked(func(*ui.Button) {
 		ww.window.Hide()
 	})
@@ -570,8 +570,8 @@ func initFiles() {
 	}
 
 	if dbHasBeenCreated {
-		message := "File of database has been created just now. Database is empty. " +
-			"Need to create new access token and new subject for monitoring."
+		message := "Файл базы данных был создан только что. База данных пуста. " +
+			"Необходимо создать новый ключ доступа и субъект для наблюдения."
 		ShowWarningWindow(message)
 	}
 }

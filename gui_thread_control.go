@@ -33,7 +33,7 @@ func (btc *boxThreadControl) setThreadControlBtnsBox(ssbd subjSelectingBtnData) 
 }
 
 func (btc *boxThreadControl) setLabelNone() {
-	label := ui.NewLabel("Subjects not found")
+	label := ui.NewLabel("Субъекты не найдены")
 	btc.box.Append(label, true)
 }
 
@@ -151,13 +151,13 @@ func (mcb *monitorControlBox) init(monitorName string) {
 	mcb.title = monitorName
 	mcb.monitorNameLabel = ui.NewLabel(monitorName)
 	mcb.btnsBox = ui.NewHorizontalBox()
-	mcb.buttonOn = ui.NewButton("On")
+	mcb.buttonOn = ui.NewButton("Вкл.")
 	mcb.buttonOn.Disable()
 	mcb.btnsBox.Append(mcb.buttonOn, true)
-	mcb.buttonOff = ui.NewButton("Off")
+	mcb.buttonOff = ui.NewButton("Откл.")
 	mcb.buttonOff.Disable()
 	mcb.btnsBox.Append(mcb.buttonOff, true)
-	mcb.statusLabel = ui.NewLabel("inactive")
+	mcb.statusLabel = ui.NewLabel("неактивен")
 	mcb.box = ui.NewHorizontalBox()
 	mcb.box.Append(mcb.monitorNameLabel, true)
 	mcb.box.Append(mcb.btnsBox, true)
@@ -167,19 +167,19 @@ func (mcb *monitorControlBox) init(monitorName string) {
 func (mcb *monitorControlBox) setFuncToBtnOn(monitorName string, threadData *Thread) {
 	mcb.buttonOn.OnClicked(func(*ui.Button) {
 		switch monitorName {
-		case "wall post monitoring":
+		case "посты на стене":
 			threadData.runWallPostMonitoring()
-		case "album photo monitoring":
+		case "фото в альбомах":
 			threadData.runAlbumPhotoMonitoring()
-		case "video monitoring":
+		case "видео в альбомах":
 			threadData.runVideoMonitoring()
-		case "photo comment monitoring":
+		case "комментарии под фото":
 			threadData.runPhotoCommentMonitoring()
-		case "video comment monitoring":
+		case "комментарии под видео":
 			threadData.runVideoCommentMonitoring()
-		case "topic monitoring":
+		case "комментарии в обсуждениях":
 			threadData.runTopicMonitoring()
-		case "wall post comment monitoring":
+		case "комментарии под постами":
 			threadData.runWallPostCommentMonitoring()
 		}
 
@@ -203,9 +203,9 @@ func (mcb *monitorControlBox) setThreadStatusChecking(threadData *Thread) {
 
 // makeSubjectBox собирает бокс для управления потоками мониторинга одного из субъектов
 func makeSubjectBox(subject Subject, threads *[]*Thread) *ui.Box {
-	monitorsNames := []string{"Wall post monitoring", "Album photo monitoring", "Video monitoring",
-		"Photo comment monitoring", "Video comment monitoring", "Topic monitoring",
-		"Wall post comment monitoring"}
+	monitorsNames := []string{"Посты на стене", "Фото в альбомах", "Видео в альбомах",
+		"Комментарии под фото", "Комментарии под видео", "Комментарии в обсуждениях",
+		"Комментарии под постами"}
 
 	var listMCB []monitorControlBox
 	for i := 0; i < len(monitorsNames); i++ {
@@ -217,9 +217,9 @@ func makeSubjectBox(subject Subject, threads *[]*Thread) *ui.Box {
 
 	for i := 0; i < len(listMCB); i++ {
 		for n := 0; n < len(*threads); n++ {
-			if (*threads)[n].Status != "inactive" {
-				if strings.ToLower((*threads)[n].Name) == strings.ToLower(subject.Name+"'s "+listMCB[i].title) {
-					monitorName := strings.ReplaceAll((*threads)[i].Name, (*threads)[i].Subject.Name+"'s ", "")
+			if (*threads)[n].Status != "неактивен" {
+				if strings.ToLower((*threads)[n].Name) == strings.ToLower(subject.Name+": "+listMCB[i].title) {
+					monitorName := strings.ReplaceAll((*threads)[i].Name, (*threads)[i].Subject.Name+": ", "")
 					listMCB[i].setFuncToBtnOn(monitorName, (*threads)[n])
 					listMCB[i].setFuncToBtnOff((*threads)[n])
 					listMCB[i].setThreadStatusChecking((*threads)[n])
@@ -243,12 +243,12 @@ func threadStatusChecking(mcb *monitorControlBox, threadData *Thread) {
 			})
 		}
 		switch threadData.Status {
-		case "inactive":
+		case "неактивен":
 			ui.QueueMain(func() {
 				mcb.buttonOn.Disable()
 				mcb.buttonOff.Disable()
 			})
-		case "stopped":
+		case "остановлен":
 			ui.QueueMain(func() {
 				mcb.buttonOn.Enable()
 				mcb.buttonOff.Disable()

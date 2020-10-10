@@ -2,6 +2,61 @@ package main
 
 import "strings"
 
+// CatchedError хранит данные о полученной ошибке
+type CatchedError struct {
+	message string
+	age     int
+}
+
+// Errors хранит список структур с данными о полученных ошибках
+type Errors []*CatchedError
+
+// AddNewError добавляет данные о новой ошибке в список
+func (e *Errors) AddNewError(errorMessage string) {
+	var isExist bool
+	for _, item := range *e {
+		if item != nil {
+			if item.message == errorMessage {
+				isExist = true
+				break
+			}
+		}
+	}
+	if !(isExist) {
+		var em CatchedError
+		em.message = errorMessage
+		em.age = 0
+		*e = append(*e, &em)
+	}
+}
+
+// IncreaseAge увеличение возраста ошибки по индексу в списке
+func (e *Errors) IncreaseAge(i int) {
+	if (*e)[i] != nil {
+		(*e)[i].age++
+	}
+}
+
+// RemoveOldError удаление ошибки, достигшей определенного времени существования в списке
+func (e *Errors) RemoveOldError() {
+	maxAge := 600
+	if len(*e) > 0 {
+		if (*e)[0] != nil {
+			if (*e)[0].age >= maxAge {
+				(*e)[0] = nil
+				if len(*e) > 1 {
+					(*e) = (*e)[1:]
+				}
+			}
+		} else {
+			if len(*e) > 1 {
+				(*e) = (*e)[1:]
+				e.RemoveOldError()
+			}
+		}
+	}
+}
+
 // DBIOError проверяет ошибки при вводе/выводе данных из БД
 func DBIOError(errorMessage string) (string, string) {
 	timeoutErrors := []string{

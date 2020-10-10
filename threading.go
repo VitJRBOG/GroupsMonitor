@@ -11,13 +11,15 @@ type Thread struct {
 	ActionFlag int // 0 - nothing, 1 - stopping, 2 - restarting
 	Status     string
 	Subject    Subject
+	Errs       *Errors
 }
 
-func (thread *Thread) initWallPostMonitoring(subject Subject) {
+func (thread *Thread) initWallPostMonitoring(subject Subject, errs *Errors) {
 	thread.ActionFlag = 0
 	thread.Name = fmt.Sprintf("%v: посты на стене", subject.Name)
 	thread.Status = "остановлен"
 	thread.Subject = subject
+	thread.Errs = errs
 }
 
 func (thread *Thread) runWallPostMonitoring() {
@@ -25,11 +27,12 @@ func (thread *Thread) runWallPostMonitoring() {
 	go wallPostMonitoring(thread, thread.Subject)
 }
 
-func (thread *Thread) initAlbumPhotoMonitoring(subject Subject) {
+func (thread *Thread) initAlbumPhotoMonitoring(subject Subject, errs *Errors) {
 	thread.ActionFlag = 0
 	thread.Name = fmt.Sprintf("%v: фото в альбомах", subject.Name)
 	thread.Status = "остановлен"
 	thread.Subject = subject
+	thread.Errs = errs
 }
 
 func (thread *Thread) runAlbumPhotoMonitoring() {
@@ -37,11 +40,12 @@ func (thread *Thread) runAlbumPhotoMonitoring() {
 	go albumPhotoMonitoring(thread, thread.Subject)
 }
 
-func (thread *Thread) initVideoMonitoring(subject Subject) {
+func (thread *Thread) initVideoMonitoring(subject Subject, errs *Errors) {
 	thread.ActionFlag = 0
 	thread.Name = fmt.Sprintf("%v: видео в альбомах", subject.Name)
 	thread.Status = "остановлен"
 	thread.Subject = subject
+	thread.Errs = errs
 }
 
 func (thread *Thread) runVideoMonitoring() {
@@ -49,11 +53,12 @@ func (thread *Thread) runVideoMonitoring() {
 	go videoMonitoring(thread, thread.Subject)
 }
 
-func (thread *Thread) initPhotoCommentMonitoring(subject Subject) {
+func (thread *Thread) initPhotoCommentMonitoring(subject Subject, errs *Errors) {
 	thread.ActionFlag = 0
 	thread.Name = fmt.Sprintf("%v: комментарии под фото", subject.Name)
 	thread.Status = "остановлен"
 	thread.Subject = subject
+	thread.Errs = errs
 }
 
 func (thread *Thread) runPhotoCommentMonitoring() {
@@ -61,11 +66,12 @@ func (thread *Thread) runPhotoCommentMonitoring() {
 	go photoCommentMonitoring(thread, thread.Subject)
 }
 
-func (thread *Thread) initVideoCommentMonitoring(subject Subject) {
+func (thread *Thread) initVideoCommentMonitoring(subject Subject, errs *Errors) {
 	thread.ActionFlag = 0
 	thread.Name = fmt.Sprintf("%v: комментарии под видео", subject.Name)
 	thread.Status = "остановлен"
 	thread.Subject = subject
+	thread.Errs = errs
 }
 
 func (thread *Thread) runVideoCommentMonitoring() {
@@ -73,11 +79,12 @@ func (thread *Thread) runVideoCommentMonitoring() {
 	go videoCommentMonitoring(thread, thread.Subject)
 }
 
-func (thread *Thread) initTopicMonitoring(subject Subject) {
+func (thread *Thread) initTopicMonitoring(subject Subject, errs *Errors) {
 	thread.ActionFlag = 0
 	thread.Name = fmt.Sprintf("%v: комментарии в обсуждениях", subject.Name)
 	thread.Status = "остановлен"
 	thread.Subject = subject
+	thread.Errs = errs
 }
 
 func (thread *Thread) runTopicMonitoring() {
@@ -85,11 +92,12 @@ func (thread *Thread) runTopicMonitoring() {
 	go topicMonitoring(thread, thread.Subject)
 }
 
-func (thread *Thread) initWallPostCommentMonitoring(subject Subject) {
+func (thread *Thread) initWallPostCommentMonitoring(subject Subject, errs *Errors) {
 	thread.ActionFlag = 0
 	thread.Name = fmt.Sprintf("%v: комментарии под постами", subject.Name)
 	thread.Status = "остановлен"
 	thread.Subject = subject
+	thread.Errs = errs
 }
 
 func (thread *Thread) runWallPostCommentMonitoring() {
@@ -98,13 +106,14 @@ func (thread *Thread) runWallPostCommentMonitoring() {
 }
 
 // InitThreads инициализирует потоки и заполняет данными о них список для них
-func InitThreads() (*[]*Thread, error) {
+func InitThreads() (*[]*Thread, *Errors, error) {
 	var threads []*Thread
+	var errs Errors
 
 	var dbKit DataBaseKit
 	subjects, err := dbKit.selectTableSubject()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	for _, subject := range subjects {
@@ -112,10 +121,10 @@ func InitThreads() (*[]*Thread, error) {
 		var wallPostMonitorParam WallPostMonitorParam
 		err := wallPostMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		var threadWPM Thread
-		threadWPM.initWallPostMonitoring(subject)
+		threadWPM.initWallPostMonitoring(subject, &errs)
 		if wallPostMonitorParam.NeedMonitoring == 0 {
 			threadWPM.Status = "неактивен"
 		}
@@ -124,10 +133,10 @@ func InitThreads() (*[]*Thread, error) {
 		var albumPhotoMonitorParam AlbumPhotoMonitorParam
 		err = albumPhotoMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		var threadAPM Thread
-		threadAPM.initAlbumPhotoMonitoring(subject)
+		threadAPM.initAlbumPhotoMonitoring(subject, &errs)
 		if albumPhotoMonitorParam.NeedMonitoring == 0 {
 			threadAPM.Status = "неактивен"
 		}
@@ -136,10 +145,10 @@ func InitThreads() (*[]*Thread, error) {
 		var videoMonitorParam VideoMonitorParam
 		err = videoMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		var threadVM Thread
-		threadVM.initVideoMonitoring(subject)
+		threadVM.initVideoMonitoring(subject, &errs)
 		if videoMonitorParam.NeedMonitoring == 0 {
 			threadVM.Status = "неактивен"
 		}
@@ -148,10 +157,10 @@ func InitThreads() (*[]*Thread, error) {
 		var photoCommentMonitorParam PhotoCommentMonitorParam
 		err = photoCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		var threadPCM Thread
-		threadPCM.initPhotoCommentMonitoring(subject)
+		threadPCM.initPhotoCommentMonitoring(subject, &errs)
 		if photoCommentMonitorParam.NeedMonitoring == 0 {
 			threadPCM.Status = "неактивен"
 		}
@@ -160,10 +169,10 @@ func InitThreads() (*[]*Thread, error) {
 		var videoCommentMonitorParam VideoCommentMonitorParam
 		err = videoCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		var threadVCM Thread
-		threadVCM.initVideoCommentMonitoring(subject)
+		threadVCM.initVideoCommentMonitoring(subject, &errs)
 		if videoCommentMonitorParam.NeedMonitoring == 0 {
 			threadVCM.Status = "неактивен"
 		}
@@ -172,10 +181,10 @@ func InitThreads() (*[]*Thread, error) {
 		var topicMonitorParam TopicMonitorParam
 		err = topicMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		var threadTM Thread
-		threadTM.initTopicMonitoring(subject)
+		threadTM.initTopicMonitoring(subject, &errs)
 		if topicMonitorParam.NeedMonitoring == 0 {
 			threadTM.Status = "неактивен"
 		}
@@ -184,10 +193,10 @@ func InitThreads() (*[]*Thread, error) {
 		var wallPostCommentMonitorParam WallPostCommentMonitorParam
 		err = wallPostCommentMonitorParam.selectFromDBBySubjectID(subject.ID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		var threadWPCM Thread
-		threadWPCM.initWallPostCommentMonitoring(subject)
+		threadWPCM.initWallPostCommentMonitoring(subject, &errs)
 		if wallPostCommentMonitorParam.NeedMonitoring == 0 {
 			threadWPCM.Status = "неактивен"
 		}
@@ -208,7 +217,7 @@ func InitThreads() (*[]*Thread, error) {
 		go threadsStatusMonitoring(&threads)
 	}
 
-	return &threads, nil
+	return &threads, &errs, nil
 }
 
 // threadsStatusMonitoring ищет потоки, завершившие свою работу из-за ошибки
@@ -249,6 +258,7 @@ func wallPostMonitoring(threadData *Thread, subject Subject) {
 		// запускаем функцию мониторинга
 		wallPostMonitorParam, err := WallPostMonitor(subject)
 		if err != nil {
+			threadData.Errs.AddNewError(err.Error())
 			// если функция вернула ошибку, то увеличиваем счетчик на 1
 			errorsCounter++
 			// если в результате счетчик не стал равен 4, то продолжаем
@@ -324,6 +334,7 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 		// запускаем функцию мониторинга
 		albumPhotoMonitorParam, err := AlbumPhotoMonitor(subject)
 		if err != nil {
+			threadData.Errs.AddNewError(err.Error())
 			// если функция вернула ошибку, то увеличиваем счетчик на 1
 			errorsCounter++
 			// если в результате счетчик не стал равен 4, то продолжаем
@@ -399,6 +410,7 @@ func videoMonitoring(threadData *Thread, subject Subject) {
 		// запускаем функцию мониторинга
 		videoMonitorParam, err := VideoMonitor(subject)
 		if err != nil {
+			threadData.Errs.AddNewError(err.Error())
 			// если функция вернула ошибку, то увеличиваем счетчик на 1
 			errorsCounter++
 			// если в результате счетчик не стал равен 4, то продолжаем
@@ -476,6 +488,7 @@ func photoCommentMonitoring(threadData *Thread, subject Subject) {
 		// запускаем функцию мониторинга
 		photoCommentMonitorParam, err := PhotoCommentMonitor(subject)
 		if err != nil {
+			threadData.Errs.AddNewError(err.Error())
 			// если функция вернула ошибку, то увеличиваем счетчик на 1
 			errorsCounter++
 			// если в результате счетчик не стал равен 4, то продолжаем
@@ -553,6 +566,7 @@ func videoCommentMonitoring(threadData *Thread, subject Subject) {
 		// запускаем функцию мониторинга
 		videoCommentMonitorParam, err := VideoCommentMonitor(subject)
 		if err != nil {
+			threadData.Errs.AddNewError(err.Error())
 			// если функция вернула ошибку, то увеличиваем счетчик на 1
 			errorsCounter++
 			// если в результате счетчик не стал равен 4, то продолжаем
@@ -630,6 +644,7 @@ func topicMonitoring(threadData *Thread, subject Subject) {
 		// запускаем функцию мониторинга
 		topicMonitorParam, err := TopicMonitor(subject)
 		if err != nil {
+			threadData.Errs.AddNewError(err.Error())
 			// если функция вернула ошибку, то увеличиваем счетчик на 1
 			errorsCounter++
 			// если в результате счетчик не стал равен 4, то продолжаем
@@ -705,6 +720,7 @@ func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
 		// запускаем функцию мониторинга
 		wallPostCommentMonitorParam, err := WallPostCommentMonitor(subject)
 		if err != nil {
+			threadData.Errs.AddNewError(err.Error())
 			// если функция вернула ошибку, то увеличиваем счетчик на 1
 			errorsCounter++
 			// если в результате счетчик не стал равен 4, то продолжаем

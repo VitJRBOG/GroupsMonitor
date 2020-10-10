@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"runtime/debug"
 	"strings"
+	"time"
 
 	"github.com/andlabs/ui"
 	_ "github.com/andlabs/ui/winmanifest"
@@ -163,7 +164,9 @@ func (bottomPart *bottomPartBoxMainWnd) setBox(box *ui.Box) {
 func initGUI() {
 	initFiles()
 
-	threads := createThreads()
+	threads, errs := createThreads()
+	awk := makeAlertWindow()
+	go catchErrors(errs, &awk)
 
 	boxGeneral := makeGeneralBox(threads)
 	boxThreadsControl := makeThreadControlBox(threads)
@@ -457,7 +460,7 @@ func (ww *warningWindow) init() {
 	ww.window = ui.NewWindow("ВНИМАНИЕ!", 100, 100, true)
 	ww.window.SetMargined(true)
 	ww.window.OnClosing(func(*ui.Window) bool {
-		ww.window.Disable()
+		ww.window.Hide()
 		return true
 	})
 	ww.window.Show()
@@ -487,13 +490,14 @@ func (bww *boxWarningWnd) appendBtnsBox(bwb boxWarningBtn) {
 
 // boxWarningInfo хранит данные о информационной части главного бокса
 type boxWarningInfo struct {
-	box *ui.Box
+	box   *ui.Box
+	label *ui.Label
 }
 
 func (bwi *boxWarningInfo) init(warningTitle string) {
 	bwi.box = ui.NewVerticalBox()
-	titleLabel := ui.NewLabel(warningTitle)
-	bwi.box.Append(titleLabel, true)
+	bwi.label = ui.NewLabel(warningTitle)
+	bwi.box.Append(bwi.label, true)
 }
 
 // boxWarningBtn хранит данные о части главного бокса, на которой размещена кнопка «Понятно»
@@ -540,6 +544,61 @@ func ShowWarningWindow(warningTitle string) {
 	bww.appendBtnsBox(bwb)
 }
 
+type alertWindowKit struct {
+	window *ui.Window
+	label  *ui.Label
+}
+
+func (awk *alertWindowKit) hideWindow() {
+	ui.QueueMain(func() {
+		awk.window.Hide()
+	})
+}
+
+func (awk *alertWindowKit) showWindow() {
+	ui.QueueMain(func() {
+		awk.window.Show()
+	})
+}
+
+func (awk *alertWindowKit) windowIsHidden() bool {
+	return !(awk.window.Visible())
+}
+
+func (awk *alertWindowKit) setTitleToLabel(alertTitle string) {
+	ui.QueueMain(func() {
+		awk.label.SetText(alertTitle)
+	})
+}
+
+func makeAlertWindow() alertWindowKit {
+
+	var bww boxWarningWnd
+	bww.init()
+
+	var ww warningWindow
+	ww.init()
+	ww.setBox(bww)
+
+	var bwi boxWarningInfo
+	bwi.init("")
+
+	var bwb boxWarningBtn
+	bwb.init()
+	bwb.initFlexibleSpaceBox()
+	bwb.initBtnOk(ww)
+
+	bww.appendInfoBox(bwi)
+	bww.appendBtnsBox(bwb)
+
+	var awk alertWindowKit
+	awk.window = ww.window
+	awk.label = bwi.label
+	awk.hideWindow()
+
+	return awk
+}
+
 // NumericEntriesHandler обработчик текстовых полей, предназначенных для ввода числа
 func NumericEntriesHandler(numericEntry *ui.Entry) {
 	// проверим, есть ли знак минуса в начале строки
@@ -577,12 +636,43 @@ func initFiles() {
 }
 
 // createThreads запускает процесс создания потоков с модулями проверки
-func createThreads() *[]*Thread {
-	threads, err := InitThreads()
+func createThreads() (*[]*Thread, *Errors) {
+	threads, errs, err := InitThreads()
 	if err != nil {
 		ToLogFile(err.Error(), string(debug.Stack()))
 		panic(err.Error())
 	}
 
-	return threads
+	return threads, errs
+}
+
+func catchErrors(errs *Errors, awk *alertWindowKit) {
+	errorsCount := 0
+
+	for true {
+		for i := 0; i < len(*errs); i++ {
+			if (*errs)[i] != nil {
+				if i >= errorsCount {
+					for true {
+						if awk.windowIsHidden() {
+							awk.setTitleToLabel((*errs)[i].message)
+							awk.showWindow()
+							errorsCount++
+							break
+						} else {
+							time.Sleep(1 * time.Second)
+						}
+					}
+				}
+				errs.IncreaseAge(i)
+			}
+		}
+		lengthBefore := len(*errs)
+		errs.RemoveOldError()
+		lengthAfter := len(*errs)
+		if lengthBefore > lengthAfter {
+			errorsCount--
+		}
+		time.Sleep(1 * time.Second)
+	}
 }

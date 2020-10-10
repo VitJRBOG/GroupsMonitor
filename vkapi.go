@@ -130,14 +130,12 @@ func SendVKAPIQuery(sender string, methodName string,
 			}
 			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
 
-		// задержка, если токен доступа невалидный
+		// если токен доступа невалидный, то пишем его название и возвращаем ошибку
 		case "access token error":
-			interval := 60 * time.Second
-			message := fmt.Sprintf("ERROR: %v. Need new %v's access token. Waiting for %v...",
-				causeError, accessToken.Name, interval)
-			OutputMessage(sender, message)
-			time.Sleep(interval)
-			return SendVKAPIQuery(sender, methodName, valuesBytes, subject)
+			message := errorItem.(map[string]interface{})["error_msg"].(string)
+			message = strings.ReplaceAll(message, "access_token", "access_token of "+accessToken.Name)
+			err := errors.New(message)
+			return response, err
 
 		// выход из обработчика ошибок, если эта ошибка обрабатывается в другом месте
 		case "skip error":

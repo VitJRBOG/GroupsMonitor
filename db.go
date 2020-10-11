@@ -452,6 +452,25 @@ func (m *Method) insertIntoDB() error {
 	return nil
 }
 
+func (m *Method) updateInDB() error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf(`UPDATE method 
+		SET name='%v', subject_id='%d', access_token_id='%d', monitor_id='%d' WHERE id=%d`,
+		m.Name, m.SubjectID, m.AccessTokenID, m.MonitorID, m.ID)
+	_, err = dbKit.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *Method) selectFromDBByNameAndBySubjectIDAndByMonitorID(methodName string, subjectID, monitorID int) error {
 	var dbKit DataBaseKit
 	err := dbKit.openDB()

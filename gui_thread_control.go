@@ -30,6 +30,7 @@ func (btc *boxThreadControl) setSubjSelectionBtnsBox(ssbb subjSelectingBtnsBox) 
 
 func (btc *boxThreadControl) setThreadControlBtnsBox(ssbd subjSelectingBtnData) {
 	btc.groupThreadControlBtns.SetChild(ssbd.box)
+	btc.groupThreadControlBtns.SetTitle(ssbd.title)
 }
 
 func (btc *boxThreadControl) setLabelNone() {

@@ -129,11 +129,11 @@ func (bb *selectingButtonsBox) initBtnThreadsControl(bottomPart bottomPartBoxMai
 }
 
 func (bb *selectingButtonsBox) initBtnSettings(bottomPart bottomPartBoxMainWnd, boxSettings *ui.Box) {
-	bb.btnSettings = ui.NewButton("Установки")
+	bb.btnSettings = ui.NewButton("Настройки")
 
 	bb.btnSettings.OnClicked(func(*ui.Button) {
 		bottomPart.group.SetChild(boxSettings)
-		bottomPart.group.SetTitle("Установки")
+		bottomPart.group.SetTitle("Настройки")
 		bb.btnSettings.Disable()
 		if !(bb.btnGeneral.Enabled()) {
 			bb.btnGeneral.Enable()

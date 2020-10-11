@@ -247,6 +247,7 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 
 			// получаем набор для названия токена доступа
 			kitWndATName := MakeSettingEntryKit("Название", accessToken.Name)
+			// TODO: добавить обработчик, чтобы исключить ввод пробелов
 
 			// получаем набор для значения токена доступа
 			kitWndATValue := MakeSettingEntryKit("Значение", accessToken.Value)
@@ -273,6 +274,7 @@ func showAccessTokenSettingWindow(IDAccessToken int) {
 				var updatedAccessToken AccessToken
 				updatedAccessToken.ID = accessToken.ID
 				updatedAccessToken.Name = kitWndATName.Entry.Text()
+				// TODO: добавить проверку уникальности названия
 				updatedAccessToken.Value = kitWndATValue.Entry.Text()
 
 				err := updatedAccessToken.updateInDB()
@@ -743,6 +745,7 @@ func showSubjectAdditionWindow() {
 			return
 		}
 		newSubjectData.Name = kitSAdditionName.Entry.Text()
+		// TODO: добавить проверку уникальности названия
 
 		var listNewMethodData ListNewMethodData
 		var listNewMonitorModuleData ListNewMonitorModuleData
@@ -1807,6 +1810,18 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 		panic(err.Error())
 	}
 
+	// запрашиваем список токенов доступа из базы данных
+	accessTokens, err := dbKit.selectTableAccessToken()
+	if err != nil {
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
+	}
+	// формируем список с названиями токенов доступа
+	var accessTokensNames []string
+	for _, accessToken := range accessTokens {
+		accessTokensNames = append(accessTokensNames, accessToken.Name)
+	}
+
 	// получаем набор для отображения общих установок субъекта мониторинга
 	kitWindowGeneralSettings := MakeSettingWindowKit("", 300, 100)
 
@@ -1814,14 +1829,24 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 	for _, subject := range subjects {
 		// ищем субъект с подходящим идентификатором
 		if subject.ID == IDSubject {
+
 			// устанавливаем заголовок окна в соответствии с названием субъекта и назначением установок
 			windowTitle := fmt.Sprintf("%v: настройки для %v", btnName, subject.Name)
 			kitWindowGeneralSettings.Window.SetTitle(windowTitle)
 
-			boxWndS := ui.NewVerticalBox()
+			boxWndSMain := ui.NewHorizontalBox()
+			boxWndSMain.SetPadded(true)
+
+			boxWndSLeft := ui.NewVerticalBox()
+			boxWndSLeft.SetPadded(true)
+			boxWndSCenter := ui.NewVerticalBox()
+			boxWndSCenter.SetPadded(true)
+			boxWndSRight := ui.NewVerticalBox()
+			boxWndSRight.SetPadded(true)
 
 			// получаем набор для названия субъекта мониторинга
 			kitWndSName := MakeSettingEntryKit("Название", subject.Name)
+			// TODO: добавить обработчик, чтобы исключить ввод пробелов
 
 			// получаем набор для идентификатора субъекта мониторинга в базе ВК
 			kitWndSSubjectID := MakeSettingEntryKit("Идентификатор в ВК", strconv.Itoa(subject.SubjectID))
@@ -1830,15 +1855,535 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 				NumericEntriesHandler(kitWndSSubjectID.Entry)
 			})
 
-			// описываем группу, в которой будут размещены элементы
-			groupWndS := ui.NewGroup("")
-			groupWndS.SetMargined(true)
-			boxWndS.Append(kitWndSName.Box, false)
-			boxWndS.Append(kitWndSSubjectID.Box, false)
-			groupWndS.SetChild(boxWndS)
+			// описываем коробку и группу для общих установок субъекта
+			boxWndSGeneral := ui.NewVerticalBox()
+			groupWndSGeneral := ui.NewGroup("Общие")
+			groupWndSGeneral.SetMargined(true)
+			boxWndSGeneral.Append(kitWndSName.Box, false)
+			boxWndSGeneral.Append(kitWndSSubjectID.Box, false)
+			groupWndSGeneral.SetChild(boxWndSGeneral)
 
-			// добавляем группу в основную коробку окна
-			kitWindowGeneralSettings.Box.Append(groupWndS, false)
+			// запрашиваем из базы данных данные по модулю мониторинга wall_post_monitor соответствующего субъекта
+			var monitorWPM Monitor
+			monitorWPM.selectFromDBByNameAndBySubjectID("wall_post_monitor", subject.ID)
+
+			// запрашиваем из базы данных данные по методу wall.get соответствующих субъекта и модуля мониторинга
+			var methodWGforWPM Method
+			methodWGforWPM.selectFromDBByNameAndBySubjectIDAndByMonitorID("wall.get", subject.ID, monitorWPM.ID)
+			var currentATInWPMWallGet string
+			for _, accessToken := range accessTokens {
+				if methodWGforWPM.AccessTokenID == accessToken.ID {
+					currentATInWPMWallGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода wall.get в модуле wall_post_monitor
+			kitSWGinWPM := MakeSettingComboboxKit("Ключ доступа для \"wall.get\"", accessTokensNames, currentATInWPMWallGet)
+
+			// запрашиваем из базы данных данные по методу users.get соответствующих субъекта и модуля мониторинга
+			var methodUGforWPM Method
+			methodUGforWPM.selectFromDBByNameAndBySubjectIDAndByMonitorID("users.get", subject.ID, monitorWPM.ID)
+			var currentATInWPMUsersGet string
+			for _, accessToken := range accessTokens {
+				if methodUGforWPM.AccessTokenID == accessToken.ID {
+					currentATInWPMUsersGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода users.get в модуле wall_post_monitor
+			kitSUGinWPM := MakeSettingComboboxKit("Ключ доступа для \"users.get\"", accessTokensNames, currentATInWPMUsersGet)
+
+			// запрашиваем из базы данных данные по методу groups.getById соответствующих субъекта и модуля мониторинга
+			var methodGGBIforWPM Method
+			methodGGBIforWPM.selectFromDBByNameAndBySubjectIDAndByMonitorID("groups.getById", subject.ID, monitorWPM.ID)
+			var currentATInWPMGroupsGetByID string
+			for _, accessToken := range accessTokens {
+				if methodGGBIforWPM.AccessTokenID == accessToken.ID {
+					currentATInWPMGroupsGetByID = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода groups.getById в модуле wall_post_monitor
+			kitSGGBIinWPM := MakeSettingComboboxKit("Ключ доступа для \"groups.getById\"", accessTokensNames, currentATInWPMGroupsGetByID)
+
+			// запрашиваем из базы данных данные по методу messages.send соответствующих субъекта и модуля мониторинга
+			var methodMSforWPM Method
+			methodMSforWPM.selectFromDBByNameAndBySubjectIDAndByMonitorID("messages.send", subject.ID, monitorWPM.ID)
+			var currentATInWPMMessagesSend string
+			for _, accessToken := range accessTokens {
+				if methodMSforWPM.AccessTokenID == accessToken.ID {
+					currentATInWPMMessagesSend = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода messages.send в модуле wall_post_monitor
+			kitSMSinWPM := MakeSettingComboboxKit("Ключ доступа для \"messages.send\"", accessTokensNames, currentATInWPMMessagesSend)
+
+			// описываем коробку и группу для установок модуля wall_post_monitor субъекта
+			boxWndSWPM := ui.NewVerticalBox()
+			groupWndSWPM := ui.NewGroup("Посты на стене")
+			groupWndSWPM.SetMargined(true)
+			boxWndSWPM.Append(kitSWGinWPM.Box, false)
+			boxWndSWPM.Append(kitSUGinWPM.Box, false)
+			boxWndSWPM.Append(kitSGGBIinWPM.Box, false)
+			boxWndSWPM.Append(kitSMSinWPM.Box, false)
+			groupWndSWPM.SetChild(boxWndSWPM)
+
+			// запрашиваем из базы данных данные по модулю мониторинга album_photo_monitor соответствующего субъекта
+			var monitorAPM Monitor
+			monitorAPM.selectFromDBByNameAndBySubjectID("album_photo_monitor", subject.ID)
+
+			// запрашиваем из базы данных данные по методу photos.get соответствующих субъекта и модуля мониторинга
+			var methodPGforAPM Method
+			methodPGforAPM.selectFromDBByNameAndBySubjectIDAndByMonitorID("photos.get", subject.ID, monitorAPM.ID)
+			var currentATInAPMPhotosGet string
+			for _, accessToken := range accessTokens {
+				if methodPGforAPM.AccessTokenID == accessToken.ID {
+					currentATInAPMPhotosGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода photos.get в модуле album_photo_monitor
+			kitSPGinAPM := MakeSettingComboboxKit("Ключ доступа для \"photos.get\"", accessTokensNames, currentATInAPMPhotosGet)
+
+			// запрашиваем из базы данных данные по методу photos.getAlbums соответствующих субъекта и модуля мониторинга
+			var methodPGAforAPM Method
+			methodPGAforAPM.selectFromDBByNameAndBySubjectIDAndByMonitorID("photos.getAlbums", subject.ID, monitorAPM.ID)
+			var currentATInAPMPhotosGetAlbums string
+			for _, accessToken := range accessTokens {
+				if methodPGAforAPM.AccessTokenID == accessToken.ID {
+					currentATInAPMPhotosGetAlbums = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода photos.getAlbums в модуле album_photo_monitor
+			kitSPGAinAPM := MakeSettingComboboxKit("Ключ доступа для \"photos.getAlbums\"", accessTokensNames, currentATInAPMPhotosGetAlbums)
+
+			// запрашиваем из базы данных данные по методу users.get соответствующих субъекта и модуля мониторинга
+			var methodUGforAPM Method
+			methodUGforAPM.selectFromDBByNameAndBySubjectIDAndByMonitorID("users.get", subject.ID, monitorAPM.ID)
+			var currentATInAPMUsersGet string
+			for _, accessToken := range accessTokens {
+				if methodUGforAPM.AccessTokenID == accessToken.ID {
+					currentATInAPMUsersGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода users.get в модуле album_photo_monitor
+			kitSUGinAPM := MakeSettingComboboxKit("Ключ доступа для \"users.get\"", accessTokensNames, currentATInAPMUsersGet)
+
+			// запрашиваем из базы данных данные по методу groups.getById соответствующих субъекта и модуля мониторинга
+			var methodGGBIforAPM Method
+			methodGGBIforAPM.selectFromDBByNameAndBySubjectIDAndByMonitorID("groups.getById", subject.ID, monitorAPM.ID)
+			var currentATInAPMGroupsGetByID string
+			for _, accessToken := range accessTokens {
+				if methodGGBIforAPM.AccessTokenID == accessToken.ID {
+					currentATInAPMGroupsGetByID = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода groups.getById в модуле album_photo_monitor
+			kitSGGBIinAPM := MakeSettingComboboxKit("Ключ доступа для \"groups.getById\"", accessTokensNames, currentATInAPMGroupsGetByID)
+
+			// запрашиваем из базы данных данные по методу messages.send соответствующих субъекта и модуля мониторинга
+			var methodMSforAPM Method
+			methodMSforAPM.selectFromDBByNameAndBySubjectIDAndByMonitorID("messages.send", subject.ID, monitorAPM.ID)
+			var currentATInAPMMessagesSend string
+			for _, accessToken := range accessTokens {
+				if methodMSforAPM.AccessTokenID == accessToken.ID {
+					currentATInAPMMessagesSend = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода messages.send в модуле album_photo_monitor
+			kitSMSinAPM := MakeSettingComboboxKit("Ключ доступа для \"messages.send\"", accessTokensNames, currentATInAPMMessagesSend)
+
+			// описываем группу для токенов доступа модуля album_photo_monitor субъекта
+			boxWndSAPM := ui.NewVerticalBox()
+			groupWndSAPM := ui.NewGroup("Фото в альбомах")
+			groupWndSAPM.SetMargined(true)
+			boxWndSAPM.Append(kitSPGinAPM.Box, false)
+			boxWndSAPM.Append(kitSPGAinAPM.Box, false)
+			boxWndSAPM.Append(kitSUGinAPM.Box, false)
+			boxWndSAPM.Append(kitSGGBIinAPM.Box, false)
+			boxWndSAPM.Append(kitSMSinAPM.Box, false)
+			groupWndSAPM.SetChild(boxWndSAPM)
+
+			// запрашиваем из базы данных данные по модулю мониторинга video_monitor соответствующего субъекта
+			var monitorVM Monitor
+			monitorVM.selectFromDBByNameAndBySubjectID("video_monitor", subject.ID)
+
+			// запрашиваем из базы данных данные по методу video.get соответствующих субъекта и модуля мониторинга
+			var methodVGforVM Method
+			methodVGforVM.selectFromDBByNameAndBySubjectIDAndByMonitorID("video.get", subject.ID, monitorVM.ID)
+			var currentATInVMVideoGet string
+			for _, accessToken := range accessTokens {
+				if methodVGforVM.AccessTokenID == accessToken.ID {
+					currentATInVMVideoGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода video.get в модуле video_monitor
+			kitSVGinVM := MakeSettingComboboxKit("Ключ доступа для \"video.get\"", accessTokensNames, currentATInVMVideoGet)
+
+			// запрашиваем из базы данных данные по методу users.get соответствующих субъекта и модуля мониторинга
+			var methodUGforVM Method
+			methodUGforVM.selectFromDBByNameAndBySubjectIDAndByMonitorID("users.get", subject.ID, monitorVM.ID)
+			var currentATInVMUsersGet string
+			for _, accessToken := range accessTokens {
+				if methodUGforVM.AccessTokenID == accessToken.ID {
+					currentATInVMUsersGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода users.get в модуле video_monitor
+			kitSUGinVM := MakeSettingComboboxKit("Ключ доступа для \"users.get\"", accessTokensNames, currentATInVMUsersGet)
+
+			// запрашиваем из базы данных данные по методу groups.getById соответствующих субъекта и модуля мониторинга
+			var methodGGBIforVM Method
+			methodGGBIforVM.selectFromDBByNameAndBySubjectIDAndByMonitorID("groups.getById", subject.ID, monitorVM.ID)
+			var currentATInVMGroupsGetByID string
+			for _, accessToken := range accessTokens {
+				if methodGGBIforVM.AccessTokenID == accessToken.ID {
+					currentATInVMGroupsGetByID = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода groups.getById в модуле video_monitor
+			kitSGGBIinVM := MakeSettingComboboxKit("Ключ доступа для \"groups.getById\"", accessTokensNames, currentATInVMGroupsGetByID)
+
+			// запрашиваем из базы данных данные по методу messages.send соответствующих субъекта и модуля мониторинга
+			var methodMSforVM Method
+			methodMSforVM.selectFromDBByNameAndBySubjectIDAndByMonitorID("messages.send", subject.ID, monitorVM.ID)
+			var currentATInVMMessagesSend string
+			for _, accessToken := range accessTokens {
+				if methodMSforVM.AccessTokenID == accessToken.ID {
+					currentATInVMMessagesSend = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода messages.send в модуле video_monitor
+			kitSMSinVM := MakeSettingComboboxKit("Ключ доступа для \"messages.send\"", accessTokensNames, currentATInVMMessagesSend)
+
+			// описываем группу для токенов доступа модуля video_monitor субъекта
+			boxWndSVM := ui.NewVerticalBox()
+			groupWndSVM := ui.NewGroup("Видео в альбомах")
+			groupWndSVM.SetMargined(true)
+			boxWndSVM.Append(kitSVGinVM.Box, false)
+			boxWndSVM.Append(kitSUGinVM.Box, false)
+			boxWndSVM.Append(kitSGGBIinVM.Box, false)
+			boxWndSVM.Append(kitSMSinVM.Box, false)
+			groupWndSVM.SetChild(boxWndSVM)
+
+			// запрашиваем из базы данных данные по модулю мониторинга photo_comment_monitor соответствующего субъекта
+			var monitorPCM Monitor
+			monitorPCM.selectFromDBByNameAndBySubjectID("photo_comment_monitor", subject.ID)
+
+			// запрашиваем из базы данных данные по методу photos.getAllComments соответствующих субъекта и модуля мониторинга
+			var methodPGACforPCM Method
+			methodPGACforPCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("photos.getAllComments", subject.ID, monitorPCM.ID)
+			var currentATInPCMPhotosGetAllComments string
+			for _, accessToken := range accessTokens {
+				if methodPGACforPCM.AccessTokenID == accessToken.ID {
+					currentATInPCMPhotosGetAllComments = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода photos.getAllComments в модуле photo_comment_monitor
+			kitSPGACinPCM := MakeSettingComboboxKit("Ключ доступа для \"photos.getAllComments\"", accessTokensNames, currentATInPCMPhotosGetAllComments)
+
+			// запрашиваем из базы данных данные по методу users.get соответствующих субъекта и модуля мониторинга
+			var methodUGforPCM Method
+			methodUGforPCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("users.get", subject.ID, monitorPCM.ID)
+			var currentATInPCMUsersGet string
+			for _, accessToken := range accessTokens {
+				if methodUGforPCM.AccessTokenID == accessToken.ID {
+					currentATInPCMUsersGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода users.get в модуле photo_comment_monitor
+			kitSUGinPCM := MakeSettingComboboxKit("Ключ доступа для \"users.get\"", accessTokensNames, currentATInPCMUsersGet)
+
+			// запрашиваем из базы данных данные по методу groups.getById соответствующих субъекта и модуля мониторинга
+			var methodGGBIforPCM Method
+			methodGGBIforPCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("groups.getById", subject.ID, monitorPCM.ID)
+			var currentATInPCMGroupsGetByID string
+			for _, accessToken := range accessTokens {
+				if methodGGBIforPCM.AccessTokenID == accessToken.ID {
+					currentATInPCMGroupsGetByID = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода groups.getById в модуле photo_comment_monitor
+			kitSGGBIinPCM := MakeSettingComboboxKit("Ключ доступа для \"groups.getById\"", accessTokensNames, currentATInPCMGroupsGetByID)
+
+			// запрашиваем из базы данных данные по методу messages.send соответствующих субъекта и модуля мониторинга
+			var methodMSforPCM Method
+			methodMSforPCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("messages.send", subject.ID, monitorPCM.ID)
+			var currentATInPCMMessagesSend string
+			for _, accessToken := range accessTokens {
+				if methodMSforPCM.AccessTokenID == accessToken.ID {
+					currentATInPCMMessagesSend = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода messages.send в модуле photo_comment_monitor
+			kitSMSinPCM := MakeSettingComboboxKit("Ключ доступа для \"messages.send\"", accessTokensNames, currentATInPCMMessagesSend)
+
+			// описываем группу для токенов доступа модуля photo_comment_monitor субъекта
+			boxWndSPCM := ui.NewVerticalBox()
+			groupWndSPCM := ui.NewGroup("Комментарии под фото")
+			groupWndSPCM.SetMargined(true)
+			boxWndSPCM.Append(kitSPGACinPCM.Box, false)
+			boxWndSPCM.Append(kitSUGinPCM.Box, false)
+			boxWndSPCM.Append(kitSGGBIinPCM.Box, false)
+			boxWndSPCM.Append(kitSMSinPCM.Box, false)
+			groupWndSPCM.SetChild(boxWndSPCM)
+
+			// запрашиваем из базы данных данные по модулю мониторинга video_comment_monitor соответствующего субъекта
+			var monitorVCM Monitor
+			monitorVCM.selectFromDBByNameAndBySubjectID("video_comment_monitor", subject.ID)
+
+			// запрашиваем из базы данных данные по методу video.getComments соответствующих субъекта и модуля мониторинга
+			var methodVGCforVCM Method
+			methodVGCforVCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("video.getComments", subject.ID, monitorVCM.ID)
+			var currentATInVCMVideoGetComments string
+			for _, accessToken := range accessTokens {
+				if methodVGCforVCM.AccessTokenID == accessToken.ID {
+					currentATInVCMVideoGetComments = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода video.getComments в модуле video_comment_monitor
+			kitSVGCinVCM := MakeSettingComboboxKit("Ключ доступа для \"video.getComments\"", accessTokensNames, currentATInVCMVideoGetComments)
+
+			// запрашиваем из базы данных данные по методу users.get соответствующих субъекта и модуля мониторинга
+			var methodUGforVCM Method
+			methodUGforVCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("users.get", subject.ID, monitorVCM.ID)
+			var currentATInVCMUsersGet string
+			for _, accessToken := range accessTokens {
+				if methodUGforVCM.AccessTokenID == accessToken.ID {
+					currentATInVCMUsersGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода users.get в модуле video_comment_monitor
+			kitSUGinVCM := MakeSettingComboboxKit("Ключ доступа для \"users.get\"", accessTokensNames, currentATInVCMUsersGet)
+
+			// запрашиваем из базы данных данные по методу groups.getById соответствующих субъекта и модуля мониторинга
+			var methodGGBIforVCM Method
+			methodGGBIforVCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("groups.getById", subject.ID, monitorVCM.ID)
+			var currentATInVCMGroupsGetByID string
+			for _, accessToken := range accessTokens {
+				if methodGGBIforVCM.AccessTokenID == accessToken.ID {
+					currentATInVCMGroupsGetByID = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода groups.getById в модуле video_comment_monitor
+			kitSGGBIinVCM := MakeSettingComboboxKit("Ключ доступа для \"groups.getById\"", accessTokensNames, currentATInVCMGroupsGetByID)
+
+			// запрашиваем из базы данных данные по методу video.get соответствующих субъекта и модуля мониторинга
+			var methodVGforVCM Method
+			methodVGforVCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("video.get", subject.ID, monitorVCM.ID)
+			var currentATInVCMVideoGet string
+			for _, accessToken := range accessTokens {
+				if methodVGforVCM.AccessTokenID == accessToken.ID {
+					currentATInVCMVideoGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода video.get в модуле video_comment_monitor
+			kitSVGinVCM := MakeSettingComboboxKit("Ключ доступа для \"video.get\"", accessTokensNames, currentATInVCMVideoGet)
+
+			// запрашиваем из базы данных данные по методу messages.send соответствующих субъекта и модуля мониторинга
+			var methodMSforVCM Method
+			methodMSforVCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("messages.send", subject.ID, monitorVCM.ID)
+			var currentATInVCMMessagesSend string
+			for _, accessToken := range accessTokens {
+				if methodMSforVCM.AccessTokenID == accessToken.ID {
+					currentATInVCMMessagesSend = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода messages.send в модуле video_comment_monitor
+			kitSMSinVCM := MakeSettingComboboxKit("Ключ доступа для \"messages.send\"", accessTokensNames, currentATInVCMMessagesSend)
+
+			// описываем группу для токенов доступа модуля video_comment_monitor субъекта
+			boxWndSVCM := ui.NewVerticalBox()
+			groupWndSVCM := ui.NewGroup("Комментарии под видео")
+			groupWndSVCM.SetMargined(true)
+			boxWndSVCM.Append(kitSVGCinVCM.Box, false)
+			boxWndSVCM.Append(kitSUGinVCM.Box, false)
+			boxWndSVCM.Append(kitSGGBIinVCM.Box, false)
+			boxWndSVCM.Append(kitSVGinVCM.Box, false)
+			boxWndSVCM.Append(kitSMSinVCM.Box, false)
+			groupWndSVCM.SetChild(boxWndSVCM)
+
+			// запрашиваем из базы данных данные по модулю мониторинга topic_monitor соответствующего субъекта
+			var monitorTM Monitor
+			monitorTM.selectFromDBByNameAndBySubjectID("topic_monitor", subject.ID)
+
+			// запрашиваем из базы данных данные по методу board.getComments соответствующих субъекта и модуля мониторинга
+			var methodBGCforTM Method
+			methodBGCforTM.selectFromDBByNameAndBySubjectIDAndByMonitorID("board.getComments", subject.ID, monitorTM.ID)
+			var currentATInTMBoardGetComments string
+			for _, accessToken := range accessTokens {
+				if methodBGCforTM.AccessTokenID == accessToken.ID {
+					currentATInTMBoardGetComments = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода board.getComments в модуле topic_monitor
+			kitSBGCinTM := MakeSettingComboboxKit("Ключ доступа для \"board.getComments\"", accessTokensNames, currentATInTMBoardGetComments)
+
+			// запрашиваем из базы данных данные по методу board.getTopics соответствующих субъекта и модуля мониторинга
+			var methodBGTforTM Method
+			methodBGTforTM.selectFromDBByNameAndBySubjectIDAndByMonitorID("board.getTopics", subject.ID, monitorTM.ID)
+			var currentATInTMBoardGetTopics string
+			for _, accessToken := range accessTokens {
+				if methodBGTforTM.AccessTokenID == accessToken.ID {
+					currentATInTMBoardGetTopics = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода board.getTopics в модуле topic_monitor
+			kitSBGTinTM := MakeSettingComboboxKit("Ключ доступа для \"board.getTopics\"", accessTokensNames, currentATInTMBoardGetTopics)
+
+			// запрашиваем из базы данных данные по методу users.get соответствующих субъекта и модуля мониторинга
+			var methodUGforTM Method
+			methodUGforTM.selectFromDBByNameAndBySubjectIDAndByMonitorID("users.get", subject.ID, monitorTM.ID)
+			var currentATInTMUsersGet string
+			for _, accessToken := range accessTokens {
+				if methodUGforTM.AccessTokenID == accessToken.ID {
+					currentATInTMUsersGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода users.get в модуле topic_monitor
+			kitSUGinTM := MakeSettingComboboxKit("Ключ доступа для \"users.get\"", accessTokensNames, currentATInTMUsersGet)
+
+			// запрашиваем из базы данных данные по методу groups.getById соответствующих субъекта и модуля мониторинга
+			var methodGGBIforTM Method
+			methodGGBIforTM.selectFromDBByNameAndBySubjectIDAndByMonitorID("groups.getById", subject.ID, monitorTM.ID)
+			var currentATInTMGroupsGetByID string
+			for _, accessToken := range accessTokens {
+				if methodGGBIforTM.AccessTokenID == accessToken.ID {
+					currentATInTMGroupsGetByID = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода groups.getById в модуле topic_monitor
+			kitSGGBIinTM := MakeSettingComboboxKit("Ключ доступа для \"groups.getById\"", accessTokensNames, currentATInTMGroupsGetByID)
+
+			// запрашиваем из базы данных данные по методу messages.send соответствующих субъекта и модуля мониторинга
+			var methodMSforTM Method
+			methodMSforTM.selectFromDBByNameAndBySubjectIDAndByMonitorID("messages.send", subject.ID, monitorTM.ID)
+			var currentATInTMMessagesSend string
+			for _, accessToken := range accessTokens {
+				if methodMSforTM.AccessTokenID == accessToken.ID {
+					currentATInTMMessagesSend = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода messages.send в модуле topic_monitor
+			kitSMSinTM := MakeSettingComboboxKit("Ключ доступа для \"messages.send\"", accessTokensNames, currentATInTMMessagesSend)
+
+			// описываем группу для токенов доступа модуля topic_monitor субъекта
+			boxWndSTM := ui.NewVerticalBox()
+			groupWndSTM := ui.NewGroup("Комментарии в обсуждениях")
+			groupWndSTM.SetMargined(true)
+			boxWndSTM.Append(kitSBGCinTM.Box, false)
+			boxWndSTM.Append(kitSBGTinTM.Box, false)
+			boxWndSTM.Append(kitSUGinTM.Box, false)
+			boxWndSTM.Append(kitSGGBIinTM.Box, false)
+			boxWndSTM.Append(kitSMSinTM.Box, false)
+			groupWndSTM.SetChild(boxWndSTM)
+
+			// запрашиваем из базы данных данные по модулю мониторинга wall_post_comment_monitor соответствующего субъекта
+			var monitorWPCM Monitor
+			monitorWPCM.selectFromDBByNameAndBySubjectID("wall_post_comment_monitor", subject.ID)
+
+			// запрашиваем из базы данных данные по методу wall.getComments соответствующих субъекта и модуля мониторинга
+			var methodWGCsforWPCM Method
+			methodWGCsforWPCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("wall.getComments", subject.ID, monitorWPCM.ID)
+			var currentATInWPCMWallGetComments string
+			for _, accessToken := range accessTokens {
+				if methodWGCsforWPCM.AccessTokenID == accessToken.ID {
+					currentATInWPCMWallGetComments = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода wall.getComments в модуле wall_post_comment_monitor
+			kitSWGCsinWPCM := MakeSettingComboboxKit("Ключ доступа для \"wall.getComments\"", accessTokensNames, currentATInWPCMWallGetComments)
+
+			// запрашиваем из базы данных данные по методу users.get соответствующих субъекта и модуля мониторинга
+			var methodUGforWPCM Method
+			methodUGforWPCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("users.get", subject.ID, monitorWPCM.ID)
+			var currentATInWPCMUsersGet string
+			for _, accessToken := range accessTokens {
+				if methodUGforWPCM.AccessTokenID == accessToken.ID {
+					currentATInWPCMUsersGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода users.get в модуле wall_post_comment_monitor
+			kitSUGinWPCM := MakeSettingComboboxKit("Ключ доступа для \"users.get\"", accessTokensNames, currentATInWPCMUsersGet)
+
+			// запрашиваем из базы данных данные по методу groups.getById соответствующих субъекта и модуля мониторинга
+			var methodGGBIforWPCM Method
+			methodGGBIforWPCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("groups.getById", subject.ID, monitorWPCM.ID)
+			var currentATInWPCMGroupsGetByID string
+			for _, accessToken := range accessTokens {
+				if methodGGBIforWPCM.AccessTokenID == accessToken.ID {
+					currentATInWPCMGroupsGetByID = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода groups.getById в модуле wall_post_comment_monitor
+			kitSGGBIinWPCM := MakeSettingComboboxKit("Ключ доступа для \"groups.getById\"", accessTokensNames, currentATInWPCMGroupsGetByID)
+
+			// запрашиваем из базы данных данные по методу wall.get соответствующих субъекта и модуля мониторинга
+			var methodWGforWPCM Method
+			methodWGforWPCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("wall.get", subject.ID, monitorWPCM.ID)
+			var currentATInWPCMWallGet string
+			for _, accessToken := range accessTokens {
+				if methodWGforWPCM.AccessTokenID == accessToken.ID {
+					currentATInWPCMWallGet = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода wall.get в модуле wall_post_comment_monitor
+			kitSWGinWPCM := MakeSettingComboboxKit("Ключ доступа для \"wall.get\"", accessTokensNames, currentATInWPCMWallGet)
+
+			// запрашиваем из базы данных данные по методу wall.getComment соответствующих субъекта и модуля мониторинга
+			var methodWGCforWPCM Method
+			methodWGCforWPCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("wall.getComment", subject.ID, monitorWPCM.ID)
+			var currentATInWPCMWallGetComment string
+			for _, accessToken := range accessTokens {
+				if methodWGCforWPCM.AccessTokenID == accessToken.ID {
+					currentATInWPCMWallGetComment = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода wall.getComment в модуле wall_post_comment_monitor
+			kitSWGCinWPCM := MakeSettingComboboxKit("Ключ доступа для \"wall.getComment\"", accessTokensNames, currentATInWPCMWallGetComment)
+
+			// запрашиваем из базы данных данные по методу messages.send соответствующих субъекта и модуля мониторинга
+			var methodMSforWPCM Method
+			methodMSforWPCM.selectFromDBByNameAndBySubjectIDAndByMonitorID("messages.send", subject.ID, monitorWPCM.ID)
+			var currentATInWPCMMessagesSend string
+			for _, accessToken := range accessTokens {
+				if methodMSforWPCM.AccessTokenID == accessToken.ID {
+					currentATInWPCMMessagesSend = accessToken.Name
+				}
+			}
+			// получаем набор для выбора токена доступа для метода messages.send в модуле wall_post_comment_monitor
+			kitSMSinWPCM := MakeSettingComboboxKit("Ключ доступа для \"messages.send\"", accessTokensNames, currentATInWPCMMessagesSend)
+
+			// описываем группу для токенов доступа модуля wall_post_comment_monitor субъекта
+			boxWndSWGCM := ui.NewVerticalBox()
+			groupWndWGCM := ui.NewGroup("Комментарии под постами")
+			groupWndWGCM.SetMargined(true)
+			boxWndSWGCM.Append(kitSWGCsinWPCM.Box, false)
+			boxWndSWGCM.Append(kitSUGinWPCM.Box, false)
+			boxWndSWGCM.Append(kitSGGBIinWPCM.Box, false)
+			boxWndSWGCM.Append(kitSWGinWPCM.Box, false)
+			boxWndSWGCM.Append(kitSWGCinWPCM.Box, false)
+			boxWndSWGCM.Append(kitSMSinWPCM.Box, false)
+			groupWndWGCM.SetChild(boxWndSWGCM)
+
+			// добавляем все заполненные группы на
+			// левую коробку
+			boxWndSLeft.Append(groupWndSGeneral, false)
+			boxWndSLeft.Append(groupWndSWPM, false)
+			boxWndSLeft.Append(groupWndSAPM, false)
+
+			// коробку посередине
+			boxWndSCenter.Append(groupWndSVM, false)
+			boxWndSCenter.Append(groupWndSPCM, false)
+			boxWndSCenter.Append(groupWndSVCM, false)
+
+			// и правую коробку (для экономии места из-за отсутствия в данной библиотеке для gui скроллинга)
+			boxWndSRight.Append(groupWndSTM, false)
+			boxWndSRight.Append(groupWndWGCM, false)
+
+			// затем добавляем левую, центральную и правую коробки на одну общую
+			boxWndSMain.Append(boxWndSLeft, false)
+			boxWndSMain.Append(boxWndSCenter, false)
+			boxWndSMain.Append(boxWndSRight, false)
+
+			// а ее - на основную
+			kitWindowGeneralSettings.Box.Append(boxWndSMain, false)
 
 			// получаем набор для кнопок принятия и отмены изменений
 			kitButtonsS := MakeSettingButtonsKit()
@@ -1870,8 +2415,271 @@ func showSubjectGeneralSettingWindow(IDSubject int, btnName string) {
 				updatedSubject.Name = kitWndSName.Entry.Text()
 				updatedSubject.BackupWikipage = subject.BackupWikipage
 				updatedSubject.LastBackup = subject.LastBackup
-
 				err := updatedSubject.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodWGforWPM = methodWGforWPM
+				updatedMethodWGforWPM.AccessTokenID = accessTokens[kitSWGinWPM.Combobox.Selected()].ID
+				err = updatedMethodWGforWPM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodUGforWPM = methodUGforWPM
+				updatedMethodUGforWPM.AccessTokenID = accessTokens[kitSUGinWPM.Combobox.Selected()].ID
+				err = updatedMethodUGforWPM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodGGBIforWPM = methodGGBIforWPM
+				updatedMethodGGBIforWPM.AccessTokenID = accessTokens[kitSGGBIinWPM.Combobox.Selected()].ID
+				err = updatedMethodGGBIforWPM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodMSforWPM = methodMSforWPM
+				updatedMethodMSforWPM.AccessTokenID = accessTokens[kitSMSinWPM.Combobox.Selected()].ID
+				err = updatedMethodMSforWPM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodPGforAPM = methodPGforAPM
+				updatedMethodPGforAPM.AccessTokenID = accessTokens[kitSPGinAPM.Combobox.Selected()].ID
+				err = updatedMethodPGforAPM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodPGAforAPM = methodPGAforAPM
+				updatedMethodPGAforAPM.AccessTokenID = accessTokens[kitSPGAinAPM.Combobox.Selected()].ID
+				err = updatedMethodPGAforAPM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodUGforAPM = methodUGforAPM
+				updatedMethodUGforAPM.AccessTokenID = accessTokens[kitSUGinAPM.Combobox.Selected()].ID
+				err = updatedMethodUGforAPM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodGGBIforAPM = methodGGBIforAPM
+				updatedMethodGGBIforAPM.AccessTokenID = accessTokens[kitSGGBIinAPM.Combobox.Selected()].ID
+				err = updatedMethodGGBIforAPM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodMSforAPM = methodMSforAPM
+				updatedMethodMSforAPM.AccessTokenID = accessTokens[kitSMSinAPM.Combobox.Selected()].ID
+				err = updatedMethodMSforAPM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodVGforVM = methodVGforVM
+				updatedMethodVGforVM.AccessTokenID = accessTokens[kitSVGinVM.Combobox.Selected()].ID
+				err = updatedMethodVGforVM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodUGforVM = methodUGforVM
+				updatedMethodUGforVM.AccessTokenID = accessTokens[kitSUGinVM.Combobox.Selected()].ID
+				err = updatedMethodUGforVM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodGGBIforVM = methodGGBIforVM
+				updatedMethodGGBIforVM.AccessTokenID = accessTokens[kitSGGBIinVM.Combobox.Selected()].ID
+				err = updatedMethodGGBIforVM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodMSforVM = methodMSforVM
+				updatedMethodMSforVM.AccessTokenID = accessTokens[kitSMSinVM.Combobox.Selected()].ID
+				err = updatedMethodMSforVM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodPGACforPCM = methodPGACforPCM
+				updatedMethodPGACforPCM.AccessTokenID = accessTokens[kitSPGACinPCM.Combobox.Selected()].ID
+				err = updatedMethodPGACforPCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodUGforPCM = methodUGforPCM
+				updatedMethodUGforPCM.AccessTokenID = accessTokens[kitSUGinPCM.Combobox.Selected()].ID
+				err = updatedMethodUGforPCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodGGBIforPCM = methodGGBIforPCM
+				updatedMethodGGBIforPCM.AccessTokenID = accessTokens[kitSGGBIinPCM.Combobox.Selected()].ID
+				err = updatedMethodGGBIforPCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodMSforPCM = methodMSforPCM
+				updatedMethodMSforPCM.AccessTokenID = accessTokens[kitSMSinPCM.Combobox.Selected()].ID
+				err = updatedMethodMSforPCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodVGCforVCM = methodVGCforVCM
+				updatedMethodVGCforVCM.AccessTokenID = accessTokens[kitSVGCinVCM.Combobox.Selected()].ID
+				err = updatedMethodVGCforVCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodUGforVCM = methodUGforVCM
+				updatedMethodUGforVCM.AccessTokenID = accessTokens[kitSUGinVCM.Combobox.Selected()].ID
+				err = updatedMethodUGforVCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodGGBIforVCM = methodGGBIforVCM
+				updatedMethodGGBIforVCM.AccessTokenID = accessTokens[kitSGGBIinVCM.Combobox.Selected()].ID
+				err = updatedMethodGGBIforVCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodVGforVCM = methodVGforVCM
+				updatedMethodVGforVCM.AccessTokenID = accessTokens[kitSVGinVCM.Combobox.Selected()].ID
+				err = updatedMethodVGforVCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodMSforVCM = methodMSforVCM
+				updatedMethodMSforVCM.AccessTokenID = accessTokens[kitSMSinVCM.Combobox.Selected()].ID
+				err = updatedMethodMSforVCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodBGCforTM = methodBGCforTM
+				updatedMethodBGCforTM.AccessTokenID = accessTokens[kitSBGCinTM.Combobox.Selected()].ID
+				err = updatedMethodBGCforTM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodBGTforTM = methodBGTforTM
+				updatedMethodBGTforTM.AccessTokenID = accessTokens[kitSBGTinTM.Combobox.Selected()].ID
+				err = updatedMethodBGTforTM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodUGforTM = methodUGforTM
+				updatedMethodUGforTM.AccessTokenID = accessTokens[kitSUGinTM.Combobox.Selected()].ID
+				err = updatedMethodUGforTM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodGGBIforTM = methodGGBIforTM
+				updatedMethodGGBIforTM.AccessTokenID = accessTokens[kitSGGBIinTM.Combobox.Selected()].ID
+				err = updatedMethodGGBIforTM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodMSforTM = methodMSforTM
+				updatedMethodMSforTM.AccessTokenID = accessTokens[kitSMSinTM.Combobox.Selected()].ID
+				err = updatedMethodMSforTM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodWGCsforWPCM = methodWGCsforWPCM
+				updatedMethodWGCsforWPCM.AccessTokenID = accessTokens[kitSWGCsinWPCM.Combobox.Selected()].ID
+				err = updatedMethodWGCsforWPCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodUGforWPCM = methodUGforWPCM
+				updatedMethodUGforWPCM.AccessTokenID = accessTokens[kitSUGinWPCM.Combobox.Selected()].ID
+				err = updatedMethodUGforWPCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodGGBIforWPCM = methodGGBIforWPCM
+				updatedMethodGGBIforWPCM.AccessTokenID = accessTokens[kitSGGBIinWPCM.Combobox.Selected()].ID
+				err = updatedMethodGGBIforWPCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodWGforWPCM = methodWGforWPCM
+				updatedMethodWGforWPCM.AccessTokenID = accessTokens[kitSWGinWPCM.Combobox.Selected()].ID
+				err = updatedMethodWGforWPCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodWGCforWPCM = methodWGCforWPCM
+				updatedMethodWGCforWPCM.AccessTokenID = accessTokens[kitSWGCinWPCM.Combobox.Selected()].ID
+				err = updatedMethodWGCforWPCM.updateInDB()
+				if err != nil {
+					ToLogFile(err.Error(), string(debug.Stack()))
+					panic(err.Error())
+				}
+
+				var updatedMethodMSforWPCM = methodMSforWPCM
+				updatedMethodMSforWPCM.AccessTokenID = accessTokens[kitSMSinWPCM.Combobox.Selected()].ID
+				err = updatedMethodMSforWPCM.updateInDB()
 				if err != nil {
 					ToLogFile(err.Error(), string(debug.Stack()))
 					panic(err.Error())
@@ -2470,6 +3278,7 @@ func showSubjectTopicSettingWindow(IDSubject int, nameSubject, btnName string) {
 		}
 		updatedTopicMonitorParam.SendTo, err = strconv.Atoi(kitWndTSendTo.Entry.Text())
 		if err != nil {
+			// FIXME: тут старый способ обработки ошибок
 			date := UnixTimeStampToDate(int(time.Now().Unix()))
 			log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
 		}

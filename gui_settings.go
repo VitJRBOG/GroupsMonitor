@@ -1876,7 +1876,7 @@ func (bsw *boxSettingsWnd) initGroup(groupTitle string) {
 	bsw.group = ui.NewGroup(groupTitle)
 	bsw.group.SetMargined(true)
 	bsw.internalBox = ui.NewVerticalBox()
-	// bsw.internalBox.SetPadded(true) // TODO: после рефакторинга раскомментить эту строку, так как с отступами между элементами красивее
+	bsw.internalBox.SetPadded(true)
 	bsw.group.SetChild(bsw.internalBox)
 	bsw.box.Append(bsw.group, false)
 }

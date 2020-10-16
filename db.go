@@ -356,6 +356,30 @@ func (s *Subject) insertIntoDB() error {
 	return nil
 }
 
+func (s *Subject) selectFromDBByID(id int) error {
+	var dbKit DataBaseKit
+	err := dbKit.openDB()
+	defer dbKit.db.Close()
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf("SELECT * FROM subject WHERE id=%d", id)
+	rows, err := dbKit.db.Query(query)
+	defer rows.Close()
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+		err = rows.Scan(&s.ID, &s.SubjectID, &s.Name, &s.BackupWikipage, &s.LastBackup)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *Subject) updateInDB() error {
 	var dbKit DataBaseKit
 	err := dbKit.openDB()

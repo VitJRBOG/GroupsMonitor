@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"runtime/debug"
 	"strconv"
-	"time"
 
 	"github.com/andlabs/ui"
 )
@@ -2985,9 +2983,8 @@ func (vcsp *videoCommentSettingsParams) updateParamsInDB(params VideoCommentMoni
 	var err error
 	updatedParams.SendTo, err = strconv.Atoi(vcsp.kitSendTo.Entry.Text())
 	if err != nil {
-		// FIXME: тут старый способ обработки ошибок
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 	updatedParams.Interval = vcsp.kitInterval.Spinbox.Value()
 	updatedParams.LastDate = params.LastDate
@@ -3080,9 +3077,8 @@ func (tsp *topicSettingsParams) updateParamsInDB(params TopicMonitorParam) bool 
 	var err error
 	updatedParams.SendTo, err = strconv.Atoi(tsp.kitSendTo.Entry.Text())
 	if err != nil {
-		// FIXME: тут старый способ обработки ошибок
-		date := UnixTimeStampToDate(int(time.Now().Unix()))
-		log.Fatal(fmt.Errorf("> [%v] WARNING! Error: %v", date, err))
+		ToLogFile(err.Error(), string(debug.Stack()))
+		panic(err.Error())
 	}
 	updatedParams.Interval = tsp.kitInterval.Spinbox.Value()
 	updatedParams.LastDate = params.LastDate

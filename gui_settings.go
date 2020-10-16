@@ -3057,7 +3057,7 @@ func (tsp *topicSettingsParams) init(params TopicMonitorParam) {
 		NumericEntriesHandler(tsp.kitSendTo.Entry)
 	})
 	tsp.kitTopicsCount = MakeSettingSpinboxKit("Количество обсуждений", 1, 100, params.TopicsCount)
-	tsp.kitCommentsCount = MakeSettingSpinboxKit("Количество комментариев", 1, 100, params.TopicsCount) // FIXME: поменять params.TopicsCount на params.CommentsCount
+	tsp.kitCommentsCount = MakeSettingSpinboxKit("Количество комментариев", 1, 100, params.CommentsCount)
 }
 
 func (tsp *topicSettingsParams) updateParamsInDB(params TopicMonitorParam) bool {

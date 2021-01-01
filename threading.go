@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"time"
 )
@@ -24,7 +25,7 @@ func (thread *Thread) initWallPostMonitoring(subject Subject, errs *Errors) {
 
 func (thread *Thread) runWallPostMonitoring() {
 	thread.ActionFlag = 0
-	go wallPostMonitoring(thread, thread.Subject)
+	go monitoringCycle("wall_post_monitor", thread, thread.Subject)
 }
 
 func (thread *Thread) initAlbumPhotoMonitoring(subject Subject, errs *Errors) {
@@ -37,7 +38,7 @@ func (thread *Thread) initAlbumPhotoMonitoring(subject Subject, errs *Errors) {
 
 func (thread *Thread) runAlbumPhotoMonitoring() {
 	thread.ActionFlag = 0
-	go albumPhotoMonitoring(thread, thread.Subject)
+	go monitoringCycle("album_photo_monitor", thread, thread.Subject)
 }
 
 func (thread *Thread) initVideoMonitoring(subject Subject, errs *Errors) {
@@ -50,7 +51,7 @@ func (thread *Thread) initVideoMonitoring(subject Subject, errs *Errors) {
 
 func (thread *Thread) runVideoMonitoring() {
 	thread.ActionFlag = 0
-	go videoMonitoring(thread, thread.Subject)
+	go monitoringCycle("video_monitor", thread, thread.Subject)
 }
 
 func (thread *Thread) initPhotoCommentMonitoring(subject Subject, errs *Errors) {
@@ -63,7 +64,7 @@ func (thread *Thread) initPhotoCommentMonitoring(subject Subject, errs *Errors) 
 
 func (thread *Thread) runPhotoCommentMonitoring() {
 	thread.ActionFlag = 0
-	go photoCommentMonitoring(thread, thread.Subject)
+	go monitoringCycle("photo_comment_monitor", thread, thread.Subject)
 }
 
 func (thread *Thread) initVideoCommentMonitoring(subject Subject, errs *Errors) {
@@ -76,7 +77,7 @@ func (thread *Thread) initVideoCommentMonitoring(subject Subject, errs *Errors) 
 
 func (thread *Thread) runVideoCommentMonitoring() {
 	thread.ActionFlag = 0
-	go videoCommentMonitoring(thread, thread.Subject)
+	go monitoringCycle("video_comment_monitor", thread, thread.Subject)
 }
 
 func (thread *Thread) initTopicMonitoring(subject Subject, errs *Errors) {
@@ -89,7 +90,7 @@ func (thread *Thread) initTopicMonitoring(subject Subject, errs *Errors) {
 
 func (thread *Thread) runTopicMonitoring() {
 	thread.ActionFlag = 0
-	go topicMonitoring(thread, thread.Subject)
+	go monitoringCycle("topic_monitor", thread, thread.Subject)
 }
 
 func (thread *Thread) initWallPostCommentMonitoring(subject Subject, errs *Errors) {
@@ -102,7 +103,7 @@ func (thread *Thread) initWallPostCommentMonitoring(subject Subject, errs *Error
 
 func (thread *Thread) runWallPostCommentMonitoring() {
 	thread.ActionFlag = 0
-	go wallPostCommentMonitoring(thread, thread.Subject)
+	go monitoringCycle("wall_post_comment_monitor", thread, thread.Subject)
 }
 
 // InitThreads инициализирует потоки и заполняет данными о них список для них
@@ -238,84 +239,7 @@ func threadsStatusMonitoring(threads *[]*Thread) {
 	time.Sleep(10 * time.Second)
 }
 
-func wallPostMonitoring(threadData *Thread, subject Subject) {
-
-	// сообщаем пользователю о запуске модуля
-	sender := threadData.Name
-	message := "Запущен..."
-	OutputMessage(sender, message)
-
-	// создаем счетчик ошибок
-	errorsCounter := 0
-
-	// запускаем бесконечный цикл
-	for true {
-		// меняем статус потока
-		threadData.Status = "работает"
-		// заранее присваиваем значение интервала
-		interval := 20
-
-		// запускаем функцию мониторинга
-		wallPostMonitorParam, err := WallPostMonitor(subject)
-		if err != nil {
-			threadData.Errs.AddNewError(err.Error())
-			// если функция вернула ошибку, то увеличиваем счетчик на 1
-			errorsCounter++
-			// если в результате счетчик не стал равен 4, то продолжаем
-			if errorsCounter < 4 {
-				// сообщаем пользователю об ошибке
-				sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
-				// 20-секундный таймер умножаем на количество ошибок
-				interval *= errorsCounter
-				message := fmt.Sprintf("Error: %v. Time out for %ds", err, interval)
-				OutputMessage(sender, message)
-			} else {
-				// если стал, то сообщаем об этом пользователю
-				message := fmt.Sprintf("Error: %v. Thread is paused. Type \"restart\" for turn on again...", err)
-				OutputMessage(sender, message)
-				// и ставим потоку статус ошибка
-				threadData.Status = "ошибка"
-			}
-		}
-
-		// после успешного завершения работы функции мониторинга получаем значение интервала
-		if wallPostMonitorParam != nil {
-			interval = wallPostMonitorParam.Interval
-		}
-
-		// и включаем режим ожидания
-		for i := 0; i < interval; i++ {
-			// если статус потока ошибка
-			if threadData.Status == "ошибка" {
-				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
-				i = 0
-			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
-				threadData.Status = fmt.Sprintf("ожидание еще %d сек.", interval-i)
-			}
-			time.Sleep(1 * time.Second)
-
-			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.ActionFlag == 1 {
-				// если был, то меняем статус потока на "остановлен"
-				threadData.Status = "остановлен"
-				// и завершаем работу потока
-				return
-			}
-
-			// если выставлен флаг рестарта
-			if threadData.ActionFlag == 2 {
-				// то обновляем статус потока
-				threadData.Status = "работает"
-				// и перезапускаем функцию
-				threadData.ActionFlag = 0
-				wallPostMonitoring(threadData, subject)
-			}
-		}
-	}
-}
-
-func albumPhotoMonitoring(threadData *Thread, subject Subject) {
-
+func monitoringCycle(moduleName string, threadData *Thread, subject Subject) {
 	// сообщаем пользователю о запуске модуля
 	sender := threadData.Name
 	message := "Started..."
@@ -332,7 +256,7 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 		interval := 20
 
 		// запускаем функцию мониторинга
-		albumPhotoMonitorParam, err := AlbumPhotoMonitor(subject)
+		monitInterval, err := startMonitoringModule(moduleName, subject)
 		if err != nil {
 			threadData.Errs.AddNewError(err.Error())
 			// если функция вернула ошибку, то увеличиваем счетчик на 1
@@ -355,8 +279,8 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 		}
 
 		// после успешного завершения работы функции мониторинга получаем значение интервала
-		if albumPhotoMonitorParam != nil {
-			interval = albumPhotoMonitorParam.Interval
+		if monitInterval > 0 {
+			interval = monitInterval
 		}
 
 		// и включаем режим ожидания
@@ -384,394 +308,65 @@ func albumPhotoMonitoring(threadData *Thread, subject Subject) {
 				threadData.Status = "работает"
 				// и перезапускаем функцию
 				threadData.ActionFlag = 0
-				albumPhotoMonitoring(threadData, subject)
+				monitoringCycle(moduleName, threadData, subject)
 			}
 		}
 	}
 }
 
-func videoMonitoring(threadData *Thread, subject Subject) {
-
-	// сообщаем пользователю о запуске модуля
-	sender := threadData.Name
-	message := "Started..."
-	OutputMessage(sender, message)
-
-	// создаем счетчик ошибок
-	errorsCounter := 0
-
-	// запускаем бесконечный цикл
-	for true {
-		// меняем статус потока
-		threadData.Status = "работает"
-		// заранее присваиваем значение интервала
-		interval := 20
-
-		// запускаем функцию мониторинга
-		videoMonitorParam, err := VideoMonitor(subject)
-		if err != nil {
-			threadData.Errs.AddNewError(err.Error())
-			// если функция вернула ошибку, то увеличиваем счетчик на 1
-			errorsCounter++
-			// если в результате счетчик не стал равен 4, то продолжаем
-			if errorsCounter < 4 {
-				// сообщаем пользователю об ошибке
-				sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
-				// 20-секундный таймер умножаем на количество ошибок
-				interval *= errorsCounter
-				message := fmt.Sprintf("Error: %v. Time out for %ds", err, interval)
-				OutputMessage(sender, message)
-			} else {
-				// если стал, то сообщаем об этом пользователю
-				message := fmt.Sprintf("Error: %v. Thread is paused. Type \"restart\" for turn on again...", err)
-				OutputMessage(sender, message)
-				// и ставим потоку статус ошибка
-				threadData.Status = "ошибка"
-			}
+func startMonitoringModule(moduleName string, subject Subject) (int, error) {
+	switch moduleName {
+	case "wall_post_monitor":
+		var monitInterval int
+		monitorParams, err := WallPostMonitor(subject)
+		if monitorParams != nil {
+			monitInterval = monitorParams.Interval
 		}
-
-		// после успешного завершения работы функции мониторинга получаем значение интервала
-		if videoMonitorParam != nil {
-			interval = videoMonitorParam.Interval
-			// и обнуляем счетчик ошибок
-			errorsCounter = 0
+		return monitInterval, err
+	case "album_photo_monitor":
+		var monitInterval int
+		monitorParams, err := AlbumPhotoMonitor(subject)
+		if monitorParams != nil {
+			monitInterval = monitorParams.Interval
 		}
-
-		// и включаем режим ожидания
-		for i := 0; i < interval; i++ {
-			// если статус потока ошибка
-			if threadData.Status == "ошибка" {
-				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
-				i = 0
-			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
-				threadData.Status = fmt.Sprintf("ожидание еще %d сек.", interval-i)
-			}
-			time.Sleep(1 * time.Second)
-
-			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.ActionFlag == 1 {
-				// если был, то меняем статус потока на "остановлен"
-				threadData.Status = "остановлен"
-				// и завершаем работу потока
-				return
-			}
-
-			// если выставлен флаг рестарта
-			if threadData.ActionFlag == 2 {
-				// то обновляем статус потока
-				threadData.Status = "работает"
-				// и перезапускаем функцию
-				threadData.ActionFlag = 0
-				videoMonitoring(threadData, subject)
-			}
+		return monitInterval, err
+	case "video_monitor":
+		var monitInterval int
+		monitorParams, err := VideoMonitor(subject)
+		if monitorParams != nil {
+			monitInterval = monitorParams.Interval
 		}
-	}
-}
-
-func photoCommentMonitoring(threadData *Thread, subject Subject) {
-
-	// сообщаем пользователю о запуске модуля
-	sender := threadData.Name
-	message := "Started..."
-	OutputMessage(sender, message)
-
-	// создаем счетчик ошибок
-	errorsCounter := 0
-
-	// запускаем бесконечный цикл
-	for true {
-		// меняем статус потока
-		threadData.Status = "работает"
-		// заранее присваиваем значение интервала
-		interval := 20
-
-		// запускаем функцию мониторинга
-		photoCommentMonitorParam, err := PhotoCommentMonitor(subject)
-		if err != nil {
-			threadData.Errs.AddNewError(err.Error())
-			// если функция вернула ошибку, то увеличиваем счетчик на 1
-			errorsCounter++
-			// если в результате счетчик не стал равен 4, то продолжаем
-			if errorsCounter < 4 {
-				// сообщаем пользователю об ошибке
-				sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
-				// 20-секундный таймер умножаем на количество ошибок
-				interval *= errorsCounter
-				message := fmt.Sprintf("Error: %v. Time out for %ds", err, interval)
-				OutputMessage(sender, message)
-			} else {
-				// если стал, то сообщаем об этом пользователю
-				message := fmt.Sprintf("Error: %v. Thread is paused. Type \"restart\" for turn on again...", err)
-				OutputMessage(sender, message)
-				// и ставим потоку статус ошибка
-				threadData.Status = "ошибка"
-			}
+		return monitInterval, err
+	case "photo_comment_monitor":
+		var monitInterval int
+		monitorParams, err := PhotoCommentMonitor(subject)
+		if monitorParams != nil {
+			monitInterval = monitorParams.Interval
 		}
-
-		// после успешного завершения работы функции мониторинга получаем значение интервала
-		if photoCommentMonitorParam != nil {
-			interval = photoCommentMonitorParam.Interval
-			// и обнуляем счетчик ошибок
-			errorsCounter = 0
+		return monitInterval, err
+	case "video_comment_monitor":
+		var monitInterval int
+		monitorParams, err := VideoCommentMonitor(subject)
+		if monitorParams != nil {
+			monitInterval = monitorParams.Interval
 		}
-
-		// и включаем режим ожидания
-		for i := 0; i < interval; i++ {
-			// если статус потока ошибка
-			if threadData.Status == "ошибка" {
-				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
-				i = 0
-			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
-				threadData.Status = fmt.Sprintf("ожидание еще %d сек.", interval-i)
-			}
-			time.Sleep(1 * time.Second)
-
-			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.ActionFlag == 1 {
-				// если был, то меняем статус потока на "остановлен"
-				threadData.Status = "остановлен"
-				// и завершаем работу потока
-				return
-			}
-
-			// если выставлен флаг рестарта
-			if threadData.ActionFlag == 2 {
-				// то обновляем статус потока
-				threadData.Status = "работает"
-				// и перезапускаем функцию
-				threadData.ActionFlag = 0
-				photoCommentMonitoring(threadData, subject)
-			}
+		return monitInterval, err
+	case "topic_monitor":
+		var monitInterval int
+		monitorParams, err := TopicMonitor(subject)
+		if monitorParams != nil {
+			monitInterval = monitorParams.Interval
 		}
-	}
-}
-
-func videoCommentMonitoring(threadData *Thread, subject Subject) {
-
-	// сообщаем пользователю о запуске модуля
-	sender := threadData.Name
-	message := "Started..."
-	OutputMessage(sender, message)
-
-	// создаем счетчик ошибок
-	errorsCounter := 0
-
-	// запускаем бесконечный цикл
-	for true {
-		// меняем статус потока
-		threadData.Status = "работает"
-		// заранее присваиваем значение интервала
-		interval := 20
-
-		// запускаем функцию мониторинга
-		videoCommentMonitorParam, err := VideoCommentMonitor(subject)
-		if err != nil {
-			threadData.Errs.AddNewError(err.Error())
-			// если функция вернула ошибку, то увеличиваем счетчик на 1
-			errorsCounter++
-			// если в результате счетчик не стал равен 4, то продолжаем
-			if errorsCounter < 4 {
-				// сообщаем пользователю об ошибке
-				sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
-				// 20-секундный таймер умножаем на количество ошибок
-				interval *= errorsCounter
-				message := fmt.Sprintf("Error: %v. Time out for %ds", err, interval)
-				OutputMessage(sender, message)
-			} else {
-				// если стал, то сообщаем об этом пользователю
-				message := fmt.Sprintf("Error: %v. Thread is paused. Type \"restart\" for turn on again...", err)
-				OutputMessage(sender, message)
-				// и ставим потоку статус ошибка
-				threadData.Status = "ошибка"
-			}
+		return monitInterval, err
+	case "wall_post_comment_monitor":
+		var monitInterval int
+		monitorParams, err := WallPostCommentMonitor(subject)
+		if monitorParams != nil {
+			monitInterval = monitorParams.Interval
 		}
-
-		// после успешного завершения работы функции мониторинга получаем значение интервала
-		if videoCommentMonitorParam != nil {
-			interval = videoCommentMonitorParam.Interval
-			// и обнуляем счетчик ошибок
-			errorsCounter = 0
-		}
-
-		// и включаем режим ожидания
-		for i := 0; i < interval; i++ {
-			// если статус потока ошибка
-			if threadData.Status == "ошибка" {
-				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
-				i = 0
-			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
-				threadData.Status = fmt.Sprintf("ожидание еще %d сек.", interval-i)
-			}
-			time.Sleep(1 * time.Second)
-
-			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.ActionFlag == 1 {
-				// если был, то меняем статус потока на "остановлен"
-				threadData.Status = "остановлен"
-				// и завершаем работу потока
-				return
-			}
-
-			// если выставлен флаг рестарта
-			if threadData.ActionFlag == 2 {
-				// то обновляем статус потока
-				threadData.Status = "работает"
-				// и перезапускаем функцию
-				threadData.ActionFlag = 0
-				videoCommentMonitoring(threadData, subject)
-			}
-		}
-	}
-}
-
-func topicMonitoring(threadData *Thread, subject Subject) {
-
-	// сообщаем пользователю о запуске модуля
-	sender := threadData.Name
-	message := "Started..."
-	OutputMessage(sender, message)
-
-	// создаем счетчик ошибок
-	errorsCounter := 0
-
-	// запускаем бесконечный цикл
-	for true {
-		// меняем статус потока
-		threadData.Status = "работает"
-		// заранее присваиваем значение интервала
-		interval := 20
-
-		// запускаем функцию мониторинга
-		topicMonitorParam, err := TopicMonitor(subject)
-		if err != nil {
-			threadData.Errs.AddNewError(err.Error())
-			// если функция вернула ошибку, то увеличиваем счетчик на 1
-			errorsCounter++
-			// если в результате счетчик не стал равен 4, то продолжаем
-			if errorsCounter < 4 {
-				// сообщаем пользователю об ошибке
-				sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
-				// 20-секундный таймер умножаем на количество ошибок
-				interval *= errorsCounter
-				message := fmt.Sprintf("Error: %v. Time out for %ds", err, interval)
-				OutputMessage(sender, message)
-			} else {
-				// если стал, то сообщаем об этом пользователю
-				message := fmt.Sprintf("Error: %v. Thread is paused. Type \"restart\" for turn on again...", err)
-				OutputMessage(sender, message)
-				// и ставим потоку статус ошибка
-				threadData.Status = "ошибка"
-			}
-		}
-
-		// после успешного завершения работы функции мониторинга получаем значение интервала
-		if topicMonitorParam != nil {
-			interval = topicMonitorParam.Interval
-		}
-
-		// и включаем режим ожидания
-		for i := 0; i < interval; i++ {
-			// если статус потока ошибка
-			if threadData.Status == "ошибка" {
-				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
-				i = 0
-			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
-				threadData.Status = fmt.Sprintf("ожидание еще %d сек.", interval-i)
-			}
-			time.Sleep(1 * time.Second)
-
-			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.ActionFlag == 1 {
-				// если был, то меняем статус потока на "остановлен"
-				threadData.Status = "остановлен"
-				// и завершаем работу потока
-				return
-			}
-
-			// если выставлен флаг рестарта
-			if threadData.ActionFlag == 2 {
-				// то обновляем статус потока
-				threadData.Status = "работает"
-				// и перезапускаем функцию
-				threadData.ActionFlag = 0
-				topicMonitoring(threadData, subject)
-			}
-		}
-	}
-}
-
-func wallPostCommentMonitoring(threadData *Thread, subject Subject) {
-
-	// сообщаем пользователю о запуске модуля
-	sender := threadData.Name
-	message := "Started..."
-	OutputMessage(sender, message)
-
-	// создаем счетчик ошибок
-	errorsCounter := 0
-
-	// запускаем бесконечный цикл
-	for true {
-		// меняем статус потока
-		threadData.Status = "работает"
-		// заранее присваиваем значение интервала
-		interval := 20
-
-		// запускаем функцию мониторинга
-		wallPostCommentMonitorParam, err := WallPostCommentMonitor(subject)
-		if err != nil {
-			threadData.Errs.AddNewError(err.Error())
-			// если функция вернула ошибку, то увеличиваем счетчик на 1
-			errorsCounter++
-			// если в результате счетчик не стал равен 4, то продолжаем
-			if errorsCounter < 4 {
-				// сообщаем пользователю об ошибке
-				sender := fmt.Sprintf("%v -> Thread control", threadData.Name)
-				// 20-секундный таймер умножаем на количество ошибок
-				interval *= errorsCounter
-				message := fmt.Sprintf("Error: %v. Time out for %ds", err, interval)
-				OutputMessage(sender, message)
-			} else {
-				// если стал, то сообщаем об этом пользователю
-				message := fmt.Sprintf("Error: %v. Thread is paused. Type \"restart\" for turn on again...", err)
-				OutputMessage(sender, message)
-				// и ставим потоку статус ошибка
-				threadData.Status = "ошибка"
-			}
-		}
-
-		// после успешного завершения работы функции мониторинга получаем значение интервала
-		if wallPostCommentMonitorParam != nil {
-			interval = wallPostCommentMonitorParam.Interval
-		}
-
-		// и включаем режим ожидания
-		for i := 0; i < interval; i++ {
-			// если статус потока ошибка
-			if threadData.Status == "ошибка" {
-				// то каждый раз обнуляем i, и тем самым вводим поток в вечное ожидание
-				i = 0
-			} else { // если нет, то ставим статус waiting и указываем оставшееся время ожидания
-				threadData.Status = fmt.Sprintf("ожидание еще %d сек.", interval-i)
-			}
-			time.Sleep(1 * time.Second)
-
-			// периодически проверяем, был ли выставлен флаг остановки
-			if threadData.ActionFlag == 1 {
-				// если был, то меняем статус потока на "остановлен"
-				threadData.Status = "остановлен"
-				// и завершаем работу потока
-				return
-			}
-
-			// если выставлен флаг рестарта
-			if threadData.ActionFlag == 2 {
-				// то обновляем статус потока
-				threadData.Status = "работает"
-				// и перезапускаем функцию
-				threadData.ActionFlag = 0
-				wallPostCommentMonitoring(threadData, subject)
-			}
-		}
+		return monitInterval, err
+	default:
+		err := errors.New(moduleName + " - is unknown monit module name")
+		panic(err.Error())
 	}
 }

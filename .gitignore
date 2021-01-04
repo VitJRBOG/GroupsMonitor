@@ -1,0 +1,10 @@
+.DS_Store
+.vscode/
+.idea/
+db/
+res/
+path.txt
+log.txt
+build_for_win.sh
+GroupsMonitor
+GroupsMonitor.exe

@@ -8,13 +8,27 @@ import (
 )
 
 type PhotoComment struct {
-	ID           int                      `json:"id"`
-	PhotoID      int                      `json:"photo_id"`
-	PhotoOwnerID int                      `json:"photo_owner_id"`
-	FromID       int                      `json:"from_id"`
-	Date         int                      `json:"date"`
-	Text         string                   `json:"text"`
-	Attachments  []PhotoCommentAttachment `json:"attachments"`
+	ID           int          `json:"id"`
+	PhotoID      int          `json:"photo_id"`
+	PhotoOwnerID int          `json:"photo_owner_id"`
+	FromID       int          `json:"from_id"`
+	Date         int          `json:"date"`
+	Text         string       `json:"text"`
+	Attachments  []attachment `json:"attachments"`
+}
+
+func (c *PhotoComment) ParseData(update UpdateFromLongPollServer) {
+	item := update.Object
+
+	c.ID = int(item["id"].(float64))
+	c.PhotoID = int(item["photo_id"].(float64))
+	c.PhotoOwnerID = int(item["photo_owner_id"].(float64))
+	c.FromID = int(item["from_id"].(float64))
+	c.Date = int(item["date"].(float64))
+	c.Text = item["text"].(string)
+	if attachments, exist := item["attachments"]; exist == true {
+		c.Attachments = parseAttachmentsData(attachments.([]interface{}))
+	}
 }
 
 func (c *PhotoComment) SendWithMessage(getAccessToken, sendAccessToken string, operatorVkID int) error {
@@ -91,7 +105,7 @@ func (c *PhotoComment) parseAttachmentsForMessage() (string, string) {
 			}
 			attachments += ","
 		} else {
-			link = attachment.URl
+			link = attachment.URL
 		}
 	}
 	if len(attachments) > 0 {
@@ -99,57 +113,4 @@ func (c *PhotoComment) parseAttachmentsForMessage() (string, string) {
 	}
 
 	return attachments, link
-}
-
-type PhotoCommentAttachment struct {
-	Type      string `json:"text"`
-	ID        int    `json:"id"`
-	OwnerID   int    `json:"owner_id"`
-	AccessKey string `json:"access_key"`
-	URl       string `json:"url"`
-}
-
-func ParsePhotoCommentData(update UpdateFromLongPollServer) PhotoComment {
-	var c PhotoComment
-
-	item := update.Object
-
-	c.ID = int(item["id"].(float64))
-	c.PhotoID = int(item["photo_id"].(float64))
-	c.PhotoOwnerID = int(item["photo_owner_id"].(float64))
-	c.FromID = int(item["from_id"].(float64))
-	c.Date = int(item["date"].(float64))
-	c.Text = item["text"].(string)
-	if attachments, exist := item["attachments"]; exist == true {
-		c.Attachments = parsePhotoCommentAttachmentsData(attachments.([]interface{}))
-	}
-
-	return c
-}
-
-func parsePhotoCommentAttachmentsData(attachments []interface{}) []PhotoCommentAttachment {
-	var pcAttachments []PhotoCommentAttachment
-
-	for _, m := range attachments {
-		var a PhotoCommentAttachment
-
-		item := m.(map[string]interface{})
-
-		a.Type = item["type"].(string)
-		if a.Type == "photo" || a.Type == "video" || a.Type == "audio" ||
-			a.Type == "doc" || a.Type == "poll" || a.Type == "link" {
-			if a.Type == "link" {
-				a.URl = item["link"].(map[string]interface{})["url"].(string)
-			} else {
-				a.OwnerID = int(item[a.Type].(map[string]interface{})["owner_id"].(float64))
-				a.ID = int(item[a.Type].(map[string]interface{})["id"].(float64))
-				if accessKey, exist := item[a.Type].(map[string]interface{})["access_key"]; exist {
-					a.AccessKey = accessKey.(string)
-				}
-			}
-			pcAttachments = append(pcAttachments, a)
-		}
-	}
-
-	return pcAttachments
 }

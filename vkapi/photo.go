@@ -16,6 +16,17 @@ type Photo struct {
 	Text    string `json:"text"`
 }
 
+func (p *Photo) ParseData(update UpdateFromLongPollServer) {
+	item := update.Object
+
+	p.ID = int(item["id"].(float64))
+	p.AlbumID = int(item["album_id"].(float64))
+	p.OwnerID = int(item["owner_id"].(float64))
+	p.UserID = int(item["user_id"].(float64))
+	p.Date = int(item["date"].(float64))
+	p.Text = item["text"].(string)
+}
+
 func (p *Photo) SendWithMessage(getAccessToken, sendAccessToken string, operatorVkID int) error {
 	var vkMsg vkMessage
 	vkMsg.PeerID = operatorVkID
@@ -73,26 +84,11 @@ func (p *Photo) makeHyperlinkToUser(getAccessToken string, authorID int) string 
 }
 
 func (p *Photo) makeURLToPhoto() string {
-	text := fmt.Sprintf("https://vk.com/photo%d_%d", p.OwnerID, p.ID)
+	text := fmt.Sprintf("\nhttps://vk.com/photo%d_%d", p.OwnerID, p.ID)
 	return text
 }
 
 func (p *Photo) parseAttachmentsForMessage() string {
 	attachments := fmt.Sprintf("photo%d_%d", p.OwnerID, p.ID)
 	return attachments
-}
-
-func ParsePhotoData(update UpdateFromLongPollServer) Photo {
-	var p Photo
-
-	item := update.Object
-
-	p.ID = int(item["id"].(float64))
-	p.AlbumID = int(item["album_id"].(float64))
-	p.OwnerID = int(item["owner_id"].(float64))
-	p.UserID = int(item["user_id"].(float64))
-	p.Date = int(item["date"].(float64))
-	p.Text = item["text"].(string)
-
-	return p
 }

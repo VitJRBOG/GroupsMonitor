@@ -12,6 +12,16 @@ import (
 	"time"
 )
 
+type ResponseLongPollServer struct {
+	TS      string                     `json:"ts"`
+	Updates []UpdateFromLongPollServer `json:"updates"`
+}
+
+type UpdateFromLongPollServer struct {
+	Type   string                 `json:"type"`
+	Object map[string]interface{} `json:"object"`
+}
+
 func ListenLongPollServer(accessToken string, wardVkID, lastTS int) ResponseLongPollServer {
 	lpsConnectionData := getLongPollServerConnectionData(accessToken, wardVkID)
 	queryForLongPollServer := makeQueryToLongPollServer(lpsConnectionData, lastTS)
@@ -50,16 +60,6 @@ func sendRequestToLongPollServer(url string) []byte {
 		panic(err.Error())
 	}
 	return body
-}
-
-type ResponseLongPollServer struct {
-	TS      string                     `json:"ts"`
-	Updates []UpdateFromLongPollServer `json:"updates"`
-}
-
-type UpdateFromLongPollServer struct {
-	Type   string                 `json:"type"`
-	Object map[string]interface{} `json:"object"`
 }
 
 func parseResponseLongPollServer(response []byte) ResponseLongPollServer {

@@ -8,14 +8,33 @@ import (
 )
 
 type WallPost struct {
-	ID          int                  `json:"id"`
-	OwnerID     int                  `json:"owner_id"`
-	FromID      int                  `json:"from_id"`
-	SignerID    int                  `json:"signer_id"`
-	Date        int                  `json:"date"`
-	PostType    string               `json:"post_type"`
-	Text        string               `json:"text"`
-	Attachments []WallPostAttachment `json:"attachments"`
+	ID          int          `json:"id"`
+	OwnerID     int          `json:"owner_id"`
+	FromID      int          `json:"from_id"`
+	SignerID    int          `json:"signer_id"`
+	Date        int          `json:"date"`
+	PostType    string       `json:"post_type"`
+	Text        string       `json:"text"`
+	Attachments []attachment `json:"attachments"`
+}
+
+func (w *WallPost) ParseData(update UpdateFromLongPollServer) {
+	item := update.Object
+
+	w.ID = int(item["id"].(float64))
+	w.OwnerID = int(item["owner_id"].(float64))
+	w.FromID = int(item["from_id"].(float64))
+	if signerID, exist := item["signer_id"]; exist == true {
+		w.SignerID = int(signerID.(float64))
+	} else {
+		w.SignerID = 0
+	}
+	w.Date = int(item["date"].(float64))
+	w.PostType = item["post_type"].(string)
+	w.Text = item["text"].(string)
+	if attachments, exist := item["attachments"]; exist == true {
+		w.Attachments = parseAttachmentsData(attachments.([]interface{}))
+	}
 }
 
 func (w *WallPost) SendWithMessage(getAccessToken, sendAccessToken string, operatorVkID int) error {
@@ -95,7 +114,7 @@ func (w *WallPost) makeHyperlinkToUser(getAccessToken string, authorID int) stri
 }
 
 func (w *WallPost) makeURLToPost() string {
-	text := fmt.Sprintf("\n%s%d_%d", "https://vk.com/wall", w.OwnerID, w.ID)
+	text := fmt.Sprintf("\nhttps://vk.com/wall%d_%d", w.OwnerID, w.ID)
 	return text
 }
 
@@ -111,7 +130,7 @@ func (w *WallPost) parseAttachmentsForMessage() (string, string) {
 			}
 			attachments += ","
 		} else {
-			link = attachment.URl
+			link = attachment.URL
 		}
 	}
 	if len(attachments) > 0 {
@@ -119,62 +138,4 @@ func (w *WallPost) parseAttachmentsForMessage() (string, string) {
 	}
 
 	return attachments, link
-}
-
-type WallPostAttachment struct {
-	Type      string `json:"text"`
-	ID        int    `json:"id"`
-	OwnerID   int    `json:"owner_id"`
-	AccessKey string `json:"access_key"`
-	URl       string `json:"url"`
-}
-
-func ParseWallPostData(update UpdateFromLongPollServer) WallPost {
-	var w WallPost
-
-	item := update.Object
-
-	w.ID = int(item["id"].(float64))
-	w.OwnerID = int(item["owner_id"].(float64))
-	w.FromID = int(item["from_id"].(float64))
-	if signerID, exist := item["signer_id"]; exist == true {
-		w.SignerID = int(signerID.(float64))
-	} else {
-		w.SignerID = 0
-	}
-	w.Date = int(item["date"].(float64))
-	w.PostType = item["post_type"].(string)
-	w.Text = item["text"].(string)
-	if attachments, exist := item["attachments"]; exist == true {
-		w.Attachments = parseWallPostAttachmentsData(attachments.([]interface{}))
-	}
-
-	return w
-}
-
-func parseWallPostAttachmentsData(attachments []interface{}) []WallPostAttachment {
-	var wpAttachments []WallPostAttachment
-
-	for _, m := range attachments {
-		var a WallPostAttachment
-
-		item := m.(map[string]interface{})
-
-		a.Type = item["type"].(string)
-		if a.Type == "photo" || a.Type == "video" || a.Type == "audio" ||
-			a.Type == "doc" || a.Type == "poll" || a.Type == "link" {
-			if a.Type == "link" {
-				a.URl = item["link"].(map[string]interface{})["url"].(string)
-			} else {
-				a.OwnerID = int(item[a.Type].(map[string]interface{})["owner_id"].(float64))
-				a.ID = int(item[a.Type].(map[string]interface{})["id"].(float64))
-				if accessKey, exist := item[a.Type].(map[string]interface{})["access_key"]; exist {
-					a.AccessKey = accessKey.(string)
-				}
-			}
-			wpAttachments = append(wpAttachments, a)
-		}
-	}
-
-	return wpAttachments
 }

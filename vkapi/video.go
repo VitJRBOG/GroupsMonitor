@@ -15,6 +15,20 @@ type Video struct {
 	Description string `json:"description"`
 }
 
+func (v *Video) ParseData(update UpdateFromLongPollServer) {
+	item := update.Object
+
+	v.ID = int(item["id"].(float64))
+	v.OwnerID = int(item["owner_id"].(float64))
+	if userID, exist := item["user_id"]; exist == true {
+		v.UserID = int(userID.(float64))
+	} else {
+		v.UserID = 0
+	}
+	v.Date = int(item["date"].(float64))
+	v.Description = item["description"].(string)
+}
+
 func (v *Video) SendWithMessage(getAccessToken, sendAccessToken string, operatorVkID int) error {
 	var vkMsg vkMessage
 	vkMsg.PeerID = operatorVkID
@@ -72,29 +86,11 @@ func (v *Video) makeHyperlinkToUser(getAccessToken string, authorID int) string 
 }
 
 func (v *Video) makeURLToVideo() string {
-	text := fmt.Sprintf("https://vk.com/video%d_%d", v.OwnerID, v.ID)
+	text := fmt.Sprintf("\nhttps://vk.com/video%d_%d", v.OwnerID, v.ID)
 	return text
 }
 
 func (v *Video) parseAttachmentsForMessage() string {
 	attachments := fmt.Sprintf("photo%d_%d", v.OwnerID, v.ID)
 	return attachments
-}
-
-func ParseVideoData(update UpdateFromLongPollServer) Video {
-	var v Video
-
-	item := update.Object
-
-	v.ID = int(item["id"].(float64))
-	v.OwnerID = int(item["owner_id"].(float64))
-	if userID, exist := item["user_id"]; exist == true {
-		v.UserID = int(userID.(float64))
-	} else {
-		v.UserID = 0
-	}
-	v.Date = int(item["date"].(float64))
-	v.Description = item["description"].(string)
-
-	return v
 }

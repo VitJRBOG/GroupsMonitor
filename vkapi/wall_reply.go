@@ -8,14 +8,35 @@ import (
 )
 
 type WallReply struct {
-	ID           int                   `json:"id"`
-	PostID       int                   `json:"post_id"`
-	OwnerID      int                   `json:"owner_id"`
-	FromID       int                   `json:"from_id"`
-	ParentsStack int                   `json:"parents_stack"`
-	Date         int                   `json:"date"`
-	Text         string                `json:"text"`
-	Attachments  []WallReplyAttachment `json:"attachments"`
+	ID           int          `json:"id"`
+	PostID       int          `json:"post_id"`
+	OwnerID      int          `json:"owner_id"`
+	FromID       int          `json:"from_id"`
+	ParentsStack int          `json:"parents_stack"`
+	Date         int          `json:"date"`
+	Text         string       `json:"text"`
+	Attachments  []attachment `json:"attachments"`
+}
+
+func (w *WallReply) ParseData(update UpdateFromLongPollServer) {
+	item := update.Object
+
+	w.ID = int(item["id"].(float64))
+	w.PostID = int(item["post_id"].(float64))
+	w.OwnerID = int(item["owner_id"].(float64))
+	w.FromID = int(item["from_id"].(float64))
+	w.parseParentsStack(item["parents_stack"].([]interface{}))
+	w.Date = int(item["date"].(float64))
+	w.Text = item["text"].(string)
+	if attachments, exist := item["attachments"]; exist == true {
+		w.Attachments = parseAttachmentsData(attachments.([]interface{}))
+	}
+}
+
+func (w *WallReply) parseParentsStack(parentsStack []interface{}) {
+	if len(parentsStack) > 0 {
+		w.ParentsStack = int(parentsStack[0].(float64))
+	}
 }
 
 func (w *WallReply) SendWithMessage(getAccessToken, sendAccessToken string, operatorVkID int) error {
@@ -75,7 +96,7 @@ func (w *WallReply) makeHyperlinkToUser(getAccessToken string, authorID int) str
 }
 
 func (w *WallReply) makeURLToComment() string {
-	text := fmt.Sprintf("\n%s%d_%d?reply=%d", "https://vk.com/wall", w.OwnerID, w.PostID, w.ID)
+	text := fmt.Sprintf("\nhttps://vk.com/wall%d_%d?reply=%d", w.OwnerID, w.PostID, w.ID)
 	if w.ParentsStack > 0 {
 		text = fmt.Sprintf("%s&thread=%d", text, w.ParentsStack)
 	}
@@ -94,7 +115,7 @@ func (w *WallReply) parseAttachmentsForMessage() (string, string) {
 			}
 			attachments += ","
 		} else {
-			link = attachment.URl
+			link = attachment.URL
 		}
 	}
 	if len(attachments) > 0 {
@@ -102,66 +123,4 @@ func (w *WallReply) parseAttachmentsForMessage() (string, string) {
 	}
 
 	return attachments, link
-}
-
-type WallReplyAttachment struct {
-	Type      string `json:"text"`
-	ID        int    `json:"id"`
-	OwnerID   int    `json:"owner_id"`
-	AccessKey string `json:"access_key"`
-	URl       string `json:"url"`
-}
-
-func ParseWallReplyData(update UpdateFromLongPollServer) WallReply {
-	var w WallReply
-
-	item := update.Object
-
-	w.ID = int(item["id"].(float64))
-	w.PostID = int(item["post_id"].(float64))
-	w.OwnerID = int(item["owner_id"].(float64))
-	w.FromID = int(item["from_id"].(float64))
-	w.ParentsStack = parseWallReplyParentsStack(item["parents_stack"].([]interface{}))
-	w.Date = int(item["date"].(float64))
-	w.Text = item["text"].(string)
-	if attachments, exist := item["attachments"]; exist == true {
-		w.Attachments = parseWallReplyAttachmentsData(attachments.([]interface{}))
-	}
-
-	return w
-}
-
-func parseWallReplyParentsStack(parentsStack []interface{}) int {
-	parentCommentID := 0
-	if len(parentsStack) > 0 {
-		parentCommentID = int(parentsStack[0].(float64))
-	}
-	return parentCommentID
-}
-
-func parseWallReplyAttachmentsData(attachments []interface{}) []WallReplyAttachment {
-	var wrAttachments []WallReplyAttachment
-
-	for _, m := range attachments {
-		var a WallReplyAttachment
-
-		item := m.(map[string]interface{})
-
-		a.Type = item["type"].(string)
-		if a.Type == "photo" || a.Type == "video" || a.Type == "audio" ||
-			a.Type == "doc" || a.Type == "poll" || a.Type == "link" {
-			if a.Type == "link" {
-				a.URl = item["link"].(map[string]interface{})["url"].(string)
-			} else {
-				a.OwnerID = int(item[a.Type].(map[string]interface{})["owner_id"].(float64))
-				a.ID = int(item[a.Type].(map[string]interface{})["id"].(float64))
-				if accessKey, exist := item[a.Type].(map[string]interface{})["access_key"]; exist {
-					a.AccessKey = accessKey.(string)
-				}
-			}
-			wrAttachments = append(wrAttachments, a)
-		}
-	}
-
-	return wrAttachments
 }

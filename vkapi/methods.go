@@ -10,6 +10,12 @@ import (
 	"time"
 )
 
+type longPollServerConnectionData struct {
+	Key    string `json:"key"`
+	Server string `json:"server"`
+	TS     string `json:"ts"`
+}
+
 func getLongPollServerConnectionData(accessToken string, wardVkId int) longPollServerConnectionData {
 	values := map[string]string{
 		"group_id": strconv.Itoa(wardVkId),
@@ -24,12 +30,6 @@ func getLongPollServerConnectionData(accessToken string, wardVkId int) longPollS
 
 	lpsConnectionData := parseConnectionDataForLongPollServer(response)
 	return lpsConnectionData
-}
-
-type longPollServerConnectionData struct {
-	Key    string `json:"key"`
-	Server string `json:"server"`
-	TS     string `json:"ts"`
 }
 
 func parseConnectionDataForLongPollServer(response []byte) longPollServerConnectionData {

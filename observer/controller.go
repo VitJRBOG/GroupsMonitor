@@ -64,7 +64,8 @@ func parseLongPollServerResponse(respLPS vkapi.ResponseLongPollServer, ward *db.
 		for _, update := range respLPS.Updates {
 			switch update.Type {
 			case "wall_post_new":
-				wallPost := vkapi.ParseWallPostData(update)
+				var wallPost vkapi.WallPost
+				wallPost.ParseData(update)
 				targetWallPostType := checkWallPostType(ward.ID, wallPost)
 				if targetWallPostType {
 					getAT, sendAT, operatorVkID := getDataByCurrentObserver("wall_post", ward.ID)
@@ -79,7 +80,8 @@ func parseLongPollServerResponse(respLPS vkapi.ResponseLongPollServer, ward *db.
 					}
 				}
 			case "wall_reply_new":
-				wallReply := vkapi.ParseWallReplyData(update)
+				var wallReply vkapi.WallReply
+				wallReply.ParseData(update)
 				getAT, sendAT, operatorVkID := getDataByCurrentObserver("wall_reply", ward.ID)
 				err := wallReply.SendWithMessage(getAT, sendAT, operatorVkID)
 				if err != nil {
@@ -91,7 +93,8 @@ func parseLongPollServerResponse(respLPS vkapi.ResponseLongPollServer, ward *db.
 					}
 				}
 			case "photo_new":
-				photo := vkapi.ParsePhotoData(update)
+				var photo vkapi.Photo
+				photo.ParseData(update)
 				getAT, sendAT, operatorVkID := getDataByCurrentObserver("photo", ward.ID)
 				err := photo.SendWithMessage(getAT, sendAT, operatorVkID)
 				if err != nil {
@@ -103,7 +106,8 @@ func parseLongPollServerResponse(respLPS vkapi.ResponseLongPollServer, ward *db.
 					}
 				}
 			case "photo_comment_new":
-				photoComment := vkapi.ParsePhotoCommentData(update)
+				var photoComment vkapi.PhotoComment
+				photoComment.ParseData(update)
 				getAT, sendAT, operatorVkID := getDataByCurrentObserver("photo_comment", ward.ID)
 				err := photoComment.SendWithMessage(getAT, sendAT, operatorVkID)
 				if err != nil {
@@ -115,7 +119,8 @@ func parseLongPollServerResponse(respLPS vkapi.ResponseLongPollServer, ward *db.
 					}
 				}
 			case "video_new":
-				video := vkapi.ParseVideoData(update)
+				var video vkapi.Video
+				video.ParseData(update)
 				getAT, sendAT, operatorVkID := getDataByCurrentObserver("video", ward.ID)
 				err := video.SendWithMessage(getAT, sendAT, operatorVkID)
 				if err != nil {
@@ -127,7 +132,8 @@ func parseLongPollServerResponse(respLPS vkapi.ResponseLongPollServer, ward *db.
 					}
 				}
 			case "video_comment_new":
-				videoComment := vkapi.ParseVideoCommentData(update)
+				var videoComment vkapi.VideoComment
+				videoComment.ParseData(update)
 				getAT, sendAT, operatorVkID := getDataByCurrentObserver("video_comment", ward.ID)
 				err := videoComment.SendWithMessage(getAT, sendAT, operatorVkID)
 				if err != nil {
@@ -139,7 +145,8 @@ func parseLongPollServerResponse(respLPS vkapi.ResponseLongPollServer, ward *db.
 					}
 				}
 			case "board_post_new":
-				boardPost := vkapi.ParseBoardPostData(update)
+				var boardPost vkapi.BoardPost
+				boardPost.ParseData(update)
 				getAT, sendAT, operatorVkID := getDataByCurrentObserver("board_post", ward.ID)
 				err := boardPost.SendWithMessage(getAT, sendAT, operatorVkID)
 				if err != nil {

@@ -2,8 +2,8 @@ package ui
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsMonitor_new/observer"
-	"github.com/VitJRBOG/GroupsMonitor_new/tools"
+	"github.com/VitJRBOG/GroupsMonitor/observer"
+	"github.com/VitJRBOG/GroupsMonitor/tools"
 	"runtime/debug"
 	"time"
 )

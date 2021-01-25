@@ -3,7 +3,7 @@ package vkapi
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/VitJRBOG/GroupsMonitor_new/tools"
+	"github.com/VitJRBOG/GroupsMonitor/tools"
 	"io/ioutil"
 	"net/http"
 	"runtime/debug"

@@ -3,7 +3,7 @@ package vkapi
 import (
 	"encoding/json"
 	govkapi2 "github.com/VitJRBOG/GoVkApi/govkapi"
-	"github.com/VitJRBOG/GroupsMonitor_new/tools"
+	"github.com/VitJRBOG/GroupsMonitor/tools"
 	"runtime/debug"
 	"strconv"
 	"strings"

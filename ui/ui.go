@@ -10,10 +10,10 @@ import (
 
 func ShowUI(dbHasBeenInitialized bool) {
 	showDBStatus(dbHasBeenInitialized)
-	listControllerParams := observer.RunControllerObservers()
-	time.Sleep(1 * time.Second) // чтобы программа успела в фоне создать структуры с параметрами
-	go listenUserCommands(listControllerParams)
-	checkObserversStatus(listControllerParams)
+	params := observer.MakeObservers()
+	startObservers(params)
+	go listenUserCommands(params)
+	checkObservers(params)
 }
 
 func showDBStatus(dbHasBeenInitialized bool) {
@@ -27,65 +27,67 @@ func showDBStatus(dbHasBeenInitialized bool) {
 	}
 }
 
-func checkObserversStatus(l []*observer.ControllerParams) {
-	firstOutputObserversStatus(l)
-	for true {
-		allIsNil := true
-		for i := 0; i < len(l); i++ {
-			if l[i] != nil {
-				allIsNil = false
+func startObservers(params []*observer.ModuleParams) {
+	for _, p := range params {
+		go observer.StartObserver(p)
+		go receivingMessagesFromObserver(p)
+	}
+}
 
-				if len(l[i].Message) > 0 {
-					outputMessage := fmt.Sprintf("[%s] %s: «%s». %s is %s.",
-						tools.GetCurrentDateAndTime(), l[i].Name, l[i].Message, l[i].Name, l[i].Status)
-					fmt.Println(outputMessage)
-					l[i].Message = ""
-				}
-
-				if l[i].Status == "stopped" {
-					l[i] = nil
-				}
-			}
-		}
-		if allIsNil {
-			fmt.Println("All observers was stopped. Exit...")
+func receivingMessagesFromObserver(params *observer.ModuleParams) {
+	for {
+		msg := <-params.Message
+		output := fmt.Sprintf("[%s] %s: «%s». %s is %s.", tools.GetCurrentDateAndTime(),
+			params.Name, msg, params.Name, params.Status)
+		fmt.Println(output)
+		if params.Status == "stopped" {
 			return
 		}
-		time.Sleep(5 * time.Second)
 	}
 }
 
-func firstOutputObserversStatus(listControllerParams []*observer.ControllerParams) {
-	for _, item := range listControllerParams {
-		outputMessage := fmt.Sprintf("%s is %s.", item.Name, item.Status)
-		fmt.Println(outputMessage)
+func checkObservers(params []*observer.ModuleParams) {
+	for {
+		time.Sleep(3 * time.Second)
+		allObserversIsStopped := true
+		for _, p := range params {
+			if p.Status != "stopped" {
+				allObserversIsStopped = false
+				break
+			}
+		}
+		if allObserversIsStopped {
+			output := fmt.Sprintf("[%s]: All observers is stopped. Exit from program...",
+				tools.GetCurrentDateAndTime())
+			fmt.Println(output)
+			return
+		}
 	}
 }
 
-func listenUserCommands(listControllerParams []*observer.ControllerParams) {
-	for true {
-		fmt.Print("> ")
+func listenUserCommands(params []*observer.ModuleParams) {
+	for {
 		var userInput string
 		_, err := fmt.Scan(&userInput)
 		if err != nil {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
-		success := consoleCommandHandler(userInput, listControllerParams)
+		success := consoleCommandHandler(userInput, params)
 		if success {
 			return
 		}
 	}
 }
 
-func consoleCommandHandler(userInput string, listControllerParams []*observer.ControllerParams) bool {
+func consoleCommandHandler(userInput string, params []*observer.ModuleParams) bool {
 	switch userInput {
 	case "":
 		return false
 	case "exit":
-		for _, item := range listControllerParams {
-			if item != nil {
-				item.BrakeFlag = true
+		for _, p := range params {
+			if p != nil {
+				p.BrakeFlag = true
 			}
 		}
 		return true

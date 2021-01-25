@@ -11,49 +11,54 @@ import (
 	"time"
 )
 
-type ControllerParams struct {
+type ModuleParams struct {
 	Name      string
 	Status    string
-	Message   string
+	Message   chan string
 	BrakeFlag bool
+	Ward      db.Ward
 }
 
-func RunControllerObservers() []*ControllerParams {
-	var listControllerParams []*ControllerParams
+func MakeObservers() []*ModuleParams {
+	var params []*ModuleParams
 	wards := db.SelectWards()
 	for _, ward := range wards {
 		var accessToken db.AccessToken
 		accessToken.SelectByID(ward.GetAccessTokenID)
 
-		var c ControllerParams
-		go startObserver(&c, ward)
-		listControllerParams = append(listControllerParams, &c)
+		var p ModuleParams
+		p.Name = fmt.Sprintf("%s observer", ward.Name)
+		p.Status = "stopped"
+		p.Ward = ward
+		p.Message = make(chan string)
+		params = append(params, &p)
 	}
-	return listControllerParams
+	return params
 }
 
-func startObserver(ctrlParams *ControllerParams, ward db.Ward) {
-	ctrlParams.Name = fmt.Sprintf("%s observer", ward.Name)
+func StartObserver(params *ModuleParams) {
+	params.Message <- "It begins..."
 	for true {
-		ctrlParams.Status = "active"
+		params.Status = "active"
 		var accessToken db.AccessToken
-		accessToken.SelectByID(ward.GetAccessTokenID)
-		respLPS := vkapi.ListenLongPollServer(accessToken.Value, -(ward.VkID), ward.LastTS)
-		err := parseLongPollServerResponse(respLPS, &ward)
+		accessToken.SelectByID(params.Ward.GetAccessTokenID)
+		respLPS := vkapi.ListenLongPollServer(accessToken.Value, -(params.Ward.VkID), params.Ward.LastTS)
+		params.Status = "processing"
+		err := parseLongPollServerResponse(respLPS, &params.Ward)
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
-				ctrlParams.Message = fmt.Sprintf("ERROR: «%s»", err.Error())
-				ctrlParams.Status = "waiting for 5 minutes"
+				params.Message <- fmt.Sprintf("ERROR: «%s»", err.Error())
+				params.Status = "waiting for 5 minutes"
 				time.Sleep(5 * time.Minute)
-				ctrlParams.Message = "Let's get back to work..."
+				params.Message <- "Let's get back to work..."
 			} else {
 				tools.WriteToLog(err, debug.Stack())
 				panic(err.Error())
 			}
 		}
-		if ctrlParams.BrakeFlag {
-			ctrlParams.Message = "Was stopped by user"
-			ctrlParams.Status = "stopped"
+		if params.BrakeFlag {
+			params.Message <- "Was stopped by user"
+			params.Status = "stopped"
 			break
 		}
 	}

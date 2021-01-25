@@ -37,8 +37,8 @@ func startObservers(params []*observer.ModuleParams) {
 func receivingMessagesFromObserver(params *observer.ModuleParams) {
 	for {
 		msg := <-params.Message
-		output := fmt.Sprintf("[%s] %s: «%s». %s is %s.", tools.GetCurrentDateAndTime(),
-			params.Name, msg, params.Name, params.Status)
+		output := fmt.Sprintf("[%s] %s is %s: «%s».", tools.GetCurrentDateAndTime(),
+			params.Name, params.Status, msg)
 		fmt.Println(output)
 		if params.Status == "stopped" {
 			return

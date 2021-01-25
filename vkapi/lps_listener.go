@@ -32,7 +32,7 @@ func ListenLongPollServer(accessToken string, wardVkID, lastTS int) ResponseLong
 
 func makeQueryToLongPollServer(lpsConnectionData longPollServerConnectionData, lastTS int) string {
 	url := fmt.Sprintf("%s?act=a_check&key=%s&wait=%d&ts=%s",
-		lpsConnectionData.Server, lpsConnectionData.Key, 25, strconv.Itoa(lastTS))
+		lpsConnectionData.Server, lpsConnectionData.Key, 5, strconv.Itoa(lastTS))
 	return url
 }
 

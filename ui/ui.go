@@ -84,6 +84,9 @@ func consoleCommandHandler(userInput string, params []*observer.ModuleParams) bo
 	switch userInput {
 	case "":
 		return false
+	case "new_access_token":
+		addNewAccessToken()
+		return false
 	case "exit":
 		for _, p := range params {
 			if p != nil {

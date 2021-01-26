@@ -16,6 +16,25 @@ type AccessToken struct {
 	Value string `json:"value"`
 }
 
+func (a *AccessToken) InsertIntoDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf(`INSERT INTO access_token (name, value) VALUES ('%s', '%s')`,
+		a.Name, a.Value)
+	_, err := dbase.Exec(query)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func (a *AccessToken) SelectByID(id int) {
 	dbase := openDB()
 	defer func() {
@@ -43,6 +62,41 @@ func (a *AccessToken) SelectByID(id int) {
 			panic(err.Error())
 		}
 	}
+}
+
+func SelectAccessTokens() []AccessToken {
+	var accessTokens []AccessToken
+
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf("SELECT * FROM access_token")
+	rows := sendSelectQuery(dbase, query)
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	for rows.Next() {
+		var a AccessToken
+		err := rows.Scan(&a.ID, &a.Name, &a.Value)
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+		accessTokens = append(accessTokens, a)
+	}
+
+	return accessTokens
 }
 
 type Operator struct {

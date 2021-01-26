@@ -92,14 +92,17 @@ func consoleCommandHandler(userInput string, params []*observer.ModuleParams) bo
 			if len(command) > 1 {
 				switch command[1] {
 				case "":
-					fmt.Println("Argument is empty. Available arguments: access_token...")
+					fmt.Printf("[%s]: Argument is empty. Available arguments: access_token...\n",
+						tools.GetCurrentDateAndTime())
 				case "access_token":
 					addNewAccessToken()
 				default:
-					fmt.Println("Unknown argument. Available arguments: access_token...")
+					fmt.Printf("[%s]: Unknown argument. Available arguments: access_token...\n",
+						tools.GetCurrentDateAndTime())
 				}
 			} else {
-				fmt.Println("Argument is empty. Available arguments: access_token...")
+				fmt.Printf("[%s]: Argument is empty. Available arguments: access_token...\n",
+					tools.GetCurrentDateAndTime())
 			}
 		case "exit":
 			for _, p := range params {
@@ -109,7 +112,8 @@ func consoleCommandHandler(userInput string, params []*observer.ModuleParams) bo
 			}
 			return true
 		default:
-			fmt.Println("Unknown command...")
+			fmt.Printf("[%s]: Unknown command...\n",
+				tools.GetCurrentDateAndTime())
 		}
 	}
 	return false

@@ -1,10 +1,13 @@
 package ui
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/VitJRBOG/GroupsMonitor/observer"
 	"github.com/VitJRBOG/GroupsMonitor/tools"
+	"os"
 	"runtime/debug"
+	"strings"
 	"time"
 )
 
@@ -68,34 +71,46 @@ func checkObservers(params []*observer.ModuleParams) {
 func listenUserCommands(params []*observer.ModuleParams) {
 	for {
 		var userInput string
-		_, err := fmt.Scan(&userInput)
+		in := bufio.NewReader(os.Stdin)
+		userInput, err := in.ReadString('\n')
 		if err != nil {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
-		success := consoleCommandHandler(userInput, params)
-		if success {
+		needExit := consoleCommandHandler(userInput[:len(userInput)-1], params)
+		if needExit {
 			return
 		}
 	}
 }
 
 func consoleCommandHandler(userInput string, params []*observer.ModuleParams) bool {
-	switch userInput {
-	case "":
-		return false
-	case "new_access_token":
-		addNewAccessToken()
-		return false
-	case "exit":
-		for _, p := range params {
-			if p != nil {
-				p.BrakeFlag = true
+	command := strings.Split(userInput, " ")
+	if len(command) > 0 {
+		switch command[0] {
+		case "add":
+			if len(command) > 1 {
+				switch command[1] {
+				case "":
+					fmt.Println("Argument is empty. Available arguments: access_token...")
+				case "access_token":
+					addNewAccessToken()
+				default:
+					fmt.Println("Unknown argument. Available arguments: access_token...")
+				}
+			} else {
+				fmt.Println("Argument is empty. Available arguments: access_token...")
 			}
+		case "exit":
+			for _, p := range params {
+				if p != nil {
+					p.BrakeFlag = true
+				}
+			}
+			return true
+		default:
+			fmt.Println("Unknown command...")
 		}
-		return true
-	default:
-		fmt.Println("Unknown command...")
-		return false
 	}
+	return false
 }

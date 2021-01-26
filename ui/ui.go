@@ -40,9 +40,8 @@ func startObservers(params []*observer.ModuleParams) {
 func receivingMessagesFromObserver(params *observer.ModuleParams) {
 	for {
 		msg := <-params.Message
-		output := fmt.Sprintf("[%s] %s is %s: «%s».", tools.GetCurrentDateAndTime(),
+		fmt.Printf("[%s] %s is %s: «%s».\n", tools.GetCurrentDateAndTime(),
 			params.Name, params.Status, msg)
-		fmt.Println(output)
 		if params.Status == "stopped" {
 			return
 		}
@@ -60,9 +59,8 @@ func checkObservers(params []*observer.ModuleParams) {
 			}
 		}
 		if allObserversIsStopped {
-			output := fmt.Sprintf("[%s]: All observers is stopped. Exit from program...",
+			fmt.Printf("[%s]: All observers is stopped. Exit from program...\n",
 				tools.GetCurrentDateAndTime())
-			fmt.Println(output)
 			return
 		}
 	}

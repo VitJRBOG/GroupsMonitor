@@ -15,9 +15,8 @@ func addNewAccessToken() {
 		a.setValue()
 		a.saveToDB()
 	} else {
-		output := fmt.Sprintf("[%s] Addition a new access token: An access token with this name already exists...",
+		fmt.Printf("[%s] Addition a new access token: An access token with this name already exists...\n",
 			tools.GetCurrentDateAndTime())
-		fmt.Println(output)
 		addNewAccessToken()
 	}
 }
@@ -66,7 +65,6 @@ func (a *newAccessToken) saveToDB() {
 
 	accessToken.InsertIntoDB()
 
-	output := fmt.Sprintf("[%s] Addition a new access token: New access token added successfully...",
+	fmt.Printf("[%s] Addition a new access token: New access token added successfully...\n",
 		tools.GetCurrentDateAndTime())
-	fmt.Println(output)
 }

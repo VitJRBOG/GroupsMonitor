@@ -102,6 +102,32 @@ func consoleCommandHandler(userInput string, params []*observer.ModuleParams) bo
 				fmt.Printf("[%s]: Argument is empty. Available arguments: access_token...\n",
 					tools.GetCurrentDateAndTime())
 			}
+		case "upd":
+			if len(command) > 1 {
+				switch command[1] {
+				case "":
+					fmt.Printf("[%s]: Argument is empty. Available arguments: access_token...\n",
+						tools.GetCurrentDateAndTime())
+				case "access_token":
+					if len(command) > 2 {
+						if len(command[2]) > 0 {
+							updExistsAccessToken(command[2])
+						} else {
+							fmt.Printf("[%s]: Access token name is empty.\n",
+								tools.GetCurrentDateAndTime())
+						}
+					} else {
+						fmt.Printf("[%s]: Access token name is empty.\n",
+							tools.GetCurrentDateAndTime())
+					}
+				default:
+					fmt.Printf("[%s]: Argument is empty. Available arguments: access_token...\n",
+						tools.GetCurrentDateAndTime())
+				}
+			} else {
+				fmt.Printf("[%s]: Argument is empty. Available arguments: access_token...\n",
+					tools.GetCurrentDateAndTime())
+			}
 		case "exit":
 			for _, p := range params {
 				if p != nil {

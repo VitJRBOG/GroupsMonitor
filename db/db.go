@@ -64,6 +64,54 @@ func (a *AccessToken) SelectByID(id int) {
 	}
 }
 
+func (a *AccessToken) SelectByName(name string) {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf("SELECT * FROM access_token WHERE name='%s'", name)
+	rows := sendSelectQuery(dbase, query)
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	for rows.Next() {
+		err := rows.Scan(&a.ID, &a.Name, &a.Value)
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}
+}
+
+func (a *AccessToken) UpdateInDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf(`UPDATE access_token SET name='%s', value='%s' WHERE id=%d`,
+		a.Name, a.Value, a.ID)
+	_, err := dbase.Exec(query)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func SelectAccessTokens() []AccessToken {
 	var accessTokens []AccessToken
 

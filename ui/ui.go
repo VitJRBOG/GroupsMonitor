@@ -31,6 +31,8 @@ func showDBStatus(dbHasBeenInitialized bool) {
 }
 
 func startObservers(params []*observer.ModuleParams) {
+	fmt.Printf("[%s]: Observers in the startup process. Please stand by...\n",
+		tools.GetCurrentDateAndTime())
 	for _, p := range params {
 		go observer.StartObserver(p)
 		go receivingMessagesFromObserver(p)

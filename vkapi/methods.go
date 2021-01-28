@@ -2,7 +2,7 @@ package vkapi
 
 import (
 	"encoding/json"
-	govkapi2 "github.com/VitJRBOG/GoVkApi/govkapi"
+	govkapi "github.com/VitJRBOG/GoVkApi"
 	"github.com/VitJRBOG/GroupsMonitor/tools"
 	"runtime/debug"
 	"strconv"
@@ -171,7 +171,7 @@ func parseUserInfo(response []byte) userInfo {
 }
 
 func callMethod(methodName, accessToken string, values map[string]string) ([]byte, error) {
-	response, err := govkapi2.SendRequestVkApi(accessToken, methodName, values)
+	response, err := govkapi.SendRequestVkApi(accessToken, methodName, values)
 	if err != nil {
 		switch true {
 		case strings.Contains(strings.ToLower(err.Error()), "too many requests per second"):

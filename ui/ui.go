@@ -38,6 +38,7 @@ func startObservers(params []*observer.ModuleParams) {
 }
 
 func receivingMessagesFromObserver(params *observer.ModuleParams) {
+	time.Sleep(1 * time.Second)
 	for {
 		msg := <-params.Message
 		fmt.Printf("[%s] %s is %s: «%s».\n", tools.GetCurrentDateAndTime(),

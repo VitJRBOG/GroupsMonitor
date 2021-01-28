@@ -37,6 +37,7 @@ func MakeObservers() []*ModuleParams {
 }
 
 func StartObserver(params *ModuleParams) {
+	params.Status = "launched"
 	params.Message <- "It begins..."
 	for true {
 		params.Status = "active"
@@ -47,8 +48,8 @@ func StartObserver(params *ModuleParams) {
 		err := parseLongPollServerResponse(respLPS, &params.Ward)
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
-				params.Message <- fmt.Sprintf("ERROR: «%s»", err.Error())
 				params.Status = "waiting for 5 minutes"
+				params.Message <- fmt.Sprintf("ERROR: «%s»", err.Error())
 				time.Sleep(5 * time.Minute)
 				params.Message <- "Let's get back to work..."
 			} else {
@@ -57,8 +58,8 @@ func StartObserver(params *ModuleParams) {
 			}
 		}
 		if params.BrakeFlag {
-			params.Message <- "Was stopped by user"
 			params.Status = "stopped"
+			params.Message <- "Was stopped by user"
 			break
 		}
 	}

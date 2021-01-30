@@ -32,7 +32,7 @@ func addNewAccessToken() {
 
 	a.SaveToDB()
 
-	fmt.Printf("[%s] Access token update: New access token added successfully...\n",
+	fmt.Printf("[%s] Addition a new access token: New access token added successfully...\n",
 		tools.GetCurrentDateAndTime())
 
 }
@@ -47,7 +47,7 @@ func updExistsAccessToken(accessTokenName string) {
 	err := a.SetName(name)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "access token with this name already exists") {
-			fmt.Printf("[%s] Addition a new access token: An access token with this name already exists...\n",
+			fmt.Printf("[%s] Access token update: An access token with this name already exists...\n",
 				tools.GetCurrentDateAndTime())
 			updExistsAccessToken(accessTokenName)
 			return

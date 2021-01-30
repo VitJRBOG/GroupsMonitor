@@ -112,7 +112,7 @@ func consoleCommandHandler(userInput string, params []*observer.ModuleParams) bo
 			if len(command) > 1 {
 				switch command[1] {
 				case "":
-					fmt.Printf("[%s]: Argument is empty. Available arguments: access_token...\n",
+					fmt.Printf("[%s]: Argument is empty. Available arguments: access_token, operator...\n",
 						tools.GetCurrentDateAndTime())
 				case "access_token":
 					if len(command) > 2 {
@@ -126,12 +126,24 @@ func consoleCommandHandler(userInput string, params []*observer.ModuleParams) bo
 						fmt.Printf("[%s]: Access token name is empty.\n",
 							tools.GetCurrentDateAndTime())
 					}
+				case "operator":
+					if len(command) > 2 {
+						if len(command[2]) > 0 {
+							upd_data.UpdExistsOperator(command[2])
+						} else {
+							fmt.Printf("[%s]: Operator name is empty.\n",
+								tools.GetCurrentDateAndTime())
+						}
+					} else {
+						fmt.Printf("[%s]: Operator name is empty.\n",
+							tools.GetCurrentDateAndTime())
+					}
 				default:
-					fmt.Printf("[%s]: Argument is empty. Available arguments: access_token...\n",
+					fmt.Printf("[%s]: Argument is empty. Available arguments: access_token, operator...\n",
 						tools.GetCurrentDateAndTime())
 				}
 			} else {
-				fmt.Printf("[%s]: Argument is empty. Available arguments: access_token...\n",
+				fmt.Printf("[%s]: Argument is empty. Available arguments: access_token, operator...\n",
 					tools.GetCurrentDateAndTime())
 			}
 		case "exit":

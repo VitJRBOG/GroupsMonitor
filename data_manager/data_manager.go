@@ -88,10 +88,28 @@ func (o *Operator) integerCheck(strVkID string) (int, error) {
 	return vkID, nil
 }
 
+func (o *Operator) SelectFromDB(name string) {
+	var operator db.Operator
+	operator.SelectByName(name)
+
+	o.ID = operator.ID
+	o.Name = operator.Name
+	o.VkID = operator.VkID
+}
+
 func (o *Operator) SaveToDB() {
 	var operator db.Operator
 	operator.Name = o.Name
 	operator.VkID = o.VkID
 
 	operator.InsertIntoDB()
+}
+
+func (o *Operator) UpdateIdDB() {
+	var operator db.Operator
+	operator.ID = o.ID
+	operator.Name = o.Name
+	operator.VkID = o.VkID
+
+	operator.UpdateInDB()
 }

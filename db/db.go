@@ -172,6 +172,25 @@ func (o *Operator) InsertIntoDB() {
 	}
 }
 
+func (o *Operator) UpdateInDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf(`UPDATE operator SET name='%s', vk_id=%d WHERE id=%d`,
+		o.Name, o.VkID, o.ID)
+	_, err := dbase.Exec(query)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func (o *Operator) SelectByID(id int) {
 	dbase := openDB()
 	defer func() {
@@ -183,6 +202,35 @@ func (o *Operator) SelectByID(id int) {
 	}()
 
 	query := fmt.Sprintf("SELECT * FROM operator WHERE id=%d", id)
+	rows := sendSelectQuery(dbase, query)
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	for rows.Next() {
+		err := rows.Scan(&o.ID, &o.Name, &o.VkID)
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}
+}
+
+func (o *Operator) SelectByName(name string) {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf("SELECT * FROM operator WHERE name='%s'", name)
 	rows := sendSelectQuery(dbase, query)
 	defer func() {
 		err := rows.Close()

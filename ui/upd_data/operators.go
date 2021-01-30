@@ -35,3 +35,33 @@ func AddNewOperator() {
 	fmt.Printf("[%s] Addition a new operator: New operator added successfully...\n",
 		tools.GetCurrentDateAndTime())
 }
+
+func UpdExistsOperator(operatorName string) {
+	var o data_manager.Operator
+
+	o.SelectFromDB(operatorName)
+
+	fmt.Print("--- Enter a new name for the operator and press «Enter»... ---\n> ")
+	name := getDataFromUser()
+	o.SetName(name)
+
+	fmt.Print("--- Enter a new VK ID for the operator and press «Enter»... ---\n> ")
+	strVkID := getDataFromUser()
+	err := o.SetVkID(strVkID)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "invalid syntax") {
+			fmt.Printf("[%s] Operator update: VK ID must be integer...\n",
+				tools.GetCurrentDateAndTime())
+			UpdExistsOperator(operatorName)
+			return
+		} else {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}
+
+	o.UpdateIdDB()
+
+	fmt.Printf("[%s] Operator update: Operator updated successfully...\n",
+		tools.GetCurrentDateAndTime())
+}

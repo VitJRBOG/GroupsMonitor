@@ -153,6 +153,25 @@ type Operator struct {
 	VkID int    `json:"vk_id"`
 }
 
+func (o *Operator) InsertIntoDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf(`INSERT INTO operator (name, vk_id) VALUES ('%s', %d)`,
+		o.Name, o.VkID)
+	_, err := dbase.Exec(query)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func (o *Operator) SelectByID(id int) {
 	dbase := openDB()
 	defer func() {

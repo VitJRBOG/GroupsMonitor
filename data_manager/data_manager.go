@@ -3,6 +3,7 @@ package data_manager
 import (
 	"errors"
 	"github.com/VitJRBOG/GroupsMonitor/db"
+	"strconv"
 )
 
 type AccessToken db.AccessToken
@@ -61,4 +62,36 @@ func (a *AccessToken) UpdateInDB() {
 	accessToken.Value = a.Value
 
 	accessToken.UpdateInDB()
+}
+
+type Operator db.Operator
+
+func (o *Operator) SetName(name string) {
+	o.Name = name
+}
+
+func (o *Operator) SetVkID(strVkID string) error {
+	vkID, err := o.integerCheck(strVkID)
+	if err != nil {
+		return err
+	} else {
+		o.VkID = vkID
+	}
+	return nil
+}
+
+func (o *Operator) integerCheck(strVkID string) (int, error) {
+	vkID, err := strconv.Atoi(strVkID)
+	if err != nil {
+		return 0, err
+	}
+	return vkID, nil
+}
+
+func (o *Operator) SaveToDB() {
+	var operator db.Operator
+	operator.Name = o.Name
+	operator.VkID = o.VkID
+
+	operator.InsertIntoDB()
 }

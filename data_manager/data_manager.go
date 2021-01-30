@@ -66,8 +66,29 @@ func (a *AccessToken) UpdateInDB() {
 
 type Operator db.Operator
 
-func (o *Operator) SetName(name string) {
-	o.Name = name
+func (o *Operator) SetName(name string) error {
+	nameIsUnique := o.uniquenessCheck(name)
+	if nameIsUnique {
+		o.Name = name
+	} else {
+		err := errors.New("operator with this name already exists")
+		return err
+	}
+	return nil
+}
+
+func (o *Operator) uniquenessCheck(name string) bool {
+	operators := db.SelectOperators()
+	nameIsUnique := true
+	for _, operator := range operators {
+		if o.Name != name {
+			if operator.Name == name {
+				nameIsUnique = false
+				break
+			}
+		}
+	}
+	return nameIsUnique
 }
 
 func (o *Operator) SetVkID(strVkID string) error {

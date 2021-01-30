@@ -249,6 +249,41 @@ func (o *Operator) SelectByName(name string) {
 	}
 }
 
+func SelectOperators() []Operator {
+	var operators []Operator
+
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf("SELECT * FROM operator")
+	rows := sendSelectQuery(dbase, query)
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	for rows.Next() {
+		var o Operator
+		err := rows.Scan(&o.ID, &o.Name, &o.VkID)
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+		operators = append(operators, o)
+	}
+
+	return operators
+}
+
 type Ward struct {
 	ID               int    `json:"id"`
 	Name             string `json:"name"`

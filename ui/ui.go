@@ -1,12 +1,11 @@
 package ui
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/VitJRBOG/GroupsMonitor/observer"
 	"github.com/VitJRBOG/GroupsMonitor/tools"
+	"github.com/VitJRBOG/GroupsMonitor/ui/input"
 	"github.com/VitJRBOG/GroupsMonitor/ui/upd_data"
-	"os"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -72,14 +71,8 @@ func checkObservers(params []*observer.ModuleParams) {
 
 func listenUserCommands(params []*observer.ModuleParams) {
 	for {
-		var userInput string
-		in := bufio.NewReader(os.Stdin)
-		userInput, err := in.ReadString('\n')
-		if err != nil {
-			tools.WriteToLog(err, debug.Stack())
-			panic(err.Error())
-		}
-		needExit := consoleCommandHandler(userInput[:len(userInput)-1], params)
+		userInput := input.GetDataFromUser()
+		needExit := consoleCommandHandler(userInput, params)
 		if needExit {
 			return
 		}

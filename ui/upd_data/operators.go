@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/VitJRBOG/GroupsMonitor/data_manager"
 	"github.com/VitJRBOG/GroupsMonitor/tools"
+	"github.com/VitJRBOG/GroupsMonitor/ui/input"
 	"runtime/debug"
 	"strings"
 )
@@ -12,7 +13,7 @@ func AddNewOperator() {
 	var o data_manager.Operator
 
 	fmt.Print("--- Enter a name for the new operator and press «Enter»... ---\n> ")
-	name := getDataFromUser()
+	name := input.GetDataFromUser()
 	err := o.SetName(name)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists") {
@@ -27,7 +28,7 @@ func AddNewOperator() {
 	}
 
 	fmt.Print("--- Enter the VK ID for the new operator and press «Enter»... ---\n> ")
-	strVkID := getDataFromUser()
+	strVkID := input.GetDataFromUser()
 	err = o.SetVkID(strVkID)
 	if err != nil {
 		switch true {
@@ -59,7 +60,7 @@ func UpdExistsOperator(operatorName string) {
 	o.SelectFromDB(operatorName)
 
 	fmt.Print("--- Enter a new name for the operator and press «Enter»... ---\n> ")
-	name := getDataFromUser()
+	name := input.GetDataFromUser()
 	err := o.SetName(name)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists") {
@@ -74,7 +75,7 @@ func UpdExistsOperator(operatorName string) {
 	}
 
 	fmt.Print("--- Enter a new VK ID for the operator and press «Enter»... ---\n> ")
-	strVkID := getDataFromUser()
+	strVkID := input.GetDataFromUser()
 	err = o.SetVkID(strVkID)
 	if err != nil {
 		switch true {

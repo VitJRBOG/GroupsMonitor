@@ -409,26 +409,10 @@ func initDB() {
 	}()
 
 	query := fmt.Sprintf(`BEGIN TRANSACTION;
-		CREATE TABLE IF NOT EXISTS "operator" (
-			"id"	INTEGER NOT NULL UNIQUE,
-			"name"	TEXT NOT NULL,
-			"vk_id"	INTEGER NOT NULL UNIQUE,
-			PRIMARY KEY("id" AUTOINCREMENT)
-		);
 		CREATE TABLE IF NOT EXISTS "access_token" (
 			"id"	INTEGER NOT NULL UNIQUE,
 			"name"	TEXT NOT NULL UNIQUE,
 			"value"	TEXT NOT NULL,
-			PRIMARY KEY("id" AUTOINCREMENT)
-		);
-		CREATE TABLE IF NOT EXISTS "ward" (
-			"id"	INTEGER NOT NULL UNIQUE,
-			"name"	TEXT NOT NULL,
-			"vk_id"	INTEGER NOT NULL UNIQUE,
-			"is_owned"	INTEGER NOT NULL,
-			"last_ts"	INTEGER NOT NULL,
-			"get_access_token_id"	INTEGER NOT NULL,
-			FOREIGN KEY("get_access_token_id") REFERENCES "access_token"("id"),
 			PRIMARY KEY("id" AUTOINCREMENT)
 		);
 		CREATE TABLE IF NOT EXISTS "observer" (
@@ -438,10 +422,26 @@ func initDB() {
 			"operator_id"	INTEGER NOT NULL,
 			"send_access_token_id"	INTEGER NOT NULL,
 			"additional_params"	TEXT NOT NULL DEFAULT '{}',
-			FOREIGN KEY("send_access_token_id") REFERENCES "access_token"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT),
 			FOREIGN KEY("operator_id") REFERENCES "observer"("id"),
-			FOREIGN KEY("ward_id") REFERENCES "ward"("id"),
+			FOREIGN KEY("send_access_token_id") REFERENCES "access_token"("id"),
+			FOREIGN KEY("ward_id") REFERENCES "ward"("id")
+		);
+		CREATE TABLE IF NOT EXISTS "operator" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"name"	TEXT NOT NULL UNIQUE,
+			"vk_id"	INTEGER NOT NULL UNIQUE,
 			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE TABLE IF NOT EXISTS "ward" (
+			"id"	INTEGER NOT NULL UNIQUE,
+			"name"	TEXT NOT NULL UNIQUE,
+			"vk_id"	INTEGER NOT NULL UNIQUE,
+			"is_owned"	INTEGER NOT NULL,
+			"last_ts"	INTEGER NOT NULL,
+			"get_access_token_id"	INTEGER NOT NULL,
+			PRIMARY KEY("id" AUTOINCREMENT),
+			FOREIGN KEY("get_access_token_id") REFERENCES "access_token"("id")
 		);
 		COMMIT;`)
 	sendUpdateQuery(dbase, query)

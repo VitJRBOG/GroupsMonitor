@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/VitJRBOG/GroupsMonitor/observer"
 	"github.com/VitJRBOG/GroupsMonitor/tools"
+	"github.com/VitJRBOG/GroupsMonitor/ui/upd_data"
 	"os"
 	"runtime/debug"
 	"strings"
@@ -96,9 +97,9 @@ func consoleCommandHandler(userInput string, params []*observer.ModuleParams) bo
 					fmt.Printf("[%s]: Argument is empty. Available arguments: access_token, operator...\n",
 						tools.GetCurrentDateAndTime())
 				case "access_token":
-					addNewAccessToken()
+					upd_data.AddNewAccessToken()
 				case "operator":
-					addNewOperator()
+					upd_data.AddNewOperator()
 				default:
 					fmt.Printf("[%s]: Unknown argument. Available arguments: access_token, operator...\n",
 						tools.GetCurrentDateAndTime())
@@ -116,7 +117,7 @@ func consoleCommandHandler(userInput string, params []*observer.ModuleParams) bo
 				case "access_token":
 					if len(command) > 2 {
 						if len(command[2]) > 0 {
-							updExistsAccessToken(command[2])
+							upd_data.UpdExistsAccessToken(command[2])
 						} else {
 							fmt.Printf("[%s]: Access token name is empty.\n",
 								tools.GetCurrentDateAndTime())

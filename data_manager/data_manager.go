@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/VitJRBOG/GroupsMonitor/db"
 	"strconv"
+	"strings"
 )
 
 type AccessToken db.AccessToken
@@ -92,11 +93,23 @@ func (o *Operator) uniquenessCheck(name string) bool {
 }
 
 func (o *Operator) SetVkID(strVkID string) error {
+	err := o.checkZeroInTheBeginning(strVkID)
+	if err != nil {
+		return err
+	}
 	vkID, err := o.integerCheck(strVkID)
 	if err != nil {
 		return err
 	} else {
 		o.VkID = vkID
+	}
+	return nil
+}
+
+func (o *Operator) checkZeroInTheBeginning(strVkID string) error {
+	if strings.Split(strVkID, "")[0] == "0" {
+		err := errors.New("vk id starts with zero")
+		return err
 	}
 	return nil
 }

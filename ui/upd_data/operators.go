@@ -30,12 +30,18 @@ func AddNewOperator() {
 	strVkID := getDataFromUser()
 	err = o.SetVkID(strVkID)
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "invalid syntax") {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
+			fmt.Printf("[%s] Addition a new operator: VK ID should not start with zero...\n",
+				tools.GetCurrentDateAndTime())
+			AddNewOperator()
+			return
+		case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
 			fmt.Printf("[%s] Addition a new operator: VK ID must be integer...\n",
 				tools.GetCurrentDateAndTime())
 			AddNewOperator()
 			return
-		} else {
+		default:
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
@@ -71,12 +77,18 @@ func UpdExistsOperator(operatorName string) {
 	strVkID := getDataFromUser()
 	err = o.SetVkID(strVkID)
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "invalid syntax") {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
+			fmt.Printf("[%s] Operator update: VK ID should not start with zero...\n",
+				tools.GetCurrentDateAndTime())
+			UpdExistsOperator(operatorName)
+			return
+		case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
 			fmt.Printf("[%s] Operator update: VK ID must be integer...\n",
 				tools.GetCurrentDateAndTime())
 			UpdExistsOperator(operatorName)
 			return
-		} else {
+		default:
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}

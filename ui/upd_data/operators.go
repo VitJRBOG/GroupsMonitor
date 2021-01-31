@@ -16,12 +16,18 @@ func AddNewOperator() {
 	name := input.GetDataFromUser()
 	err := o.SetName(name)
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists") {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			fmt.Printf("[%s] Addition a new operator: You must enter a name...\n",
+				tools.GetCurrentDateAndTime())
+			AddNewOperator()
+			return
+		case strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists"):
 			fmt.Printf("[%s] Addition a new operator: An operator with this name already exists...\n",
 				tools.GetCurrentDateAndTime())
 			AddNewOperator()
 			return
-		} else {
+		default:
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
@@ -32,6 +38,11 @@ func AddNewOperator() {
 	err = o.SetVkID(strVkID)
 	if err != nil {
 		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			fmt.Printf("[%s] Addition a new operator: You must enter a VK ID...\n",
+				tools.GetCurrentDateAndTime())
+			AddNewOperator()
+			return
 		case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
 			fmt.Printf("[%s] Addition a new operator: VK ID should not start with zero...\n",
 				tools.GetCurrentDateAndTime())
@@ -63,12 +74,18 @@ func UpdExistsOperator(operatorName string) {
 	name := input.GetDataFromUser()
 	err := o.SetName(name)
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists") {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			fmt.Printf("[%s] Operator update: You must enter a name...\n",
+				tools.GetCurrentDateAndTime())
+			UpdExistsOperator(operatorName)
+			return
+		case strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists"):
 			fmt.Printf("[%s] Operator update: An operator with this name already exists...\n",
 				tools.GetCurrentDateAndTime())
 			UpdExistsOperator(operatorName)
 			return
-		} else {
+		default:
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
@@ -79,6 +96,11 @@ func UpdExistsOperator(operatorName string) {
 	err = o.SetVkID(strVkID)
 	if err != nil {
 		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			fmt.Printf("[%s] Operator update: You must enter a VK ID...\n",
+				tools.GetCurrentDateAndTime())
+			UpdExistsOperator(operatorName)
+			return
 		case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
 			fmt.Printf("[%s] Operator update: VK ID should not start with zero...\n",
 				tools.GetCurrentDateAndTime())

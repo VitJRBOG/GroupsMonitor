@@ -10,6 +10,10 @@ import (
 type AccessToken db.AccessToken
 
 func (a *AccessToken) SetName(name string) error {
+	err := stringLengthCheck(name)
+	if err != nil {
+		return err
+	}
 	nameIsUnique := a.uniquenessCheck(name)
 	if nameIsUnique {
 		a.Name = name
@@ -34,8 +38,13 @@ func (a *AccessToken) uniquenessCheck(name string) bool {
 	return nameIsUnique
 }
 
-func (a *AccessToken) SetValue(value string) {
+func (a *AccessToken) SetValue(value string) error {
+	err := stringLengthCheck(value)
+	if err != nil {
+		return err
+	}
 	a.Value = value
+	return nil
 }
 
 func (a *AccessToken) SelectFromDB(name string) {
@@ -68,6 +77,10 @@ func (a *AccessToken) UpdateInDB() {
 type Operator db.Operator
 
 func (o *Operator) SetName(name string) error {
+	err := stringLengthCheck(name)
+	if err != nil {
+		return err
+	}
 	nameIsUnique := o.uniquenessCheck(name)
 	if nameIsUnique {
 		o.Name = name
@@ -93,7 +106,11 @@ func (o *Operator) uniquenessCheck(name string) bool {
 }
 
 func (o *Operator) SetVkID(strVkID string) error {
-	err := o.checkZeroInTheBeginning(strVkID)
+	err := stringLengthCheck(strVkID)
+	if err != nil {
+		return err
+	}
+	err = o.checkZeroInTheBeginning(strVkID)
 	if err != nil {
 		return err
 	}
@@ -146,4 +163,12 @@ func (o *Operator) UpdateIdDB() {
 	operator.VkID = o.VkID
 
 	operator.UpdateInDB()
+}
+
+func stringLengthCheck(s string) error {
+	if len(s) == 0 {
+		err := errors.New("string length is zero")
+		return err
+	}
+	return nil
 }

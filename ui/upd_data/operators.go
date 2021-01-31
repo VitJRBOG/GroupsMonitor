@@ -10,125 +10,93 @@ import (
 )
 
 func AddNewOperator() {
-	var o data_manager.Operator
+	operation := "Addition a new operator"
 
-	fmt.Print("--- Enter a name for the new operator and press «Enter»... ---\n> ")
-	name := input.GetDataFromUser()
-	err := o.SetName(name)
-	if err != nil {
-		switch true {
-		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-			fmt.Printf("[%s] Addition a new operator: You must enter a name...\n",
-				tools.GetCurrentDateAndTime())
-			AddNewOperator()
-			return
-		case strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists"):
-			fmt.Printf("[%s] Addition a new operator: An operator with this name already exists...\n",
-				tools.GetCurrentDateAndTime())
-			AddNewOperator()
-			return
-		default:
-			tools.WriteToLog(err, debug.Stack())
-			panic(err.Error())
-		}
-	}
+	var operator data_manager.Operator
+	setOperatorName(&operator, operation)
+	setOperatorVkID(&operator, operation)
+	operator.SaveToDB()
 
-	fmt.Print("--- Enter the VK ID for the new operator and press «Enter»... ---\n> ")
-	strVkID := input.GetDataFromUser()
-	err = o.SetVkID(strVkID)
-	if err != nil {
-		switch true {
-		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-			fmt.Printf("[%s] Addition a new operator: You must enter a VK ID...\n",
-				tools.GetCurrentDateAndTime())
-			AddNewOperator()
-			return
-		case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
-			fmt.Printf("[%s] Addition a new operator: VK ID should not start with zero...\n",
-				tools.GetCurrentDateAndTime())
-			AddNewOperator()
-			return
-		case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
-			fmt.Printf("[%s] Addition a new operator: VK ID must be integer...\n",
-				tools.GetCurrentDateAndTime())
-			AddNewOperator()
-			return
-		default:
-			tools.WriteToLog(err, debug.Stack())
-			panic(err.Error())
-		}
-	}
-
-	o.SaveToDB()
-
-	fmt.Printf("[%s] Addition a new operator: New operator added successfully...\n",
-		tools.GetCurrentDateAndTime())
+	fmt.Printf("[%s] %s: New operator added successfully...\n",
+		tools.GetCurrentDateAndTime(), operation)
 }
 
 func UpdExistsOperator(operatorName string) {
-	var o data_manager.Operator
+	operation := "Operator update"
 
-	err := o.SelectFromDB(operatorName)
+	operator := selectDataOfExistsOperator(operatorName, operation)
+	setOperatorName(operator, operation)
+	setOperatorVkID(operator, operation)
+
+	operator.UpdateIdDB()
+
+	fmt.Printf("[%s] %s: Operator updated successfully...\n",
+		tools.GetCurrentDateAndTime(), operation)
+}
+
+func selectDataOfExistsOperator(operatorName, operation string) *data_manager.Operator {
+	var operator data_manager.Operator
+	err := operator.SelectFromDB(operatorName)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "no such operator found") {
-			fmt.Printf("[%s] Operator update: an operator with this name does not exist...\n",
-				tools.GetCurrentDateAndTime())
-			return
+			fmt.Printf("[%s] %s: an operator with this name does not exist...\n",
+				tools.GetCurrentDateAndTime(), operation)
+			return nil
 		} else {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
 	}
+	return &operator
+}
 
-	fmt.Print("--- Enter a new name for the operator and press «Enter»... ---\n> ")
+func setOperatorName(operator *data_manager.Operator, operation string) {
+	fmt.Print("--- Enter a name for the new operator and press «Enter»... ---\n> ")
 	name := input.GetDataFromUser()
-	err = o.SetName(name)
+	err := operator.SetName(name)
 	if err != nil {
 		switch true {
 		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-			fmt.Printf("[%s] Operator update: You must enter a name...\n",
-				tools.GetCurrentDateAndTime())
-			UpdExistsOperator(operatorName)
+			fmt.Printf("[%s] %s: You must enter a name...\n",
+				tools.GetCurrentDateAndTime(), operation)
+			setOperatorName(operator, operation)
 			return
 		case strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists"):
-			fmt.Printf("[%s] Operator update: An operator with this name already exists...\n",
-				tools.GetCurrentDateAndTime())
-			UpdExistsOperator(operatorName)
+			fmt.Printf("[%s] %s: An operator with this name already exists...\n",
+				tools.GetCurrentDateAndTime(), operation)
+			setOperatorName(operator, operation)
 			return
 		default:
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
 	}
+}
 
-	fmt.Print("--- Enter a new VK ID for the operator and press «Enter»... ---\n> ")
+func setOperatorVkID(operator *data_manager.Operator, operation string) {
+	fmt.Print("--- Enter the VK ID for the new operator and press «Enter»... ---\n> ")
 	strVkID := input.GetDataFromUser()
-	err = o.SetVkID(strVkID)
+	err := operator.SetVkID(strVkID)
 	if err != nil {
 		switch true {
 		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-			fmt.Printf("[%s] Operator update: You must enter a VK ID...\n",
-				tools.GetCurrentDateAndTime())
-			UpdExistsOperator(operatorName)
+			fmt.Printf("[%s] %s: You must enter a VK ID...\n",
+				tools.GetCurrentDateAndTime(), operation)
+			setOperatorVkID(operator, operation)
 			return
 		case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
-			fmt.Printf("[%s] Operator update: VK ID should not start with zero...\n",
-				tools.GetCurrentDateAndTime())
-			UpdExistsOperator(operatorName)
+			fmt.Printf("[%s] %s: VK ID should not start with zero...\n",
+				tools.GetCurrentDateAndTime(), operation)
+			setOperatorVkID(operator, operation)
 			return
 		case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
-			fmt.Printf("[%s] Operator update: VK ID must be integer...\n",
-				tools.GetCurrentDateAndTime())
-			UpdExistsOperator(operatorName)
+			fmt.Printf("[%s] %s: VK ID must be integer...\n",
+				tools.GetCurrentDateAndTime(), operation)
+			setOperatorVkID(operator, operation)
 			return
 		default:
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
 	}
-
-	o.UpdateIdDB()
-
-	fmt.Printf("[%s] Operator update: Operator updated successfully...\n",
-		tools.GetCurrentDateAndTime())
 }

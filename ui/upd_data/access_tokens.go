@@ -36,13 +36,13 @@ func UpdExistsAccessToken(accessTokenName string) {
 		tools.GetCurrentDateAndTime(), activity)
 }
 
-func selectDataOfExistsAccessToken(accessTokenName, operation string) *data_manager.AccessToken {
+func selectDataOfExistsAccessToken(accessTokenName, activity string) *data_manager.AccessToken {
 	var accessToken data_manager.AccessToken
 	err := accessToken.SelectFromDB(accessTokenName)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "no such access token found") {
 			fmt.Printf("[%s] %s: an access token with this name does not exist...\n",
-				tools.GetCurrentDateAndTime(), operation)
+				tools.GetCurrentDateAndTime(), activity)
 			return nil
 		} else {
 			tools.WriteToLog(err, debug.Stack())

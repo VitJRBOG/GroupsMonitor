@@ -68,11 +68,21 @@ func AddNewOperator() {
 func UpdExistsOperator(operatorName string) {
 	var o data_manager.Operator
 
-	o.SelectFromDB(operatorName)
+	err := o.SelectFromDB(operatorName)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "no such operator found") {
+			fmt.Printf("[%s] Operator update: an operator with this name does not exist...\n",
+				tools.GetCurrentDateAndTime())
+			return
+		} else {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}
 
 	fmt.Print("--- Enter a new name for the operator and press «Enter»... ---\n> ")
 	name := input.GetDataFromUser()
-	err := o.SetName(name)
+	err = o.SetName(name)
 	if err != nil {
 		switch true {
 		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):

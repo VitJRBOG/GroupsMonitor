@@ -47,13 +47,27 @@ func (a *AccessToken) SetValue(value string) error {
 	return nil
 }
 
-func (a *AccessToken) SelectFromDB(name string) {
+func (a *AccessToken) SelectFromDB(name string) error {
 	var accessToken db.AccessToken
 	accessToken.SelectByName(name)
 
 	a.ID = accessToken.ID
 	a.Name = accessToken.Name
 	a.Value = accessToken.Value
+
+	err := a.checkExistence()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *AccessToken) checkExistence() error {
+	if a.ID == 0 && a.Name == "" && a.Value == "" {
+		err := errors.New("no such access token found")
+		return err
+	}
+	return nil
 }
 
 func (a *AccessToken) SaveToDB() {
@@ -139,13 +153,27 @@ func (o *Operator) integerCheck(strVkID string) (int, error) {
 	return vkID, nil
 }
 
-func (o *Operator) SelectFromDB(name string) {
+func (o *Operator) SelectFromDB(name string) error {
 	var operator db.Operator
 	operator.SelectByName(name)
 
 	o.ID = operator.ID
 	o.Name = operator.Name
 	o.VkID = operator.VkID
+
+	err := o.checkExistence()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *Operator) checkExistence() error {
+	if o.ID == 0 && o.Name == "" && o.VkID == 0 {
+		err := errors.New("no such operator found")
+		return err
+	}
+	return nil
 }
 
 func (o *Operator) SaveToDB() {

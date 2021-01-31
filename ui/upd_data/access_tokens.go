@@ -58,11 +58,21 @@ func AddNewAccessToken() {
 func UpdExistsAccessToken(accessTokenName string) {
 	var a data_manager.AccessToken
 
-	a.SelectFromDB(accessTokenName)
+	err := a.SelectFromDB(accessTokenName)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "no such access token found") {
+			fmt.Printf("[%s] Access token update: an access token with this name does not exist...\n",
+				tools.GetCurrentDateAndTime())
+			return
+		} else {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}
 
 	fmt.Print("--- Enter a new name for the access token and press «Enter»... ---\n> ")
 	name := input.GetDataFromUser()
-	err := a.SetName(name)
+	err = a.SetName(name)
 	if err != nil {
 		switch true {
 		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):

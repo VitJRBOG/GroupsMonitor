@@ -10,104 +10,84 @@ import (
 )
 
 func AddNewAccessToken() {
-	var a data_manager.AccessToken
+	operation := "Addition a new access token"
 
-	fmt.Print("--- Enter a name for the new access token and press «Enter»... ---\n> ")
-	name := input.GetDataFromUser()
-	err := a.SetName(name)
-	if err != nil {
-		switch true {
-		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-			fmt.Printf("[%s] Addition a new access token: You must enter a name...\n",
-				tools.GetCurrentDateAndTime())
-			AddNewAccessToken()
-			return
-		case strings.Contains(strings.ToLower(err.Error()), "access token with this name already exists"):
-			fmt.Printf("[%s] Addition a new access token: An access token with this name already exists...\n",
-				tools.GetCurrentDateAndTime())
-			AddNewAccessToken()
-			return
-		default:
-			tools.WriteToLog(err, debug.Stack())
-			panic(err.Error())
-		}
-	}
+	var accessToken data_manager.AccessToken
+	setAccessTokenName(&accessToken, operation)
+	setAccessTokenValue(&accessToken, operation)
+	accessToken.SaveToDB()
 
-	fmt.Print("--- Enter a value for the new access token and press «Enter»... ---\n> ")
-	value := input.GetDataFromUser()
-	err = a.SetValue(value)
-	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "string length is zero") {
-			fmt.Printf("[%s] Addition a new access token: You must enter a value...\n",
-				tools.GetCurrentDateAndTime())
-			AddNewAccessToken()
-			return
-		} else {
-			tools.WriteToLog(err, debug.Stack())
-			panic(err.Error())
-		}
-	}
-
-	a.SaveToDB()
-
-	fmt.Printf("[%s] Addition a new access token: New access token added successfully...\n",
-		tools.GetCurrentDateAndTime())
-
+	fmt.Printf("[%s] %s: New access token added successfully...\n",
+		tools.GetCurrentDateAndTime(), operation)
 }
 
 func UpdExistsAccessToken(accessTokenName string) {
-	var a data_manager.AccessToken
+	operation := "Access token update"
 
-	err := a.SelectFromDB(accessTokenName)
+	accessToken := selectDataOfExistsAccessToken(accessTokenName, operation)
+	if accessToken == nil {
+		return
+	}
+	setAccessTokenName(accessToken, operation)
+	setAccessTokenValue(accessToken, operation)
+	accessToken.UpdateInDB()
+
+	fmt.Printf("[%s] %s: Access token updated successfully...\n",
+		tools.GetCurrentDateAndTime(), operation)
+}
+
+func selectDataOfExistsAccessToken(accessTokenName, operation string) *data_manager.AccessToken {
+	var accessToken data_manager.AccessToken
+	err := accessToken.SelectFromDB(accessTokenName)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "no such access token found") {
-			fmt.Printf("[%s] Access token update: an access token with this name does not exist...\n",
-				tools.GetCurrentDateAndTime())
-			return
+			fmt.Printf("[%s] %s: an access token with this name does not exist...\n",
+				tools.GetCurrentDateAndTime(), operation)
+			return nil
 		} else {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
 	}
+	return &accessToken
+}
 
-	fmt.Print("--- Enter a new name for the access token and press «Enter»... ---\n> ")
+func setAccessTokenName(accessToken *data_manager.AccessToken, operation string) {
+	fmt.Print("--- Enter a name for the new access token and press «Enter»... ---\n> ")
 	name := input.GetDataFromUser()
-	err = a.SetName(name)
+	err := accessToken.SetName(name)
 	if err != nil {
 		switch true {
 		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-			fmt.Printf("[%s] Access token update: You must enter a name...\n",
-				tools.GetCurrentDateAndTime())
-			UpdExistsAccessToken(accessTokenName)
+			fmt.Printf("[%s] %s: You must enter a name...\n",
+				tools.GetCurrentDateAndTime(), operation)
+			setAccessTokenName(accessToken, operation)
 			return
 		case strings.Contains(strings.ToLower(err.Error()), "access token with this name already exists"):
-			fmt.Printf("[%s] Access token update: An access token with this name already exists...\n",
-				tools.GetCurrentDateAndTime())
-			UpdExistsAccessToken(accessTokenName)
+			fmt.Printf("[%s] %s: An access token with this name already exists...\n",
+				tools.GetCurrentDateAndTime(), operation)
+			setAccessTokenName(accessToken, operation)
 			return
 		default:
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
 	}
+}
 
-	fmt.Print("--- Enter a new value for the access token and press «Enter»... ---\n> ")
+func setAccessTokenValue(accessToken *data_manager.AccessToken, operation string) {
+	fmt.Print("--- Enter a value for the new access token and press «Enter»... ---\n> ")
 	value := input.GetDataFromUser()
-	err = a.SetValue(value)
+	err := accessToken.SetValue(value)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "string length is zero") {
-			fmt.Printf("[%s] Access token update: You must enter a value...\n",
-				tools.GetCurrentDateAndTime())
-			UpdExistsAccessToken(accessTokenName)
+			fmt.Printf("[%s] %s: You must enter a value...\n",
+				tools.GetCurrentDateAndTime(), operation)
+			setAccessTokenValue(accessToken, operation)
 			return
 		} else {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
 	}
-
-	a.UpdateInDB()
-
-	fmt.Printf("[%s] Access token update: Access token updated successfully...\n",
-		tools.GetCurrentDateAndTime())
 }

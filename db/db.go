@@ -293,6 +293,25 @@ type Ward struct {
 	GetAccessTokenID int    `json:"get_access_token_id"`
 }
 
+func (w *Ward) InsertIntoDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf("INSERT INTO ward (name, vk_id, is_owned, last_ts, get_access_token_id) VALUES ('%s', %d, %d, %d, %d)",
+		w.Name, w.VkID, w.IsOwned, w.LastTS, w.GetAccessTokenID)
+	_, err := dbase.Exec(query)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func (w *Ward) SelectByID(id int) {
 	dbase := openDB()
 	defer func() {
@@ -304,6 +323,35 @@ func (w *Ward) SelectByID(id int) {
 	}()
 
 	query := fmt.Sprintf("SELECT * FROM ward WHERE id=%d", id)
+	rows := sendSelectQuery(dbase, query)
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	for rows.Next() {
+		err := rows.Scan(&w.ID, &w.Name, &w.VkID, &w.IsOwned, &w.LastTS, &w.GetAccessTokenID)
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}
+}
+
+func (w *Ward) SelectByName(name string) {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf("SELECT * FROM ward WHERE name='%s'", name)
 	rows := sendSelectQuery(dbase, query)
 	defer func() {
 		err := rows.Close()
@@ -390,6 +438,28 @@ type wallPostObserverAdditionalParams struct {
 	PostType string `json:"post_type"`
 }
 
+func (o *Observer) InsertIntoDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	additionalParams := o.additionalParamsToJSON()
+
+	query := fmt.Sprintf(`INSERT INTO observer (name, ward_id, operator_id, send_access_token_id, 
+		additional_params) VALUES ('%s', %d, %d, %d, '%s')`,
+		o.Name, o.WardID, o.OperatorID, o.SendAccessTokenID, additionalParams)
+	_, err := dbase.Exec(query)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func (o *Observer) SelectByID(id int) {
 	dbase := openDB()
 	defer func() {
@@ -461,6 +531,14 @@ func (o *Observer) parseAdditionalParams(additionalParams string) {
 			panic(err.Error())
 		}
 	}
+}
+
+func (o *Observer) additionalParamsToJSON() string {
+	if o.AdditionalParams.WallPost.PostType != "" {
+		p := fmt.Sprintf(`{"post_type": "%s"}`, o.AdditionalParams.WallPost.PostType)
+		return p
+	}
+	return "{}"
 }
 
 func Initialization() bool {

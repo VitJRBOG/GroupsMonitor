@@ -401,6 +401,32 @@ func (o *Observer) SetAdditionalParams(wallPostType string) {
 	o.AdditionalParams.WallPost.PostType = wallPostType
 }
 
+func (o *Observer) SelectFromDB(name string, wardID int) error {
+	var observer db.Observer
+	observer.SelectByNameAndWardID(name, wardID)
+
+	o.ID = observer.ID
+	o.Name = observer.Name
+	o.WardID = observer.WardID
+	o.OperatorID = observer.OperatorID
+	o.SendAccessTokenID = observer.SendAccessTokenID
+	o.AdditionalParams = observer.AdditionalParams
+
+	err := o.checkExistence()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *Observer) checkExistence() error {
+	if o.ID == 0 && o.Name == "" && o.WardID == 0 && o.OperatorID == 0 && o.SendAccessTokenID == 0 {
+		err := errors.New("no such observer found")
+		return err
+	}
+	return nil
+}
+
 func (o *Observer) SaveToDB() {
 	var observer db.Observer
 	observer.Name = o.Name
@@ -410,6 +436,18 @@ func (o *Observer) SaveToDB() {
 	observer.AdditionalParams = o.AdditionalParams
 
 	observer.InsertIntoDB()
+}
+
+func (o *Observer) UpdateInDB() {
+	var observer db.Observer
+	observer.ID = o.ID
+	observer.Name = o.Name
+	observer.WardID = o.WardID
+	observer.OperatorID = o.OperatorID
+	observer.SendAccessTokenID = o.SendAccessTokenID
+	observer.AdditionalParams = o.AdditionalParams
+
+	observer.UpdateInDB()
 }
 
 func stringLengthCheck(s string) error {

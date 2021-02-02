@@ -522,6 +522,24 @@ func (o *Observer) SelectByNameAndWardID(name string, wardID int) {
 	o.parseAdditionalParams(additionalParams)
 }
 
+func (o *Observer) UpdateInDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	additionalParams := o.additionalParamsToJSON()
+
+	query := fmt.Sprintf(`UPDATE observer SET name='%s', ward_id=%d, operator_id=%d, send_access_token_id=%d,
+		additional_params='%s' WHERE id=%d`,
+		o.Name, o.WardID, o.OperatorID, o.SendAccessTokenID, additionalParams, o.ID)
+	sendUpdateQuery(dbase, query)
+}
+
 func (o *Observer) parseAdditionalParams(additionalParams string) {
 	if o.Name == "wall_post" {
 		values := []byte(additionalParams)

@@ -31,6 +31,58 @@ func addNewObserver(ward *data_manager.Ward) {
 	}
 }
 
+func UpdExistsObserver(wardName string) {
+	activity := "Observer update"
+
+	ward := selectDataOfExistsWard(wardName, activity)
+	observer := selectDataOfExistsObserver(ward, activity)
+	setObserverOperator(observer, activity)
+	setObserverSendAccessToken(observer, activity)
+	if observer.Name == "wall_post" {
+		setObserverWallPostAdditionalParams(observer, activity)
+	}
+	observer.UpdateInDB()
+
+	fmt.Printf("[%s] %s: Observer updated successfully...\n",
+		tools.GetCurrentDateAndTime(), activity)
+}
+
+func selectDataOfExistsObserver(ward *data_manager.Ward, activity string) *data_manager.Observer {
+	var observer data_manager.Observer
+	fmt.Print("Observers of this ward:\n")
+	observersTypes := []string{
+		"wall_post", "wall_reply", "photo", "photo_comment", "video", "video_comment", "board_post",
+	}
+	for i, item := range observersTypes {
+		fmt.Printf("%d - %s\n", i+1, item)
+	}
+	fmt.Print("--- Enter the number of name the observer of this ward and press «Enter»... ---\n> ")
+	strObserverTypeNumber := input.GetDataFromUser()
+	observerTypeNumber, err := strconv.Atoi(strObserverTypeNumber)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "invalid syntax") {
+			fmt.Printf("[%s] %s: Number of name the observer must be integer...\n",
+				tools.GetCurrentDateAndTime(), activity)
+			return selectDataOfExistsObserver(ward, activity)
+		} else {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}
+	if observerTypeNumber > 0 && observerTypeNumber <= len(observersTypes) {
+		err := observer.SelectFromDB(observersTypes[observerTypeNumber-1], ward.ID)
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	} else {
+		fmt.Printf("[%s] %s: Number of name the observer must be in the range from 1 to %d...\n",
+			tools.GetCurrentDateAndTime(), activity, len(observersTypes))
+		return selectDataOfExistsObserver(ward, activity)
+	}
+	return &observer
+}
+
 func setObserverOperator(observer *data_manager.Observer, activity string) {
 	fmt.Print("--- Enter the name of the operator for new observer and press «Enter»... ---\n> ")
 	operatorName := input.GetDataFromUser()

@@ -30,6 +30,36 @@ func AddNewWard() {
 		tools.GetCurrentDateAndTime(), activity)
 }
 
+func UpdExistsWard(wardName string) {
+	activity := "Ward update"
+
+	ward := selectDataOfExistsWard(wardName, activity)
+	setWardName(ward, activity)
+	setWardVkID(ward, activity)
+	setWardGetAccessToken(ward, activity)
+
+	ward.UpdateInDB()
+
+	fmt.Printf("[%s] %s: Ward updated successfully...\n",
+		tools.GetCurrentDateAndTime(), activity)
+}
+
+func selectDataOfExistsWard(wardName, activity string) *data_manager.Ward {
+	var ward data_manager.Ward
+	err := ward.SelectFromDB(wardName)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "no such ward found") {
+			fmt.Printf("[%s] %s: a ward with this name does not exist...\n",
+				tools.GetCurrentDateAndTime(), activity)
+			return nil
+		} else {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}
+	return &ward
+}
+
 func setWardName(ward *data_manager.Ward, activity string) {
 	fmt.Print("--- Enter a name for the new ward and press «Enter»... ---\n> ")
 	name := input.GetDataFromUser()

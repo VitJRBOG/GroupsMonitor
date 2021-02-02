@@ -329,6 +329,18 @@ func (w *Ward) SaveToDB() {
 	ward.InsertIntoDB()
 }
 
+func (w *Ward) UpdateInDB() {
+	var ward db.Ward
+	ward.ID = w.ID
+	ward.Name = w.Name
+	ward.VkID = w.VkID
+	ward.IsOwned = w.IsOwned
+	ward.LastTS = w.LastTS
+	ward.GetAccessTokenID = w.GetAccessTokenID
+
+	ward.UpdateDB()
+}
+
 type Observer db.Observer
 
 func (o *Observer) SetName(name string) {

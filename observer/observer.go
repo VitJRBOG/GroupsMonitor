@@ -187,7 +187,7 @@ func updateWard(ward *db.Ward, lastTS string) {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
-	ward.UpdateDB()
+	ward.UpdateInDB()
 }
 
 func getDataByCurrentObserver(observerName string, wardID int) (string, string, int) {

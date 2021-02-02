@@ -338,7 +338,7 @@ func (w *Ward) UpdateInDB() {
 	ward.LastTS = w.LastTS
 	ward.GetAccessTokenID = w.GetAccessTokenID
 
-	ward.UpdateDB()
+	ward.UpdateInDB()
 }
 
 type Observer db.Observer

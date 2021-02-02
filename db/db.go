@@ -370,7 +370,7 @@ func (w *Ward) SelectByName(name string) {
 	}
 }
 
-func (w *Ward) UpdateDB() {
+func (w *Ward) UpdateInDB() {
 	dbase := openDB()
 	defer func() {
 		err := dbase.Close()

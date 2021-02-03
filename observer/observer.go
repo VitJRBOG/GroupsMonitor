@@ -2,9 +2,9 @@ package observer
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsMonitor/db"
-	"github.com/VitJRBOG/GroupsMonitor/tools"
-	"github.com/VitJRBOG/GroupsMonitor/vkapi"
+	"github.com/VitJRBOG/GroupsObserver/db"
+	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/GroupsObserver/vkapi"
 	"runtime/debug"
 	"strconv"
 	"strings"

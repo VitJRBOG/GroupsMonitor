@@ -2,10 +2,10 @@ package ui
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsMonitor/observer"
-	"github.com/VitJRBOG/GroupsMonitor/tools"
-	"github.com/VitJRBOG/GroupsMonitor/ui/input"
-	"github.com/VitJRBOG/GroupsMonitor/ui/upd_data"
+	"github.com/VitJRBOG/GroupsObserver/observer"
+	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/GroupsObserver/ui/input"
+	"github.com/VitJRBOG/GroupsObserver/ui/upd_data"
 	"runtime/debug"
 	"strings"
 	"time"

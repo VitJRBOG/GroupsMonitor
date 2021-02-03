@@ -2,9 +2,9 @@ package upd_data
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsMonitor/data_manager"
-	"github.com/VitJRBOG/GroupsMonitor/tools"
-	"github.com/VitJRBOG/GroupsMonitor/ui/input"
+	"github.com/VitJRBOG/GroupsObserver/data_manager"
+	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/GroupsObserver/ui/input"
 	"runtime/debug"
 	"strings"
 )

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/VitJRBOG/GroupsMonitor/tools"
+	"github.com/VitJRBOG/GroupsObserver/tools"
 	_ "github.com/mattn/go-sqlite3"
 	"os"
 	"runtime/debug"

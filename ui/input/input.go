@@ -2,7 +2,7 @@ package input
 
 import (
 	"bufio"
-	"github.com/VitJRBOG/GroupsMonitor/tools"
+	"github.com/VitJRBOG/GroupsObserver/tools"
 	"os"
 	"runtime/debug"
 )

@@ -2,7 +2,7 @@ package vkapi
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsMonitor/tools"
+	"github.com/VitJRBOG/GroupsObserver/tools"
 	"runtime/debug"
 	"strings"
 )

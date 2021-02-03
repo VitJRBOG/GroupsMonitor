@@ -2,7 +2,7 @@ package data_manager
 
 import (
 	"errors"
-	"github.com/VitJRBOG/GroupsMonitor/db"
+	"github.com/VitJRBOG/GroupsObserver/db"
 	"strconv"
 	"strings"
 )

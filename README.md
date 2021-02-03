@@ -1,2 +1,2 @@
-# GroupsMonitor
-Monitor of updates at groups in VK.
+# GroupsObserver
+Monitoring for updates in the communities of VK.

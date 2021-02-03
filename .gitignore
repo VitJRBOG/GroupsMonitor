@@ -1,10 +1,4 @@
-.DS_Store
-.vscode/
 .idea/
-db/
-res/
-path.txt
+data/
+go_build_github_com_VitJRBOG_GroupsMonitor
 log.txt
-build_for_win.sh
-GroupsMonitor
-GroupsMonitor.exe

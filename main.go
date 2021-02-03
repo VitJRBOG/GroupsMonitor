@@ -1,11 +1,13 @@
 package main
 
-import "runtime/debug"
+import (
+	"github.com/VitJRBOG/GroupsMonitor/db"
+	"github.com/VitJRBOG/GroupsMonitor/tools"
+	"github.com/VitJRBOG/GroupsMonitor/ui"
+)
 
 func main() {
-	err := RunGui()
-	if err != nil {
-		ToLogFile(err.Error(), string(debug.Stack()))
-		panic(err.Error())
-	}
+	tools.LogFileInitialization()
+	dbHasBeenInitialized := db.Initialization()
+	ui.ShowUI(dbHasBeenInitialized)
 }

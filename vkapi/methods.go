@@ -50,7 +50,6 @@ type vkMessage struct {
 func (m *vkMessage) sendMessage(accessToken string) error {
 	text := m.makeTextForMessage()
 	values := m.makeMessageValues(m.PeerID, m.RandomID, text, m.Attachments)
-	// FIXME: не прикрепляет картинки
 	_, err := callMethod("messages.send", accessToken, values)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
@@ -85,11 +84,11 @@ func (m *vkMessage) makeTextForMessage() string {
 
 func (m *vkMessage) makeMessageValues(peerID, randomID int, text, attachments string) map[string]string {
 	values := map[string]string{
-		"peer_id":     strconv.Itoa(peerID),
-		"random_id":   strconv.Itoa(randomID),
-		"message":     text,
-		"attachments": attachments,
-		"v":           "5.126",
+		"peer_id":    strconv.Itoa(peerID),
+		"random_id":  strconv.Itoa(randomID),
+		"message":    text,
+		"attachment": attachments,
+		"v":          "5.126",
 	}
 	return values
 }

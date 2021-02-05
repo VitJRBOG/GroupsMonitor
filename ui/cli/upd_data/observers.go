@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/VitJRBOG/GroupsObserver/data_manager"
 	"github.com/VitJRBOG/GroupsObserver/tools"
-	"github.com/VitJRBOG/GroupsObserver/ui/input"
+	"github.com/VitJRBOG/GroupsObserver/ui/cli/input"
 	"runtime/debug"
 	"strconv"
 	"strings"

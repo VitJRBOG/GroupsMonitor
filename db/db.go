@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"github.com/VitJRBOG/GroupsObserver/tools"
 	_ "github.com/mattn/go-sqlite3"
-	"os"
-	"runtime/debug"
 )
 
 type AccessToken struct {
@@ -105,6 +103,24 @@ func (a *AccessToken) UpdateInDB() {
 
 	query := fmt.Sprintf(`UPDATE access_token SET name='%s', value='%s' WHERE id=%d`,
 		a.Name, a.Value, a.ID)
+	_, err := dbase.Exec(query)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
+func (a *AccessToken) DeleteFromDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf(`DELETE FROM access_token WHERE id=%d`, a.ID)
 	_, err := dbase.Exec(query)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
@@ -249,6 +265,24 @@ func (o *Operator) SelectByName(name string) {
 	}
 }
 
+func (o *Operator) DeleteFromDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf(`DELETE FROM operator WHERE id=%d`, o.ID)
+	_, err := dbase.Exec(query)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func SelectOperators() []Operator {
 	var operators []Operator
 
@@ -384,6 +418,24 @@ func (w *Ward) UpdateInDB() {
 		WHERE id=%d`,
 		w.Name, w.VkID, w.IsOwned, w.LastTS, w.GetAccessTokenID, w.ID)
 	sendUpdateQuery(dbase, query)
+}
+
+func (w *Ward) DeleteFromDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf(`DELETE FROM ward WHERE id=%d`, w.ID)
+	_, err := dbase.Exec(query)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 }
 
 func SelectWards() []Ward {
@@ -538,6 +590,24 @@ func (o *Observer) UpdateInDB() {
 		additional_params='%s' WHERE id=%d`,
 		o.Name, o.WardID, o.OperatorID, o.SendAccessTokenID, additionalParams, o.ID)
 	sendUpdateQuery(dbase, query)
+}
+
+func (o *Observer) DeleteFromDB() {
+	dbase := openDB()
+	defer func() {
+		err := dbase.Close()
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+	}()
+
+	query := fmt.Sprintf(`DELETE FROM observer WHERE id=%d`, o.ID)
+	_, err := dbase.Exec(query)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 }
 
 func (o *Observer) parseAdditionalParams(additionalParams string) {

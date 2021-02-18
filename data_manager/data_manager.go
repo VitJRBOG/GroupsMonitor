@@ -62,6 +62,21 @@ func (a *AccessToken) SelectFromDB(name string) error {
 	return nil
 }
 
+func (a *AccessToken) SelectFromDBByID(id int) error {
+	var accessToken db.AccessToken
+	accessToken.SelectByID(id)
+
+	a.ID = accessToken.ID
+	a.Name = accessToken.Name
+	a.Value = accessToken.Value
+
+	err := a.checkExistence()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *AccessToken) checkExistence() error {
 	if a.ID == 0 && a.Name == "" && a.Value == "" {
 		err := errors.New("no such access token found")
@@ -86,6 +101,32 @@ func (a *AccessToken) UpdateInDB() {
 	accessToken.Value = a.Value
 
 	accessToken.UpdateInDB()
+}
+
+func (a *AccessToken) DeleteFromDB() {
+	var accessToken db.AccessToken
+	accessToken.ID = a.ID
+	accessToken.Name = a.Name
+	accessToken.Value = a.Value
+
+	accessToken.DeleteFromDB()
+}
+
+func SelectAccessTokens() []AccessToken {
+	var accessTokens []AccessToken
+
+	ats := db.SelectAccessTokens()
+
+	for _, item := range ats {
+		var a AccessToken
+		a.ID = item.ID
+		a.Name = item.Name
+		a.Value = item.Value
+
+		accessTokens = append(accessTokens, a)
+	}
+
+	return accessTokens
 }
 
 type Operator db.Operator
@@ -168,6 +209,21 @@ func (o *Operator) SelectFromDB(name string) error {
 	return nil
 }
 
+func (o *Operator) SelectFromDBByID(id int) error {
+	var operator db.Operator
+	operator.SelectByID(id)
+
+	o.ID = operator.ID
+	o.Name = operator.Name
+	o.VkID = operator.VkID
+
+	err := o.checkExistence()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (o *Operator) checkExistence() error {
 	if o.ID == 0 && o.Name == "" && o.VkID == 0 {
 		err := errors.New("no such operator found")
@@ -191,6 +247,32 @@ func (o *Operator) UpdateIdDB() {
 	operator.VkID = o.VkID
 
 	operator.UpdateInDB()
+}
+
+func (o *Operator) DeleteFromDB() {
+	var operator db.Operator
+	operator.ID = o.ID
+	operator.Name = o.Name
+	operator.VkID = o.VkID
+
+	operator.DeleteFromDB()
+}
+
+func SelectOperators() []Operator {
+	var operators []Operator
+
+	oprs := db.SelectOperators()
+
+	for _, item := range oprs {
+		var o Operator
+		o.ID = item.ID
+		o.Name = item.Name
+		o.VkID = item.VkID
+
+		operators = append(operators, o)
+	}
+
+	return operators
 }
 
 type Ward db.Ward
@@ -310,6 +392,24 @@ func (w *Ward) SelectFromDB(name string) error {
 	return nil
 }
 
+func (w *Ward) SelectFromDBByID(id int) error {
+	var ward db.Ward
+	ward.SelectByID(id)
+
+	w.ID = ward.ID
+	w.Name = ward.Name
+	w.VkID = ward.VkID
+	w.IsOwned = ward.IsOwned
+	w.LastTS = ward.LastTS
+	w.GetAccessTokenID = ward.GetAccessTokenID
+
+	err := w.checkExistence()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (w *Ward) checkExistence() error {
 	if w.ID == 0 && w.Name == "" && w.VkID == 0 && w.IsOwned == 0 && w.LastTS == 0 && w.GetAccessTokenID == 0 {
 		err := errors.New("no such ward found")
@@ -339,6 +439,38 @@ func (w *Ward) UpdateInDB() {
 	ward.GetAccessTokenID = w.GetAccessTokenID
 
 	ward.UpdateInDB()
+}
+
+func (w *Ward) DeleteFromDB() {
+	var ward db.Ward
+	ward.ID = w.ID
+	ward.Name = w.Name
+	ward.VkID = w.VkID
+	ward.IsOwned = w.IsOwned
+	ward.LastTS = w.LastTS
+	ward.GetAccessTokenID = w.GetAccessTokenID
+
+	ward.DeleteFromDB()
+}
+
+func SelectWards() []Ward {
+	var wards []Ward
+
+	ws := db.SelectWards()
+
+	for _, item := range ws {
+		var w Ward
+		w.ID = item.ID
+		w.Name = item.Name
+		w.VkID = item.VkID
+		w.IsOwned = item.IsOwned
+		w.LastTS = item.LastTS
+		w.GetAccessTokenID = item.GetAccessTokenID
+
+		wards = append(wards, w)
+	}
+
+	return wards
 }
 
 type Observer db.Observer
@@ -448,6 +580,18 @@ func (o *Observer) UpdateInDB() {
 	observer.AdditionalParams = o.AdditionalParams
 
 	observer.UpdateInDB()
+}
+
+func (o *Observer) DeleteFromDB() {
+	var observer db.Observer
+	observer.ID = o.ID
+	observer.Name = o.Name
+	observer.WardID = o.WardID
+	observer.OperatorID = o.OperatorID
+	observer.SendAccessTokenID = o.SendAccessTokenID
+	observer.AdditionalParams = o.AdditionalParams
+
+	observer.DeleteFromDB()
 }
 
 func stringLengthCheck(s string) error {

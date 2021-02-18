@@ -1,0 +1,89 @@
+{{ define "ward_new" }}
+
+{{ template "header" }}
+
+<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+
+  <header class="mb-auto">
+    <div>
+      <h3 class="float-md-start mb-0">GroupsObserver</h3>
+      <nav class="nav nav-masthead justify-content-center float-md-end">
+        <a class="nav-link" href="/">Общее</a>
+        <a class="nav-link" href="/observers">Наблюдатели</a>
+        <a class="nav-link active" aria-current="page" href="/settings">Параметры</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="px-3">
+    <h1>Параметры подопечного</h1>
+    <form action="/settings/wards/new/create" method="post">
+      <label for="name">Название</label>
+      <input type="text" class="form-control w-100" id="name" name="name"
+             placeholder="Введите название подопечного"><br>
+      <label for="vk_id">Идентификатор в ВК</label>
+      <input type="text" class="form-control w-100" id="vk_id" name="vk_id"
+             placeholder="Введите идентификатор подопечного в ВК">
+      <br>
+      <label for="get_access_token">Ключ доступа для получения</label>
+      <select class="form-control w-100" id="get_access_token" name="get_access_token">
+        <option selected></option>
+        {{ range .AccessTokens }}
+        <option value="{{ .Name }}">{{ .Name }}</option>
+        {{ end }}
+      </select>
+
+      {{ $observers_types := .ObserversTypes }}
+      {{ $operators := .Operators }}
+      {{ $access_tokens := .AccessTokens }}
+      {{ $wall_post_types := .WallPostTypes }}
+      {{ $wall_post_types_ru := .WallPostTypesRu }}
+
+      {{ range $i, $observer := .Observers }}
+      <br>
+      <h5>{{ index $observers_types $i }}</h5>
+      {{ if (eq $observer.Name "wall_post") }}
+      <label for="post_type">Типы постов</label>
+      <select class="form-control w-100" id="post_type" name="post_type">
+        <option selected></option>
+        {{ range $n, $post_type := $wall_post_types }}
+        <option value="{{ $post_type }}">{{ index $wall_post_types_ru $n }}</option>
+        {{ end }}
+      </select>
+      <br>
+      {{ end }}
+      <label for="{{ $observer.Name }}_operator">Оператор</label>
+      <select class="form-control w-100" id="{{ $observer.Name }}_operator"
+              name="{{ $observer.Name }}_operator">
+        <option selected></option>
+        {{ range $operators }}
+        {{ $operator_id := .ID }}
+        {{ $operator_name := .Name }}
+        <option value="{{ $operator_name }}">{{ .Name }}</option>
+        {{ end }}
+      </select>
+      <br>
+      <label for="{{ $observer.Name }}_send_access_token">Ключ доступа для отправки</label>
+      <select class="form-control w-100" id="{{ $observer.Name }}_send_access_token"
+              name="{{ $observer.Name }}_send_access_token">
+        <option selected></option>
+        {{ range $access_tokens }}
+        {{ $access_token_id := .ID }}
+        {{ $access_token_name := .Name }}
+        <option value="{{ $access_token_name }}">{{ .Name }}</option>
+        {{ end }}
+      </select>
+      {{ end }}
+
+      <br>
+      <div class="pt-3 pb-2 mb-2">
+        <button class="btn btn-sm btn-outline-warning">
+          Добавить новую запись
+        </button>
+      </div>
+    </form>
+  </main>
+
+  {{ template "footer" }}
+
+  {{ end }}

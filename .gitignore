@@ -1,4 +1,6 @@
+.DS_Store
 .idea/
+.vscode/
 data/
 go_build_github_com_VitJRBOG_GroupsObserver
 log.txt

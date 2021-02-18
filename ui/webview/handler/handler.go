@@ -1,4 +1,4 @@
-package webview
+package handler
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func initHandler() {
+func InitHandler() {
 	rtr := mux.NewRouter()
 	rtr.HandleFunc("/", homePageHandler).Methods("GET")
 	rtr.HandleFunc("/observers", observersPageHandler).Methods("GET")

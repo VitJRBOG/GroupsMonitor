@@ -23,32 +23,32 @@ func InitHandler() {
 	rtr.HandleFunc("/settings/access_tokens/new", accessTokenNewPageHandler).Methods("GET", "POST")
 	rtr.HandleFunc("/settings/access_tokens/new/create",
 		accessTokenCreateNewPageHandler).Methods("POST")
-	rtr.HandleFunc("/settings/access_tokens/{id:[1-9]+}",
+	rtr.HandleFunc("/settings/access_tokens/{id:[0-9]+}",
 		accessTokenSettingsPageHandler).Methods("GET", "POST")
-	rtr.HandleFunc("/settings/access_tokens/{id:[1-9]+}/delete",
+	rtr.HandleFunc("/settings/access_tokens/{id:[0-9]+}/delete",
 		accessTokenDeletePageHandler).Methods("POST")
-	rtr.HandleFunc("/settings/access_token_settings/{id:[1-9]+}/update",
+	rtr.HandleFunc("/settings/access_token_settings/{id:[0-9]+}/update",
 		accessTokenUpdatePageHandler).Methods("POST")
 
 	rtr.HandleFunc("/settings/operators", operatorsPageHandler).Methods("GET", "POST")
 	rtr.HandleFunc("/settings/operators/new", operatorNewPageHandler).Methods("GET", "POST")
 	rtr.HandleFunc("/settings/operators/new/create", operatorCreateNewPageHandler).Methods("POST")
-	rtr.HandleFunc("/settings/operators/{id:[1-9]+}",
+	rtr.HandleFunc("/settings/operators/{id:[0-9]+}",
 		operatorSettingsPageHandler).Methods("GET", "POST")
-	rtr.HandleFunc("/settings/operators/{id:[1-9]+}/delete",
+	rtr.HandleFunc("/settings/operators/{id:[0-9]+}/delete",
 		operatorDeletePageHandler).Methods("POST")
-	rtr.HandleFunc("/settings/operator_settings/{id:[1-9]+}/update",
+	rtr.HandleFunc("/settings/operator_settings/{id:[0-9]+}/update",
 		operatorUpdatePageHandler).Methods("POST")
 
 	rtr.HandleFunc("/settings/wards", wardsPageHandler).Methods("GET", "POST")
 	rtr.HandleFunc("/settings/wards/new", wardNewPageHandler).Methods("GET", "POST")
 	rtr.HandleFunc("/settings/wards/new/create",
 		wardCreateNewPageHandler).Methods("POST")
-	rtr.HandleFunc("/settings/wards/{id:[1-9]+}",
+	rtr.HandleFunc("/settings/wards/{id:[0-9]+}",
 		wardSettingsPageHandler).Methods("GET", "POST")
-	rtr.HandleFunc("/settings/wards/{id:[1-9]+}/delete",
+	rtr.HandleFunc("/settings/wards/{id:[0-9]+}/delete",
 		wardDeletePageHandler).Methods("POST")
-	rtr.HandleFunc("/settings/ward_settings/{id:[1-9]+}/update",
+	rtr.HandleFunc("/settings/ward_settings/{id:[0-9]+}/update",
 		wardUpdatePageHandler).Methods("POST")
 
 	pathToResourcesWebview := tools.GetPath("ui/webview/")

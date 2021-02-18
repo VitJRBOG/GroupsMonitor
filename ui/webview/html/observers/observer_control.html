@@ -1,4 +1,4 @@
-{{ define "observers" }}
+{{ define "observer_control" }}
 
 {{ template "header" }}
 
@@ -16,17 +16,28 @@
   </header>
 
   <main class="px-3">
-    {{ range . }}
 
-    <form action="/observers/{{ .ID }}" method="post">
+    <h1>{{ .Name }}</h1>
+
+    <form action="/observers/{{ .ID }}/turn_on" method="post">
       <div class="pt-3 pb-2 mb-2">
-        <button class="btn btn-sm btn-outline-light">
-          {{ .Name }}
+        <button
+        {{ if (eq .UnderObservation 1) }} disabled {{ end }}
+        class="btn btn-sm btn-outline-light">
+          Запустить
         </button>
       </div>
     </form>
 
-    {{ end }}
+    <form action="/observers/{{ .ID }}/turn_off" method="post">
+      <div class="pt-3 pb-2 mb-2">
+        <button
+        {{ if (eq .UnderObservation 0) }} disabled {{ end }}
+        class="btn btn-sm btn-outline-light">
+          Остановить
+        </button>
+      </div>
+    </form>
 
   </main>
 

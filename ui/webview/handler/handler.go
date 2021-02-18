@@ -10,8 +10,20 @@ import (
 
 func InitHandler() {
 	rtr := mux.NewRouter()
+
+	// General part //
+
 	rtr.HandleFunc("/", homePageHandler).Methods("GET")
+
+	// Observers part //
+
 	rtr.HandleFunc("/observers", observersPageHandler).Methods("GET")
+	rtr.HandleFunc("/observers/{id:[0-9]+}", observerControlPageHandler).Methods("GET", "POST")
+	rtr.HandleFunc("/observers/{id:[0-9]+}/turn_on", observerTurnOnPageHandler).Methods("POST")
+	rtr.HandleFunc("/observers/{id:[0-9]+}/turn_off", observerTurnOffPageHandler).Methods("POST")
+
+	// Settings part //
+
 	rtr.HandleFunc("/settings", settingsPageHandler).Methods("GET")
 
 	rtr.HandleFunc("/settings/access_tokens", accessTokensPageHandler).Methods("GET", "POST")
@@ -46,6 +58,8 @@ func InitHandler() {
 	rtr.HandleFunc("/settings/wards/{id:[0-9]+}/update",
 		wardUpdatePageHandler).Methods("POST")
 
+	//
+
 	pathToResourcesWebview := tools.GetPath("ui/webview/")
 
 	http.Handle("/static/", http.StripPrefix("/static/",
@@ -64,6 +78,7 @@ func getHtmlTemplates() *template.Template {
 		pathToResourcesWebview+"html/header.html",
 		pathToResourcesWebview+"html/general/index.html",
 		pathToResourcesWebview+"html/observers/observers.html",
+		pathToResourcesWebview+"html/observers/observer_control.html",
 		pathToResourcesWebview+"html/settings/settings.html",
 		pathToResourcesWebview+"html/settings/access_tokens.html",
 		pathToResourcesWebview+"html/settings/access_token_new.html",

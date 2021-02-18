@@ -2,13 +2,14 @@ package observer
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsObserver/db"
-	"github.com/VitJRBOG/GroupsObserver/tools"
-	"github.com/VitJRBOG/GroupsObserver/vkapi"
 	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/VitJRBOG/GroupsObserver/db"
+	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/GroupsObserver/vkapi"
 )
 
 type ModuleParams struct {
@@ -28,7 +29,7 @@ func MakeObservers() []*ModuleParams {
 
 		var p ModuleParams
 		p.Name = fmt.Sprintf("%s observer", ward.Name)
-		p.Status = "stopped"
+		p.Status = "inactive"
 		p.Ward = ward
 		p.Message = make(chan string)
 		params = append(params, &p)
@@ -37,31 +38,44 @@ func MakeObservers() []*ModuleParams {
 }
 
 func StartObserver(params *ModuleParams) {
-	params.Status = "launched"
-	params.Message <- "It begins..."
+	afterTurningOff := true
 	for true {
-		params.Status = "active"
-		var accessToken db.AccessToken
-		accessToken.SelectByID(params.Ward.GetAccessTokenID)
-		respLPS := vkapi.ListenLongPollServer(accessToken.Value, -(params.Ward.VkID), params.Ward.LastTS)
-		params.Status = "processing"
-		err := parseLongPollServerResponse(respLPS, &params.Ward)
-		if err != nil {
-			if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
-				params.Status = "waiting for 5 minutes"
-				params.Message <- fmt.Sprintf("ERROR: «%s»", err.Error())
-				time.Sleep(5 * time.Minute)
-				params.Message <- "Let's get back to work..."
-			} else {
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
+		if params.Ward.UnderObservation == 1 {
+			params.Status = "active"
+			if afterTurningOff {
+				params.Message <- "It begins..."
+				afterTurningOff = false
 			}
+			var accessToken db.AccessToken
+			accessToken.SelectByID(params.Ward.GetAccessTokenID)
+			respLPS := vkapi.ListenLongPollServer(accessToken.Value, -(params.Ward.VkID), params.Ward.LastTS)
+			params.Status = "processing"
+			err := parseLongPollServerResponse(respLPS, &params.Ward)
+			if err != nil {
+				if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
+					params.Status = "waiting for 5 minutes"
+					params.Message <- fmt.Sprintf("ERROR: «%s»", err.Error())
+					time.Sleep(5 * time.Minute)
+					params.Message <- "Let's get back to work..."
+				} else {
+					tools.WriteToLog(err, debug.Stack())
+					panic(err.Error())
+				}
+			}
+			if params.BrakeFlag {
+				params.Status = "stopped"
+				params.Message <- "Was stopped by user"
+				break
+			}
+		} else {
+			params.Status = "inactive"
+			if !(afterTurningOff) {
+				params.Message <- "My journey has reached a close..."
+			}
+			time.Sleep(5 * time.Second)
+			afterTurningOff = true
 		}
-		if params.BrakeFlag {
-			params.Status = "stopped"
-			params.Message <- "Was stopped by user"
-			break
-		}
+		params.Ward.SelectByID(params.Ward.ID)
 	}
 }
 

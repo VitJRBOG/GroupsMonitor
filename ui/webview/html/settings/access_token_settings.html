@@ -17,7 +17,7 @@
 
   <main class="px-3">
     <h1>Параметры ключа доступа</h1>
-    <form action="/settings/access_token_settings/{{ .ID }}/update" method="post">
+    <form action="/settings/access_tokens/{{ .ID }}/update" method="post">
       <a>Название:</a>
       <input type="text" class="form-control w-100" id="name" name="name"
                 placeholder="{{ .Name }}" style="width: 100%"><br>

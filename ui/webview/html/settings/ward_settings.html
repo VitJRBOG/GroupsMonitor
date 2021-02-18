@@ -17,7 +17,7 @@
 
   <main class="px-3">
     <h1>Параметры подопечного</h1>
-    <form action="/settings/ward_settings/{{ .Ward.ID }}/update" method="post">
+    <form action="/settings/wards/{{ .Ward.ID }}/update" method="post">
       <label for="name">Название</label>
       <input type="text" class="form-control w-100" id="name" name="name"
              placeholder="{{ .Ward.Name }}"><br>

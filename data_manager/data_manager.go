@@ -2,9 +2,10 @@ package data_manager
 
 import (
 	"errors"
-	"github.com/VitJRBOG/GroupsObserver/db"
 	"strconv"
 	"strings"
+
+	"github.com/VitJRBOG/GroupsObserver/db"
 )
 
 type AccessToken db.AccessToken
@@ -351,6 +352,14 @@ func (w *Ward) checkNegativeNumber(vkID int) error {
 	return nil
 }
 
+func (w *Ward) SetObservationFlag(underObservation bool) {
+	if underObservation {
+		w.UnderObservation = 1
+	} else {
+		w.UnderObservation = 0
+	}
+}
+
 func (w *Ward) SetAccessToken(accessTokenName string) error {
 	err := stringLengthCheck(accessTokenName)
 	if err != nil {
@@ -382,6 +391,7 @@ func (w *Ward) SelectFromDB(name string) error {
 	w.Name = ward.Name
 	w.VkID = ward.VkID
 	w.IsOwned = ward.IsOwned
+	w.UnderObservation = ward.UnderObservation
 	w.LastTS = ward.LastTS
 	w.GetAccessTokenID = ward.GetAccessTokenID
 
@@ -400,6 +410,7 @@ func (w *Ward) SelectFromDBByID(id int) error {
 	w.Name = ward.Name
 	w.VkID = ward.VkID
 	w.IsOwned = ward.IsOwned
+	w.UnderObservation = ward.UnderObservation
 	w.LastTS = ward.LastTS
 	w.GetAccessTokenID = ward.GetAccessTokenID
 
@@ -411,7 +422,8 @@ func (w *Ward) SelectFromDBByID(id int) error {
 }
 
 func (w *Ward) checkExistence() error {
-	if w.ID == 0 && w.Name == "" && w.VkID == 0 && w.IsOwned == 0 && w.LastTS == 0 && w.GetAccessTokenID == 0 {
+	if w.ID == 0 && w.Name == "" && w.VkID == 0 && w.IsOwned == 0 && w.UnderObservation == 0 &&
+		w.LastTS == 0 && w.GetAccessTokenID == 0 {
 		err := errors.New("no such ward found")
 		return err
 	}
@@ -423,6 +435,7 @@ func (w *Ward) SaveToDB() {
 	ward.Name = w.Name
 	ward.VkID = w.VkID
 	ward.IsOwned = 1
+	ward.UnderObservation = w.UnderObservation
 	ward.LastTS = 1
 	ward.GetAccessTokenID = w.GetAccessTokenID
 
@@ -435,6 +448,7 @@ func (w *Ward) UpdateInDB() {
 	ward.Name = w.Name
 	ward.VkID = w.VkID
 	ward.IsOwned = w.IsOwned
+	ward.UnderObservation = w.UnderObservation
 	ward.LastTS = w.LastTS
 	ward.GetAccessTokenID = w.GetAccessTokenID
 
@@ -447,6 +461,7 @@ func (w *Ward) DeleteFromDB() {
 	ward.Name = w.Name
 	ward.VkID = w.VkID
 	ward.IsOwned = w.IsOwned
+	ward.UnderObservation = w.UnderObservation
 	ward.LastTS = w.LastTS
 	ward.GetAccessTokenID = w.GetAccessTokenID
 
@@ -464,6 +479,7 @@ func SelectWards() []Ward {
 		w.Name = item.Name
 		w.VkID = item.VkID
 		w.IsOwned = item.IsOwned
+		w.UnderObservation = item.UnderObservation
 		w.LastTS = item.LastTS
 		w.GetAccessTokenID = item.GetAccessTokenID
 

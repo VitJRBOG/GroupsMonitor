@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
+	"runtime/debug"
+
 	"github.com/VitJRBOG/GroupsObserver/tools"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -323,6 +326,7 @@ type Ward struct {
 	Name             string `json:"name"`
 	VkID             int    `json:"vk_id"`
 	IsOwned          int    `json:"is_owned"`
+	UnderObservation int    `json:"under_observation"`
 	LastTS           int    `json:"last_ts"`
 	GetAccessTokenID int    `json:"get_access_token_id"`
 }
@@ -337,8 +341,9 @@ func (w *Ward) InsertIntoDB() {
 		}
 	}()
 
-	query := fmt.Sprintf("INSERT INTO ward (name, vk_id, is_owned, last_ts, get_access_token_id) VALUES ('%s', %d, %d, %d, %d)",
-		w.Name, w.VkID, w.IsOwned, w.LastTS, w.GetAccessTokenID)
+	query := fmt.Sprintf("INSERT INTO ward (name, vk_id, is_owned, under_observation, "+
+		"last_ts, get_access_token_id) VALUES ('%s', %d, %d, %d, %d, %d)",
+		w.Name, w.VkID, w.IsOwned, w.UnderObservation, w.LastTS, w.GetAccessTokenID)
 	_, err := dbase.Exec(query)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
@@ -367,7 +372,8 @@ func (w *Ward) SelectByID(id int) {
 	}()
 
 	for rows.Next() {
-		err := rows.Scan(&w.ID, &w.Name, &w.VkID, &w.IsOwned, &w.LastTS, &w.GetAccessTokenID)
+		err := rows.Scan(&w.ID, &w.Name, &w.VkID, &w.IsOwned,
+			&w.UnderObservation, &w.LastTS, &w.GetAccessTokenID)
 		if err != nil {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
@@ -396,7 +402,8 @@ func (w *Ward) SelectByName(name string) {
 	}()
 
 	for rows.Next() {
-		err := rows.Scan(&w.ID, &w.Name, &w.VkID, &w.IsOwned, &w.LastTS, &w.GetAccessTokenID)
+		err := rows.Scan(&w.ID, &w.Name, &w.VkID, &w.IsOwned,
+			&w.UnderObservation, &w.LastTS, &w.GetAccessTokenID)
 		if err != nil {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
@@ -414,9 +421,10 @@ func (w *Ward) UpdateInDB() {
 		}
 	}()
 
-	query := fmt.Sprintf(`UPDATE ward SET name='%s', vk_id=%d, is_owned=%d, last_ts=%d, get_access_token_id=%d 
+	query := fmt.Sprintf(`UPDATE ward SET name='%s', vk_id=%d, is_owned=%d,  
+		under_observation=%d, last_ts=%d, get_access_token_id=%d 
 		WHERE id=%d`,
-		w.Name, w.VkID, w.IsOwned, w.LastTS, w.GetAccessTokenID, w.ID)
+		w.Name, w.VkID, w.IsOwned, w.UnderObservation, w.LastTS, w.GetAccessTokenID, w.ID)
 	sendUpdateQuery(dbase, query)
 }
 
@@ -462,7 +470,8 @@ func SelectWards() []Ward {
 
 	for rows.Next() {
 		var w Ward
-		err := rows.Scan(&w.ID, &w.Name, &w.VkID, &w.IsOwned, &w.LastTS, &w.GetAccessTokenID)
+		err := rows.Scan(&w.ID, &w.Name, &w.VkID, &w.IsOwned,
+			&w.UnderObservation, &w.LastTS, &w.GetAccessTokenID)
 		if err != nil {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
@@ -671,10 +680,10 @@ func initDB() {
 			"operator_id"	INTEGER NOT NULL,
 			"send_access_token_id"	INTEGER NOT NULL,
 			"additional_params"	TEXT NOT NULL DEFAULT '{}',
-			PRIMARY KEY("id" AUTOINCREMENT),
-			FOREIGN KEY("operator_id") REFERENCES "observer"("id"),
 			FOREIGN KEY("send_access_token_id") REFERENCES "access_token"("id"),
-			FOREIGN KEY("ward_id") REFERENCES "ward"("id")
+			FOREIGN KEY("ward_id") REFERENCES "ward"("id"),
+			FOREIGN KEY("operator_id") REFERENCES "observer"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
 		);
 		CREATE TABLE IF NOT EXISTS "operator" (
 			"id"	INTEGER NOT NULL UNIQUE,
@@ -687,10 +696,11 @@ func initDB() {
 			"name"	TEXT NOT NULL UNIQUE,
 			"vk_id"	INTEGER NOT NULL UNIQUE,
 			"is_owned"	INTEGER NOT NULL,
+			"under_observation"	INTEGER NOT NULL,
 			"last_ts"	INTEGER NOT NULL,
 			"get_access_token_id"	INTEGER NOT NULL,
-			PRIMARY KEY("id" AUTOINCREMENT),
-			FOREIGN KEY("get_access_token_id") REFERENCES "access_token"("id")
+			FOREIGN KEY("get_access_token_id") REFERENCES "access_token"("id"),
+			PRIMARY KEY("id" AUTOINCREMENT)
 		);
 		COMMIT;`)
 	sendUpdateQuery(dbase, query)

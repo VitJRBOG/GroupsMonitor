@@ -2,6 +2,7 @@ package tools
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -25,4 +26,22 @@ func ConvertUnixTimeToDate(ut int) string {
 	dateFormat := "02.01.2006 15:04:05"
 	date := t.Format(dateFormat)
 	return date
+}
+
+func ReadJSON(path string) ([]byte, error) {
+	rawData, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return rawData, nil
+}
+
+func WriteJSON(path string, raw []byte) error {
+	err := ioutil.WriteFile(path, raw, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

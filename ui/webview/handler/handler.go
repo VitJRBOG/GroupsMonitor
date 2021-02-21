@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 
 	"github.com/VitJRBOG/GroupsObserver/tools"
 	"github.com/gorilla/mux"
@@ -61,11 +64,15 @@ func InitHandler() {
 	//
 
 	pathToResourcesWebview := tools.GetPath("ui/webview/")
+	cfg, err := getConfigs()
+	if err != nil {
+		panic(err.Error())
+	}
 
 	http.Handle("/static/", http.StripPrefix("/static/",
 		http.FileServer(http.Dir(pathToResourcesWebview+"./static/"))))
 	http.Handle("/", rtr)
-	err := http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -94,4 +101,44 @@ func getHtmlTemplates() *template.Template {
 		panic(err.Error())
 	}
 	return t
+}
+
+type serverConfig struct {
+	Port int `json:"port"`
+}
+
+func getConfigs() (serverConfig, error) {
+	var cfg serverConfig
+
+	pathToCfg := tools.GetPath("config.json")
+
+	if _, err := os.Stat(pathToCfg); os.IsNotExist(err) {
+		initConfig(pathToCfg)
+	}
+
+	jsonRaw, err := tools.ReadJSON(pathToCfg)
+
+	err = json.Unmarshal(jsonRaw, &cfg)
+	if err != nil {
+		return cfg, err
+	}
+
+	return cfg, nil
+}
+
+func initConfig(path string) error {
+	var cfg serverConfig
+	cfg.Port = 8080
+
+	jsonRaw, err := json.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = tools.WriteJSON(path, jsonRaw)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

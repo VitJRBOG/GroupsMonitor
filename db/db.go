@@ -543,7 +543,7 @@ func (o *Observer) SelectByID(id int) {
 
 	var additionalParams string
 	for rows.Next() {
-		err := rows.Scan(&o.ID, &o.Name, &o.WardID, &o.SendAccessTokenID, &additionalParams)
+		err := rows.Scan(&o.ID, &o.Name, &o.WardID, &o.OperatorID, &o.SendAccessTokenID, &additionalParams)
 		if err != nil {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())

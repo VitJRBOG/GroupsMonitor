@@ -17,26 +17,36 @@
 
   <main class="px-3">
 
-    {{ $ward_id := .WardID }}
-    {{ $observers_types_ru := .ObserversTypesRu }}
+    <center>
+    <table>
 
-    {{ range $i, $observer := .Observers }}
+      {{ $ward_id := .WardID }}
+      {{ $observers_types_ru := .ObserversTypesRu }}
 
-    <form action="/observers/{{ $ward_id }}/toggle/{{ .Name }}" method="post">
-      <div class="pt-3 pb-2 mb-2">
+      {{ range $i, $observer := .Observers }}
 
-        <label>{{ index $observers_types_ru $i }}</label>
+      <tr>
+        <td>
+          <label>{{ index $observers_types_ru $i }}:</label>
+        </td>
+        <td></td>
+        <td>
+          <form action="/observers/{{ $ward_id }}/toggle/{{ .Name }}" method="post">
+            <div class="pt-3 pb-2 mb-2">
+              {{ if (eq .UnderObservation 1) }}
+              <button class="btn btn-sm btn-outline-danger">Выкл.</button>
+              {{ else }}
+              <button class="btn btn-sm btn-outline-success">Вкл.</button>
+              {{ end }}
+            </div>
+          </form>
+        </td>
+      </tr>
 
-        {{ if (eq .UnderObservation 1) }}
-        <button class="btn btn-sm btn-outline-danger">Выкл.</button>
-        {{ else }}
-        <button class="btn btn-sm btn-outline-success">Вкл.</button>
-        {{ end }}
-        
-      </div>
-    </form>
+      {{ end }}
 
-    {{ end }}
+    </table>
+  </center>
 
   </main>
 

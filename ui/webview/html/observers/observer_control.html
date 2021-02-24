@@ -22,8 +22,13 @@
     <form action="/observers/{{ .ID }}/turn_on" method="post">
       <div class="pt-3 pb-2 mb-2">
         <button
-        {{ if (eq .UnderObservation 1) }} disabled {{ end }}
-        class="btn btn-sm btn-outline-light">
+        {{ if (eq .UnderObservation 1) }} 
+        disabled 
+        class="btn btn-sm btn-outline-light"
+        {{ else }}
+        class="btn btn-sm btn-outline-success"
+        {{ end }}
+        >
           Запустить
         </button>
       </div>
@@ -32,8 +37,13 @@
     <form action="/observers/{{ .ID }}/turn_off" method="post">
       <div class="pt-3 pb-2 mb-2">
         <button
-        {{ if (eq .UnderObservation 0) }} disabled {{ end }}
-        class="btn btn-sm btn-outline-light">
+        {{ if (eq .UnderObservation 0) }} 
+        disabled 
+        class="btn btn-sm btn-outline-light"
+        {{ else }}
+        class="btn btn-sm btn-outline-warning"
+        {{ end }}
+        >
           Остановить
         </button>
       </div>

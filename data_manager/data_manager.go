@@ -522,6 +522,14 @@ func (o *Observer) SetOperator(operatorName string) error {
 	return nil
 }
 
+func (o *Observer) SetObservationFlag(underObservation bool) {
+	if underObservation {
+		o.UnderObservation = 1
+	} else {
+		o.UnderObservation = 0
+	}
+}
+
 func (o *Observer) SetAccessToken(accessTokenName string) error {
 	err := stringLengthCheck(accessTokenName)
 	if err != nil {
@@ -557,6 +565,7 @@ func (o *Observer) SelectFromDB(name string, wardID int) error {
 	o.Name = observer.Name
 	o.WardID = observer.WardID
 	o.OperatorID = observer.OperatorID
+	o.UnderObservation = observer.UnderObservation
 	o.SendAccessTokenID = observer.SendAccessTokenID
 	o.AdditionalParams = observer.AdditionalParams
 
@@ -580,6 +589,7 @@ func (o *Observer) SaveToDB() {
 	observer.Name = o.Name
 	observer.WardID = o.WardID
 	observer.OperatorID = o.OperatorID
+	observer.UnderObservation = o.UnderObservation
 	observer.SendAccessTokenID = o.SendAccessTokenID
 	observer.AdditionalParams = o.AdditionalParams
 
@@ -592,6 +602,7 @@ func (o *Observer) UpdateInDB() {
 	observer.Name = o.Name
 	observer.WardID = o.WardID
 	observer.OperatorID = o.OperatorID
+	observer.UnderObservation = o.UnderObservation
 	observer.SendAccessTokenID = o.SendAccessTokenID
 	observer.AdditionalParams = o.AdditionalParams
 
@@ -604,6 +615,7 @@ func (o *Observer) DeleteFromDB() {
 	observer.Name = o.Name
 	observer.WardID = o.WardID
 	observer.OperatorID = o.OperatorID
+	observer.UnderObservation = o.UnderObservation
 	observer.SendAccessTokenID = o.SendAccessTokenID
 	observer.AdditionalParams = o.AdditionalParams
 

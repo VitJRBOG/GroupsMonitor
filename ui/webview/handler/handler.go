@@ -22,8 +22,8 @@ func InitHandler() {
 
 	rtr.HandleFunc("/observers", observersPageHandler).Methods("GET")
 	rtr.HandleFunc("/observers/{id:[0-9]+}", observerControlPageHandler).Methods("GET", "POST")
-	rtr.HandleFunc("/observers/{id:[0-9]+}/turn_on", observerTurnOnPageHandler).Methods("POST")
-	rtr.HandleFunc("/observers/{id:[0-9]+}/turn_off", observerTurnOffPageHandler).Methods("POST")
+	rtr.HandleFunc("/observers/{id:[0-9]+}/toggle/{name:[a-zA-Z_]+}",
+		observerTogglePageHandler).Methods("POST")
 
 	// Settings part //
 

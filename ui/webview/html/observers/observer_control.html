@@ -17,37 +17,26 @@
 
   <main class="px-3">
 
-    <h1>{{ .Name }}</h1>
+    {{ $ward_id := .WardID }}
+    {{ $observers_types_ru := .ObserversTypesRu }}
 
-    <form action="/observers/{{ .ID }}/turn_on" method="post">
+    {{ range $i, $observer := .Observers }}
+
+    <form action="/observers/{{ $ward_id }}/toggle/{{ .Name }}" method="post">
       <div class="pt-3 pb-2 mb-2">
-        <button
-        {{ if (eq .UnderObservation 1) }} 
-        disabled 
-        class="btn btn-sm btn-outline-light"
+
+        <label>{{ index $observers_types_ru $i }}</label>
+
+        {{ if (eq .UnderObservation 1) }}
+        <button class="btn btn-sm btn-outline-danger">Выкл.</button>
         {{ else }}
-        class="btn btn-sm btn-outline-success"
+        <button class="btn btn-sm btn-outline-success">Вкл.</button>
         {{ end }}
-        >
-          Запустить
-        </button>
+        
       </div>
     </form>
 
-    <form action="/observers/{{ .ID }}/turn_off" method="post">
-      <div class="pt-3 pb-2 mb-2">
-        <button
-        {{ if (eq .UnderObservation 0) }} 
-        disabled 
-        class="btn btn-sm btn-outline-light"
-        {{ else }}
-        class="btn btn-sm btn-outline-warning"
-        {{ end }}
-        >
-          Остановить
-        </button>
-      </div>
-    </form>
+    {{ end }}
 
   </main>
 

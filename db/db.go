@@ -487,6 +487,7 @@ type Observer struct {
 	Name              string `json:"name"`
 	WardID            int    `json:"ward_id"`
 	OperatorID        int    `json:"operator_id"`
+	UnderObservation  int    `json:"under_observation"`
 	SendAccessTokenID int    `json:"send_access_token_id"`
 	AdditionalParams  observerAdditionalParams
 }
@@ -511,9 +512,9 @@ func (o *Observer) InsertIntoDB() {
 
 	additionalParams := o.additionalParamsToJSON()
 
-	query := fmt.Sprintf(`INSERT INTO observer (name, ward_id, operator_id, send_access_token_id, 
-		additional_params) VALUES ('%s', %d, %d, %d, '%s')`,
-		o.Name, o.WardID, o.OperatorID, o.SendAccessTokenID, additionalParams)
+	query := fmt.Sprintf(`INSERT INTO observer (name, ward_id, operator_id, under_observation, 
+		send_access_token_id, additional_params) VALUES ('%s', %d, %d, %d, %d, '%s')`,
+		o.Name, o.WardID, o.OperatorID, o.UnderObservation, o.SendAccessTokenID, additionalParams)
 	_, err := dbase.Exec(query)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
@@ -543,7 +544,8 @@ func (o *Observer) SelectByID(id int) {
 
 	var additionalParams string
 	for rows.Next() {
-		err := rows.Scan(&o.ID, &o.Name, &o.WardID, &o.OperatorID, &o.SendAccessTokenID, &additionalParams)
+		err := rows.Scan(&o.ID, &o.Name, &o.WardID, &o.OperatorID,
+			&o.UnderObservation, &o.SendAccessTokenID, &additionalParams)
 		if err != nil {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
@@ -574,7 +576,8 @@ func (o *Observer) SelectByNameAndWardID(name string, wardID int) {
 
 	var additionalParams string
 	for rows.Next() {
-		err := rows.Scan(&o.ID, &o.Name, &o.WardID, &o.OperatorID, &o.SendAccessTokenID, &additionalParams)
+		err := rows.Scan(&o.ID, &o.Name, &o.WardID, &o.OperatorID,
+			&o.UnderObservation, &o.SendAccessTokenID, &additionalParams)
 		if err != nil {
 			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
@@ -595,9 +598,11 @@ func (o *Observer) UpdateInDB() {
 
 	additionalParams := o.additionalParamsToJSON()
 
-	query := fmt.Sprintf(`UPDATE observer SET name='%s', ward_id=%d, operator_id=%d, send_access_token_id=%d,
+	query := fmt.Sprintf(`UPDATE observer SET name='%s', ward_id=%d, operator_id=%d, 
+		under_observation=%d, send_access_token_id=%d,
 		additional_params='%s' WHERE id=%d`,
-		o.Name, o.WardID, o.OperatorID, o.SendAccessTokenID, additionalParams, o.ID)
+		o.Name, o.WardID, o.OperatorID,
+		o.UnderObservation, o.SendAccessTokenID, additionalParams, o.ID)
 	sendUpdateQuery(dbase, query)
 }
 
@@ -667,42 +672,43 @@ func initDB() {
 	}()
 
 	query := fmt.Sprintf(`BEGIN TRANSACTION;
-		CREATE TABLE IF NOT EXISTS "access_token" (
-			"id"	INTEGER NOT NULL UNIQUE,
-			"name"	TEXT NOT NULL UNIQUE,
-			"value"	TEXT NOT NULL,
-			PRIMARY KEY("id" AUTOINCREMENT)
-		);
-		CREATE TABLE IF NOT EXISTS "observer" (
-			"id"	INTEGER NOT NULL UNIQUE,
-			"name"	TEXT NOT NULL,
-			"ward_id"	INTEGER NOT NULL,
-			"operator_id"	INTEGER NOT NULL,
-			"send_access_token_id"	INTEGER NOT NULL,
-			"additional_params"	TEXT NOT NULL DEFAULT '{}',
-			FOREIGN KEY("send_access_token_id") REFERENCES "access_token"("id"),
-			FOREIGN KEY("ward_id") REFERENCES "ward"("id"),
-			FOREIGN KEY("operator_id") REFERENCES "observer"("id"),
-			PRIMARY KEY("id" AUTOINCREMENT)
-		);
-		CREATE TABLE IF NOT EXISTS "operator" (
-			"id"	INTEGER NOT NULL UNIQUE,
-			"name"	TEXT NOT NULL UNIQUE,
-			"vk_id"	INTEGER NOT NULL UNIQUE,
-			PRIMARY KEY("id" AUTOINCREMENT)
-		);
-		CREATE TABLE IF NOT EXISTS "ward" (
-			"id"	INTEGER NOT NULL UNIQUE,
-			"name"	TEXT NOT NULL UNIQUE,
-			"vk_id"	INTEGER NOT NULL UNIQUE,
-			"is_owned"	INTEGER NOT NULL,
-			"under_observation"	INTEGER NOT NULL,
-			"last_ts"	INTEGER NOT NULL,
-			"get_access_token_id"	INTEGER NOT NULL,
-			FOREIGN KEY("get_access_token_id") REFERENCES "access_token"("id"),
-			PRIMARY KEY("id" AUTOINCREMENT)
-		);
-		COMMIT;`)
+	CREATE TABLE IF NOT EXISTS "access_token" (
+		"id"	INTEGER NOT NULL UNIQUE,
+		"name"	TEXT NOT NULL UNIQUE,
+		"value"	TEXT NOT NULL,
+		PRIMARY KEY("id" AUTOINCREMENT)
+	);
+	CREATE TABLE IF NOT EXISTS "observer" (
+		"id"	INTEGER NOT NULL UNIQUE,
+		"name"	TEXT NOT NULL,
+		"ward_id"	INTEGER NOT NULL,
+		"operator_id"	INTEGER NOT NULL,
+		"under_observation"	INTEGER NOT NULL,
+		"send_access_token_id"	INTEGER NOT NULL,
+		"additional_params"	TEXT NOT NULL DEFAULT '{}',
+		FOREIGN KEY("send_access_token_id") REFERENCES "access_token"("id"),
+		FOREIGN KEY("ward_id") REFERENCES "ward"("id"),
+		FOREIGN KEY("operator_id") REFERENCES "observer"("id"),
+		PRIMARY KEY("id" AUTOINCREMENT)
+	);
+	CREATE TABLE IF NOT EXISTS "operator" (
+		"id"	INTEGER NOT NULL UNIQUE,
+		"name"	TEXT NOT NULL UNIQUE,
+		"vk_id"	INTEGER NOT NULL UNIQUE,
+		PRIMARY KEY("id" AUTOINCREMENT)
+	);
+	CREATE TABLE IF NOT EXISTS "ward" (
+		"id"	INTEGER NOT NULL UNIQUE,
+		"name"	TEXT NOT NULL UNIQUE,
+		"vk_id"	INTEGER NOT NULL UNIQUE,
+		"is_owned"	INTEGER NOT NULL,
+		"under_observation"	INTEGER NOT NULL,
+		"last_ts"	INTEGER NOT NULL,
+		"get_access_token_id"	INTEGER NOT NULL,
+		FOREIGN KEY("get_access_token_id") REFERENCES "access_token"("id"),
+		PRIMARY KEY("id" AUTOINCREMENT)
+	);
+	COMMIT;`)
 	sendUpdateQuery(dbase, query)
 }
 

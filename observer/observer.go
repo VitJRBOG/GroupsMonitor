@@ -84,12 +84,100 @@ func parseLongPollServerResponse(respLPS vkapi.ResponseLongPollServer, ward *db.
 		for _, update := range respLPS.Updates {
 			switch update.Type {
 			case "wall_post_new":
-				var wallPost vkapi.WallPost
-				wallPost.ParseData(update)
-				targetWallPostType := checkWallPostType(ward.ID, wallPost)
-				if targetWallPostType {
-					getAT, sendAT, operatorVkID := getDataByCurrentObserver("wall_post", ward.ID)
-					err := wallPost.SendWithMessage(getAT, sendAT, operatorVkID)
+				underObservation := checkObservationFlag("wall_post", ward.ID)
+				if underObservation {
+					var wallPost vkapi.WallPost
+					wallPost.ParseData(update)
+					targetWallPostType := checkWallPostType(ward.ID, wallPost)
+					if targetWallPostType {
+						getAT, sendAT, operatorVkID := getDataByCurrentObserver("wall_post", ward.ID)
+						err := wallPost.SendWithMessage(getAT, sendAT, operatorVkID)
+						if err != nil {
+							if strings.Contains(strings.ToLower(err.Error()),
+								"too much messages sent to user") {
+								return err
+							} else {
+								tools.WriteToLog(err, debug.Stack())
+								panic(err.Error())
+							}
+						}
+					}
+				}
+			case "wall_reply_new":
+				underObservation := checkObservationFlag("wall_reply", ward.ID)
+				if underObservation {
+					var wallReply vkapi.WallReply
+					wallReply.ParseData(update)
+					getAT, sendAT, operatorVkID := getDataByCurrentObserver("wall_reply", ward.ID)
+					err := wallReply.SendWithMessage(getAT, sendAT, operatorVkID)
+					if err != nil {
+						if strings.Contains(strings.ToLower(err.Error()),
+							"too much messages sent to user") {
+							return err
+						} else {
+							tools.WriteToLog(err, debug.Stack())
+							panic(err.Error())
+						}
+					}
+				}
+			case "photo_new":
+				underObservation := checkObservationFlag("photo", ward.ID)
+				if underObservation {
+					var photo vkapi.Photo
+					photo.ParseData(update)
+					getAT, sendAT, operatorVkID := getDataByCurrentObserver("photo", ward.ID)
+					err := photo.SendWithMessage(getAT, sendAT, operatorVkID)
+					if err != nil {
+						if strings.Contains(strings.ToLower(err.Error()),
+							"too much messages sent to user") {
+							return err
+						} else {
+							tools.WriteToLog(err, debug.Stack())
+							panic(err.Error())
+						}
+					}
+				}
+			case "photo_comment_new":
+				underObservation := checkObservationFlag("photo_comment", ward.ID)
+				if underObservation {
+					var photoComment vkapi.PhotoComment
+					photoComment.ParseData(update)
+					getAT, sendAT, operatorVkID := getDataByCurrentObserver("photo_comment", ward.ID)
+					err := photoComment.SendWithMessage(getAT, sendAT, operatorVkID)
+					if err != nil {
+						if strings.Contains(strings.ToLower(err.Error()),
+							"too much messages sent to user") {
+							return err
+						} else {
+							tools.WriteToLog(err, debug.Stack())
+							panic(err.Error())
+						}
+					}
+				}
+			case "video_new":
+				underObservation := checkObservationFlag("video", ward.ID)
+				if underObservation {
+					var video vkapi.Video
+					video.ParseData(update)
+					getAT, sendAT, operatorVkID := getDataByCurrentObserver("video", ward.ID)
+					err := video.SendWithMessage(getAT, sendAT, operatorVkID)
+					if err != nil {
+						if strings.Contains(strings.ToLower(err.Error()),
+							"too much messages sent to user") {
+							return err
+						} else {
+							tools.WriteToLog(err, debug.Stack())
+							panic(err.Error())
+						}
+					}
+				}
+			case "video_comment_new":
+				underObservation := checkObservationFlag("video_comment", ward.ID)
+				if underObservation {
+					var videoComment vkapi.VideoComment
+					videoComment.ParseData(update)
+					getAT, sendAT, operatorVkID := getDataByCurrentObserver("video_comment", ward.ID)
+					err := videoComment.SendWithMessage(getAT, sendAT, operatorVkID)
 					if err != nil {
 						if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
 							return err
@@ -99,82 +187,21 @@ func parseLongPollServerResponse(respLPS vkapi.ResponseLongPollServer, ward *db.
 						}
 					}
 				}
-			case "wall_reply_new":
-				var wallReply vkapi.WallReply
-				wallReply.ParseData(update)
-				getAT, sendAT, operatorVkID := getDataByCurrentObserver("wall_reply", ward.ID)
-				err := wallReply.SendWithMessage(getAT, sendAT, operatorVkID)
-				if err != nil {
-					if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
-						return err
-					} else {
-						tools.WriteToLog(err, debug.Stack())
-						panic(err.Error())
-					}
-				}
-			case "photo_new":
-				var photo vkapi.Photo
-				photo.ParseData(update)
-				getAT, sendAT, operatorVkID := getDataByCurrentObserver("photo", ward.ID)
-				err := photo.SendWithMessage(getAT, sendAT, operatorVkID)
-				if err != nil {
-					if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
-						return err
-					} else {
-						tools.WriteToLog(err, debug.Stack())
-						panic(err.Error())
-					}
-				}
-			case "photo_comment_new":
-				var photoComment vkapi.PhotoComment
-				photoComment.ParseData(update)
-				getAT, sendAT, operatorVkID := getDataByCurrentObserver("photo_comment", ward.ID)
-				err := photoComment.SendWithMessage(getAT, sendAT, operatorVkID)
-				if err != nil {
-					if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
-						return err
-					} else {
-						tools.WriteToLog(err, debug.Stack())
-						panic(err.Error())
-					}
-				}
-			case "video_new":
-				var video vkapi.Video
-				video.ParseData(update)
-				getAT, sendAT, operatorVkID := getDataByCurrentObserver("video", ward.ID)
-				err := video.SendWithMessage(getAT, sendAT, operatorVkID)
-				if err != nil {
-					if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
-						return err
-					} else {
-						tools.WriteToLog(err, debug.Stack())
-						panic(err.Error())
-					}
-				}
-			case "video_comment_new":
-				var videoComment vkapi.VideoComment
-				videoComment.ParseData(update)
-				getAT, sendAT, operatorVkID := getDataByCurrentObserver("video_comment", ward.ID)
-				err := videoComment.SendWithMessage(getAT, sendAT, operatorVkID)
-				if err != nil {
-					if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
-						return err
-					} else {
-						tools.WriteToLog(err, debug.Stack())
-						panic(err.Error())
-					}
-				}
 			case "board_post_new":
-				var boardPost vkapi.BoardPost
-				boardPost.ParseData(update)
-				getAT, sendAT, operatorVkID := getDataByCurrentObserver("board_post", ward.ID)
-				err := boardPost.SendWithMessage(getAT, sendAT, operatorVkID)
-				if err != nil {
-					if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
-						return err
-					} else {
-						tools.WriteToLog(err, debug.Stack())
-						panic(err.Error())
+				underObservation := checkObservationFlag("board_post", ward.ID)
+				if underObservation {
+					var boardPost vkapi.BoardPost
+					boardPost.ParseData(update)
+					getAT, sendAT, operatorVkID := getDataByCurrentObserver("board_post", ward.ID)
+					err := boardPost.SendWithMessage(getAT, sendAT, operatorVkID)
+					if err != nil {
+						if strings.Contains(strings.ToLower(err.Error()),
+							"too much messages sent to user") {
+							return err
+						} else {
+							tools.WriteToLog(err, debug.Stack())
+							panic(err.Error())
+						}
 					}
 				}
 			}
@@ -202,6 +229,17 @@ func updateWard(ward *db.Ward, lastTS string) {
 		panic(err.Error())
 	}
 	ward.UpdateInDB()
+}
+
+func checkObservationFlag(observerName string, wardID int) bool {
+	var observer db.Observer
+	observer.SelectByNameAndWardID(observerName, wardID)
+
+	if observer.UnderObservation == 1 {
+		return true
+	} else {
+		return false
+	}
 }
 
 func getDataByCurrentObserver(observerName string, wardID int) (string, string, int) {

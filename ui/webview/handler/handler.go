@@ -17,6 +17,7 @@ func InitHandler() {
 	// General part //
 
 	rtr.HandleFunc("/", homePageHandler).Methods("GET")
+	rtr.HandleFunc("/wards/{id:[0-9]+}/toggle", wardObservationTogglePageHandler).Methods("POST")
 
 	// Observers part //
 

@@ -16,7 +16,37 @@
   </header>
 
   <main class="px-3">
-    <p class="lead">Тут пока пусто...</p>
+
+    <center>
+
+      <table>
+
+        {{ range . }}
+  
+        <tr>
+          <td>
+            <label>{{ .Name }}:</label>
+          </td>
+          <td></td>
+          <td>
+            <form action="/wards/{{ .ID }}/toggle" method="post">
+              <div class="pt-3 pb-2 mb-2">
+                {{ if (eq .UnderObservation 1) }}
+                <button class="btn btn-sm btn-outline-danger">Приостановить</button>
+                {{ else }}
+                <button class="btn btn-sm btn-outline-success">Запустить</button>
+                {{ end }}
+              </div>
+            </form>
+          </td>
+        </tr>
+  
+      {{ end }}
+  
+      </table>
+
+    </center>
+
   </main>
 
   {{ template "footer" }}

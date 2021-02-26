@@ -2,23 +2,21 @@ package cli
 
 import (
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/VitJRBOG/GroupsObserver/observer"
 	"github.com/VitJRBOG/GroupsObserver/tools"
 	"github.com/VitJRBOG/GroupsObserver/ui/cli/input"
 	"github.com/VitJRBOG/GroupsObserver/ui/cli/upd_data"
-	"runtime/debug"
-	"strings"
-	"time"
 )
 
 func ShowDBStatus(dbHasBeenInitialized bool) {
 	if dbHasBeenInitialized {
-		fmt.Printf("DB is empty.\n--- Press «Enter for exit... ---»")
-		_, err := fmt.Scan()
-		if err != nil {
-			tools.WriteToLog(err, debug.Stack())
-			panic(err.Error())
-		}
+		fmt.Printf("DB is empty.\n--- Press «Enter» for exit... ---")
+		_ = input.GetDataFromUser()
+		os.Exit(0)
 	}
 }
 

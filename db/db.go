@@ -644,11 +644,24 @@ func (o *Observer) additionalParamsToJSON() string {
 }
 
 func Initialization() bool {
-	isExist := checkDBExistence()
+	isExist := checkDBDirectory()
 	if isExist {
+		isExist := checkDBExistence()
+		if isExist {
+			return false
+		}
+		initDB()
+		return true
+	}
+	initDBDir()
+	return Initialization()
+}
+
+func checkDBDirectory() bool {
+	path := getPathToDBDir()
+	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	}
-	initDB()
 	return true
 }
 
@@ -660,8 +673,16 @@ func checkDBExistence() bool {
 	return true
 }
 
+func initDBDir() {
+	path := getPathToDBDir()
+	err := os.Mkdir(path, 0700)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func initDB() {
-	// TODO: описать создание папки для БД
 	dbase := openDB()
 	defer func() {
 		err := dbase.Close()
@@ -738,6 +759,11 @@ func openDB() *sql.DB {
 		panic(err.Error())
 	}
 	return dbase
+}
+
+func getPathToDBDir() string {
+	absPathToDBDir := tools.GetPath("data")
+	return absPathToDBDir
 }
 
 func getPathToDB() string {

@@ -54,12 +54,16 @@ func makeQueryToLongPollServer(lpsConnectionData longPollServerConnectionData, l
 func sendRequestToLongPollServer(url string) []byte {
 	response, err := http.Get(url)
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "connection reset by peer") {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "connection reset by peer"):
 			time.Sleep(5 * time.Second)
 			return sendRequestToLongPollServer(url)
+		case strings.Contains(strings.ToLower(err.Error()), "operation timed out"):
+			return sendRequestToLongPollServer(url)
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
-		tools.WriteToLog(err, debug.Stack())
-		panic(err.Error())
 	}
 	defer func() {
 		err := response.Body.Close()

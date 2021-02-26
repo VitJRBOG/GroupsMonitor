@@ -2,9 +2,11 @@ package input
 
 import (
 	"bufio"
-	"github.com/VitJRBOG/GroupsObserver/tools"
 	"os"
 	"runtime/debug"
+	"strings"
+
+	"github.com/VitJRBOG/GroupsObserver/tools"
 )
 
 func GetDataFromUser() string {
@@ -15,5 +17,12 @@ func GetDataFromUser() string {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
-	return userInput[:len(userInput)-1]
+
+	if len(userInput) > 0 {
+		u := strings.Split(userInput, "")
+		u = u[:len(u)-1]
+		userInput = strings.Join(u, "")
+	}
+
+	return userInput
 }

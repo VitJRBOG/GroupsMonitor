@@ -38,6 +38,7 @@ func MakeObservers() []*ModuleParams {
 }
 
 func StartObserver(params *ModuleParams) {
+	// TODO: проверка, не был ли подопечный удален из БД
 	afterTurningOff := true
 	for true {
 		if params.Ward.UnderObservation == 1 {

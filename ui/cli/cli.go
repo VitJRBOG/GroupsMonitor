@@ -51,6 +51,8 @@ func CheckObservers(params []*observer.ModuleParams) {
 				break
 			}
 		}
+		// FIXME: если остановить наблюдение и удалить данные о подопечном из БД,
+		// то процесс проверки никогда не прекратится
 		if allObserversIsStopped {
 			fmt.Printf("[%s]: All observers is stopped. Exit from program...\n",
 				tools.GetCurrentDateAndTime())

@@ -18,17 +18,31 @@ type settings struct {
 	Wards        []data_manager.Ward
 }
 
-func settingsPageHandler(w http.ResponseWriter, _ *http.Request) {
-	t := getHtmlTemplates()
-	err := t.ExecuteTemplate(w, "settings", nil)
-	if err != nil {
-		panic(err.Error())
-	}
+func settingsPageHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/settings/access_tokens", http.StatusSeeOther)
 }
 
 func accessTokensPageHandler(w http.ResponseWriter, _ *http.Request) {
 	var s settings
 	s.AccessTokens = data_manager.SelectAccessTokens()
+
+	for i := 0; i < len(s.AccessTokens); i++ {
+		v := strings.Split(s.AccessTokens[i].Value, "")
+		switch true {
+		case len(s.AccessTokens[i].Value) >= 8:
+			begin := v[:3]
+			end := v[len(v)-5:]
+			s.AccessTokens[i].Value = fmt.Sprintf("%s ****** %s", strings.Join(begin, ""), strings.Join(end, ""))
+		case len(s.AccessTokens[i].Value) < 8 && len(s.AccessTokens[i].Value) >= 4:
+			end := v[len(v)-4:]
+			s.AccessTokens[i].Value = fmt.Sprintf("****** %s", strings.Join(end, ""))
+		case len(s.AccessTokens[i].Value) > 0 && len(s.AccessTokens[i].Value) < 4:
+			end := v[len(v)-1]
+			s.AccessTokens[i].Value = fmt.Sprintf("****** %s", end)
+		default:
+			s.AccessTokens[i].Value = "******"
+		}
+	}
 
 	t := getHtmlTemplates()
 	err := t.ExecuteTemplate(w, "access_tokens", s)
@@ -65,8 +79,19 @@ func accessTokenSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
 		a.Value = "******"
 	}
 
+	type atSettings struct {
+		AccessTokenID int
+		AccessTokens  []data_manager.AccessToken
+		AccessToken   data_manager.AccessToken
+	}
+
+	var ats atSettings
+	ats.AccessTokenID = accessTokenID
+	ats.AccessToken = a
+	ats.AccessTokens = data_manager.SelectAccessTokens()
+
 	t := getHtmlTemplates()
-	err = t.ExecuteTemplate(w, "access_token_settings", a)
+	err = t.ExecuteTemplate(w, "access_token_settings", ats)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -233,8 +258,19 @@ func operatorSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 
+	type oSettings struct {
+		OperatorID int
+		Operator   data_manager.Operator
+		Operators  []data_manager.Operator
+	}
+
+	var ost oSettings
+	ost.OperatorID = operatorID
+	ost.Operator = o
+	ost.Operators = data_manager.SelectOperators()
+
 	t := getHtmlTemplates()
-	err = t.ExecuteTemplate(w, "operator_settings", o)
+	err = t.ExecuteTemplate(w, "operator_settings", ost)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -384,7 +420,9 @@ func wardsPageHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 type wardSettings struct {
+	WardID          int
 	Ward            data_manager.Ward
+	Wards           []data_manager.Ward
 	AccessTokens    []data_manager.AccessToken
 	Operators       []data_manager.Operator
 	Observers       []data_manager.Observer
@@ -410,7 +448,7 @@ func wardSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	ws.Operators = data_manager.SelectOperators()
 
-	ws.ObserversTypes = []string{"Посты на стене", "Комментарии под постами", "Фото в альбомах",
+	ws.ObserversTypes = []string{"Посты на стене", "Комментарии на стене", "Фото в альбомах",
 		"Комментарии под фото", "Видео в альбомах", "Комментарии под видео", "Обсуждения"}
 
 	observersTypes := []string{
@@ -433,6 +471,9 @@ func wardSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
 		"Опубликованные", "Предложенные", "Отложенные",
 	}
 
+	ws.WardID = wardID
+	ws.Wards = data_manager.SelectWards()
+
 	t := getHtmlTemplates()
 	err = t.ExecuteTemplate(w, "ward_settings", ws)
 	if err != nil {
@@ -447,7 +488,7 @@ func wardNewPageHandler(w http.ResponseWriter, _ *http.Request) {
 
 	ws.Operators = data_manager.SelectOperators()
 
-	ws.ObserversTypes = []string{"Посты на стене", "Комментарии под постами", "Фото в альбомах",
+	ws.ObserversTypes = []string{"Посты на стене", "Комментарии на стене", "Фото в альбомах",
 		"Комментарии под фото", "Видео в альбомах", "Комментарии под видео", "Обсуждения"}
 
 	observersTypes := []string{

@@ -2,53 +2,77 @@
 
 {{ template "header" }}
 
-<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-
-  <header class="mb-auto">
-    <div>
-      <h3 class="float-md-start mb-0">GroupsObserver</h3>
-      <nav class="nav nav-masthead justify-content-center float-md-end">
-        <a class="nav-link" href="/">Общее</a>
-        <a class="nav-link active" aria-current="page" href="/observers">Наблюдатели</a>
-        <a class="nav-link" href="/settings">Параметры</a>
-      </nav>
-    </div>
-  </header>
-
-  <main class="px-3">
-
-    <center>
-    <table>
+    <div class="content">
 
       {{ $ward_id := .WardID }}
+
+      {{ range .Wards }}
+
+      {{ if (eq $ward_id .ID) }}
+
+      <div class="content_header">{{ .Name }}</div>
+      <hr class="separator_hr">
+
+      {{ end }}
+
+      {{ end }}
+
       {{ $observers_types_ru := .ObserversTypesRu }}
 
       {{ range $i, $observer := .Observers }}
 
-      <tr>
-        <td>
-          <label>{{ index $observers_types_ru $i }}:</label>
-        </td>
-        <td></td>
-        <td>
+      <div class="content_box">
+        <div class="ward_label">{{ index $observers_types_ru $i }}:</div>
+        <div class="ward_observing_tgl_btn">
           <form action="/observers/{{ $ward_id }}/toggle/{{ .Name }}" method="post">
-            <div class="pt-3 pb-2 mb-2">
-              {{ if (eq .UnderObservation 1) }}
-              <button class="btn btn-sm btn-outline-danger">Выкл.</button>
-              {{ else }}
-              <button class="btn btn-sm btn-outline-success">Вкл.</button>
-              {{ end }}
-            </div>
+
+            {{ if (eq .UnderObservation 1) }}
+
+            <button class="btn_general">Выкл.</button>
+
+            {{ else }}
+
+            <button class="btn_general">Вкл.</button>
+
+            {{ end }}
+
           </form>
-        </td>
-      </tr>
+        </div>
+      </div>
 
       {{ end }}
 
-    </table>
-  </center>
+    </div>
 
-  </main>
+    <div class="right_menu">
+      <div class="right_menu_header">Подопечные</div>
+      <hr class="separator_hr">
+      <nav>
+
+        {{ range .Wards }}
+
+        <p>
+          <div
+
+          {{ if (eq $ward_id .ID) }}
+
+          class="right_menu_btn_box_selected"
+
+          {{ else }}
+          
+          class="right_menu_btn_box"
+
+          {{ end }}
+          
+          >
+            <a class="right_menu_btn" href="/observers/{{ .ID }}" method="post">{{ .Name }}</a>
+          </div>
+        </p>
+
+        {{ end }}
+
+      </nav>
+    </div>
 
 {{ template "footer" }}
 

@@ -2,53 +2,39 @@
 
 {{ template "header" }}
 
-<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+    <div class="content" style="width: 745px;">
 
-  <header class="mb-auto">
-    <div>
-      <h3 class="float-md-start mb-0">GroupsObserver</h3>
-      <nav class="nav nav-masthead justify-content-center float-md-end">
-        <a class="nav-link active" aria-current="page" href="/">Общее</a>
-        <a class="nav-link" href="/observers">Наблюдатели</a>
-        <a class="nav-link" href="/settings">Параметры</a>
-      </nav>
-    </div>
-  </header>
+      <div class="content_header">Общее</div>
+      <hr class="separator_hr">
 
-  <main class="px-3">
+      {{ range . }}
 
-    <center>
+      <div class="content_box">
+        <form action="/wards/{{ .ID }}/toggle" method="post">
+          <div class="ward_label">
+            {{ .Name }}:
+          </div>
 
-      <table>
+          <div class="ward_observing_tgl_btn">
 
-        {{ range . }}
-  
-        <tr>
-          <td>
-            <label>{{ .Name }}:</label>
-          </td>
-          <td></td>
-          <td>
-            <form action="/wards/{{ .ID }}/toggle" method="post">
-              <div class="pt-3 pb-2 mb-2">
-                {{ if (eq .UnderObservation 1) }}
-                <button class="btn btn-sm btn-outline-danger">Приостановить</button>
-                {{ else }}
-                <button class="btn btn-sm btn-outline-success">Запустить</button>
-                {{ end }}
-              </div>
-            </form>
-          </td>
-        </tr>
-  
+            {{ if (eq .UnderObservation 1) }}
+
+            <button class="btn_general">Приостановить</button>
+
+            {{ else }}
+
+            <button class="btn_general">Запустить</button>
+
+            {{ end }}
+
+          </div>
+        </form>
+      </div>
+      
       {{ end }}
   
-      </table>
+    </div>
 
-    </center>
+{{ template "footer" }}
 
-  </main>
-
-  {{ template "footer" }}
-
-  {{ end }}
+{{ end }}

@@ -9,19 +9,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func observersPageHandler(w http.ResponseWriter, _ *http.Request) {
+func observersPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	wards := data_manager.SelectWards()
 
-	t := getHtmlTemplates()
-	err := t.ExecuteTemplate(w, "observers", wards)
-	if err != nil {
-		panic(err.Error())
-	}
+	http.Redirect(w, r, fmt.Sprintf("/observers/%d", wards[0].ID), http.StatusSeeOther)
 }
 
 type observersData struct {
 	WardID           int
+	Wards            []data_manager.Ward
 	Observers        []data_manager.Observer
 	ObserversTypesRu []string
 }
@@ -36,7 +33,9 @@ func observerControlPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	obs.WardID = wardID
 
-	obs.ObserversTypesRu = []string{"Посты на стене", "Комментарии под постами", "Фото в альбомах",
+	obs.Wards = data_manager.SelectWards()
+
+	obs.ObserversTypesRu = []string{"Посты на стене", "Комментарии на стене", "Фото в альбомах",
 		"Комментарии под фото", "Видео в альбомах", "Комментарии под видео", "Обсуждения"}
 
 	observersTypes := []string{

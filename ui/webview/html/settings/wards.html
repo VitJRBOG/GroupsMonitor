@@ -2,39 +2,78 @@
 
 {{ template "header" }}
 
-<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+    <div class="content">
+      <div class="content_header">
+        <form action="/settings/wards/new" method="post">
+          Подопечные
+          <button class="btn_general" style="margin-left: 229px;">Добавить нового</button>
+        </form>
+      </div>
+      <hr class="separator_hr">
 
-  <header class="mb-auto">
-    <div>
-      <h3 class="float-md-start mb-0">GroupsObserver</h3>
-      <nav class="nav nav-masthead justify-content-center float-md-end">
-        <a class="nav-link" href="/">Общее</a>
-        <a class="nav-link" href="/observers">Наблюдатели</a>
-        <a class="nav-link active" aria-current="page" href="/settings">Параметры</a>
+      <div class="table_box">
+        <table class="table">
+          <tbody>
+            <tr class="table_th">
+              <th class="table_th">
+                Название
+              </th>
+              <th class="table_th" style="text-align: center;">
+                ID в ВК
+              </th>
+            </tr>
+  
+            {{ range .Wards }}
+  
+            <tr class="table_td">
+              <td class="table_td">
+                <a class="table_item_name" href="/settings/wards/{{ .ID }}">{{ .Name }}</a>
+              </td>
+              <td class="table_td" style="text-align: center;">
+                {{ .VkID }}
+              </td>
+            </tr>
+  
+            {{ end }}
+  
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="right_menu">
+      <div class="right_menu_header">Параметры</div>
+      <hr class="separator_hr">
+      <nav>
+        <p>
+          <div class="right_menu_btn_box">
+            <a class="right_menu_btn" href="/settings/access_tokens">Ключи доступа</a>
+          </div>
+        </p>
+        <p>
+          <div class="right_menu_btn_box">
+            <a class="right_menu_btn" href="/settings/operators">Операторы</a>
+          </div>
+        </p>
+        <p>
+          <div class="right_menu_btn_box_selected">
+            <a class="right_menu_btn" href="/settings/wards">Подопечные</a>
+          </div>
+        </p>
+
+        {{ range .Wards }}
+
+        <p>
+          <div class="right_menu_btn_box">
+            <a class="right_menu_under_btn" href="/settings/wards/{{ .ID }}">{{ .Name }}</a>
+          </div>
+        </p>
+
+        {{ end }}
+
       </nav>
     </div>
-  </header>
 
-  <main class="px-3">
-    <h1>Подопечные</h1>
-    {{ range .Wards }}
-    <form action="/settings/wards/{{ .ID }}" method="post">
-      <div class="pt-3 pb-2 mb-2">
-        <button class="btn btn-sm btn-outline-light">
-          {{ .Name }}
-        </button>
-      </div>
-    </form>
-    {{ end }}
-    <form action="/settings/wards/new" method="post">
-      <div class="pt-3 pb-2 mb-2">
-        <button class="btn btn-sm btn-outline-warning">
-          Добавить
-        </button>
-      </div>
-    </form>
-  </main>
+{{ template "footer" }}
 
-  {{ template "footer" }}
-
-  {{ end }}
+{{ end }}

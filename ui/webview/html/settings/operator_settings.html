@@ -2,43 +2,80 @@
 
 {{ template "header" }}
 
-<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+    {{ $operatorID := .OperatorID }}
 
-  <header class="mb-auto">
-    <div>
-      <h3 class="float-md-start mb-0">GroupsObserver</h3>
-      <nav class="nav nav-masthead justify-content-center float-md-end">
-        <a class="nav-link" href="/">Общее</a>
-        <a class="nav-link" href="/observers">Наблюдатели</a>
-        <a class="nav-link active" aria-current="page" href="/settings">Параметры</a>
+    <div class="content">
+      <div class="content_header">Параметры оператора</div>
+      <hr class="separator_hr">
+
+      <form action="/settings/operators/{{ .Operator.ID }}/update" method="post">
+        <div class="content_box">
+          <a class="text_field_label">Название:</a>
+          <input class="text_field" type="text" id="name" name="name" 
+          placeholder="{{ .Operator.Name }}" value="{{ .Operator.Name }}">
+        </div>
+        <div class="content_box">
+          <a class="text_field_label">ID в ВК:</a>
+          <input class="text_field" type="text" id="vk_id" name="vk_id"
+          placeholder="{{ .Operator.VkID }}" value="{{ .Operator.VkID }}">
+        </div>
+        <hr class="separator_hr">
+        <div class="btn_add">
+          <button class="btn_general">Сохранить</button>
+        </div>
+      </form>
+      <form action="/settings/operators/{{ .Operator.ID }}/delete" method="post">
+        <div class="btn_add">
+          <button class="btn_del">Удалить</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="right_menu">
+      <div class="right_menu_header">Параметры</div>
+      <hr class="separator_hr">
+      <nav>
+        <p>
+          <div class="right_menu_btn_box">
+            <a class="right_menu_btn" href="/settings/access_tokens">Ключи доступа</a>
+          </div>
+        </p>
+        <p>
+          <div class="right_menu_btn_box">
+            <a class="right_menu_btn" href="/settings/operators">Операторы</a>
+          </div>
+        </p>
+
+        {{ range .Operators }}
+
+        <p>
+          <div 
+          
+          {{ if (eq $operatorID .ID) }}
+
+          class="right_menu_btn_box_selected"
+
+          {{ else }}
+          
+          class="right_menu_btn_box"
+
+          {{ end }}
+          
+          >
+            <a class="right_menu_under_btn" href="/settings/operators/{{ .ID }}">{{ .Name }}</a>
+          </div>
+        </p>
+
+        {{ end }}
+
+        <p>
+          <div class="right_menu_btn_box">
+            <a class="right_menu_btn" href="/settings/wards">Подопечные</a>
+          </div>
+        </p>
       </nav>
     </div>
-  </header>
 
-  <main class="px-3">
-    <h1>Параметры оператора</h1>
-    <form action="/settings/operators/{{ .ID }}/update" method="post">
-      <a>Имя</a>
-      <input type="text" class="form-control w-100" id="name" name="name"
-                placeholder="{{ .Name }}" style="width: 100%"><br>
-      <a>Идентификатор в ВК</a>
-      <input type="text" class="form-control w-100" id="vk_id" name="vk_id"
-                placeholder="{{ .VkID }}" style="width: 100%"><br>
-      <div class="pt-3 pb-2 mb-2">
-        <button class="btn btn-sm btn-outline-warning">
-          Применить новые параметры
-        </button>
-      </div>
-    </form>
-    <form action="/settings/operators/{{ .ID }}/delete" method="post">
-      <div class="pt-3 pb-2 mb-2">
-        <button class="btn btn-sm btn-outline-danger">
-          Удалить оператора
-        </button>
-      </div>
-    </form>
-  </main>
+{{ template "footer" }}
 
-  {{ template "footer" }}
-
-  {{ end }}
+{{ end }}

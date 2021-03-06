@@ -46,13 +46,14 @@ func parseConnectionDataForLongPollServer(response []byte) longPollServerConnect
 }
 
 type vkMessage struct {
-	PeerID, RandomID                        int
-	Header, Text, Link, Footer, Attachments string
+	PeerID, RandomID                                       int
+	Header, Text, Link, Footer, Attachments, ContentSource string
 }
 
 func (m *vkMessage) sendMessage(accessToken string) error {
 	text := m.makeTextForMessage()
-	values := m.makeMessageValues(m.PeerID, m.RandomID, accessToken, text, m.Attachments)
+	values := m.makeMessageValues(m.PeerID, m.RandomID,
+		accessToken, text, m.Attachments)
 	_, err := callMethod("messages.send", values)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
@@ -85,14 +86,16 @@ func (m *vkMessage) makeTextForMessage() string {
 	return text
 }
 
-func (m *vkMessage) makeMessageValues(peerID, randomID int, accessToken, text, attachments string) url.Values {
+func (m *vkMessage) makeMessageValues(peerID, randomID int,
+	accessToken, text, attachments string) url.Values {
 	values := url.Values{
-		"access_token": {accessToken},
-		"peer_id":      {strconv.Itoa(peerID)},
-		"random_id":    {strconv.Itoa(randomID)},
-		"message":      {text},
-		"attachment":   {attachments},
-		"v":            {"5.126"},
+		"access_token":   {accessToken},
+		"peer_id":        {strconv.Itoa(peerID)},
+		"random_id":      {strconv.Itoa(randomID)},
+		"message":        {text},
+		"attachment":     {attachments},
+		"content_source": {m.ContentSource},
+		"v":              {"5.126"},
 	}
 	return values
 }

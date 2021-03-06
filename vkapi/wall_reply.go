@@ -2,9 +2,10 @@ package vkapi
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsObserver/tools"
 	"runtime/debug"
 	"strings"
+
+	"github.com/VitJRBOG/GroupsObserver/tools"
 )
 
 type WallReply struct {
@@ -47,6 +48,7 @@ func (w *WallReply) SendWithMessage(getAccessToken, sendAccessToken string, oper
 	// и использовать в качестве random_id
 	vkMsg.Header, vkMsg.Text, vkMsg.Footer = w.makeTextForMessage(getAccessToken)
 	vkMsg.Attachments, vkMsg.Link = w.parseAttachmentsForMessage()
+	vkMsg.ContentSource = w.parseContentSource()
 
 	err := vkMsg.sendMessage(sendAccessToken)
 	if err != nil {
@@ -123,4 +125,10 @@ func (w *WallReply) parseAttachmentsForMessage() (string, string) {
 	}
 
 	return attachments, link
+}
+
+func (w *WallReply) parseContentSource() string {
+	contentSource := fmt.Sprintf(`{"type": "url", "url": "https://vk.com/wall%d_%d?reply=%d"}`,
+		w.OwnerID, w.PostID, w.ID)
+	return contentSource
 }

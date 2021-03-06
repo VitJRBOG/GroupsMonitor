@@ -2,9 +2,10 @@ package vkapi
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsObserver/tools"
 	"runtime/debug"
 	"strings"
+
+	"github.com/VitJRBOG/GroupsObserver/tools"
 )
 
 type BoardPost struct {
@@ -39,6 +40,7 @@ func (b *BoardPost) SendWithMessage(getAccessToken, sendAccessToken string, oper
 	// и использовать в качестве random_id
 	vkMsg.Header, vkMsg.Text, vkMsg.Footer = b.makeTextForMessage(getAccessToken)
 	vkMsg.Attachments, vkMsg.Link = b.parseAttachmentsForMessage()
+	vkMsg.ContentSource = b.parseContentSource()
 
 	err := vkMsg.sendMessage(sendAccessToken)
 	if err != nil {
@@ -113,4 +115,10 @@ func (b *BoardPost) parseAttachmentsForMessage() (string, string) {
 	}
 
 	return attachments, link
+}
+
+func (b *BoardPost) parseContentSource() string {
+	contentSource := fmt.Sprintf(`{"type": "url", "url": "https://vk.com/topic%d_%d?post=%d"}`,
+		b.TopicOwnerID, b.TopicID, b.ID)
+	return contentSource
 }

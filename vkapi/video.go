@@ -2,9 +2,10 @@ package vkapi
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsObserver/tools"
 	"runtime/debug"
 	"strings"
+
+	"github.com/VitJRBOG/GroupsObserver/tools"
 )
 
 type Video struct {
@@ -37,6 +38,7 @@ func (v *Video) SendWithMessage(getAccessToken, sendAccessToken string, operator
 	// и использовать в качестве random_id
 	vkMsg.Header, vkMsg.Text, vkMsg.Footer = v.makeTextForMessage(getAccessToken)
 	vkMsg.Attachments = v.parseAttachmentsForMessage()
+	vkMsg.ContentSource = v.parseContentSource()
 
 	err := vkMsg.sendMessage(sendAccessToken)
 	if err != nil {
@@ -93,4 +95,10 @@ func (v *Video) makeURLToVideo() string {
 func (v *Video) parseAttachmentsForMessage() string {
 	attachments := fmt.Sprintf("photo%d_%d", v.OwnerID, v.ID)
 	return attachments
+}
+
+func (v *Video) parseContentSource() string {
+	contentSource := fmt.Sprintf(`{"type": "url", "url": "https://vk.com/video%d_%d"}`,
+		v.OwnerID, v.ID)
+	return contentSource
 }

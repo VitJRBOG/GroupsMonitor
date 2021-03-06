@@ -2,9 +2,10 @@ package vkapi
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsObserver/tools"
 	"runtime/debug"
 	"strings"
+
+	"github.com/VitJRBOG/GroupsObserver/tools"
 )
 
 type PhotoComment struct {
@@ -39,6 +40,7 @@ func (c *PhotoComment) SendWithMessage(getAccessToken, sendAccessToken string, o
 	// и использовать в качестве random_id
 	vkMsg.Header, vkMsg.Text, vkMsg.Footer = c.makeTextForMessage(getAccessToken)
 	vkMsg.Attachments, vkMsg.Link = c.parseAttachmentsForMessage()
+	vkMsg.ContentSource = c.parseContentSource()
 
 	err := vkMsg.sendMessage(sendAccessToken)
 	if err != nil {
@@ -113,4 +115,10 @@ func (c *PhotoComment) parseAttachmentsForMessage() (string, string) {
 	}
 
 	return attachments, link
+}
+
+func (c *PhotoComment) parseContentSource() string {
+	contentSource := fmt.Sprintf(`{"type": "url", "url": "https://vk.com/photo%d_%d"}`,
+		c.PhotoOwnerID, c.PhotoID)
+	return contentSource
 }

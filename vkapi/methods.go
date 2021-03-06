@@ -2,12 +2,14 @@ package vkapi
 
 import (
 	"encoding/json"
-	govkapi "github.com/VitJRBOG/GoVkApi/v2"
-	"github.com/VitJRBOG/GroupsObserver/tools"
+	"net/url"
 	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
+
+	govkapi "github.com/VitJRBOG/GoVkApi/v3"
+	"github.com/VitJRBOG/GroupsObserver/tools"
 )
 
 type longPollServerConnectionData struct {
@@ -17,12 +19,13 @@ type longPollServerConnectionData struct {
 }
 
 func getLongPollServerConnectionData(accessToken string, wardVkId int) longPollServerConnectionData {
-	values := map[string]string{
-		"group_id": strconv.Itoa(wardVkId),
-		"v":        "5.126",
+	values := url.Values{
+		"access_token": {accessToken},
+		"group_id":     {strconv.Itoa(wardVkId)},
+		"v":            {"5.126"},
 	}
 
-	response, err := callMethod("groups.getLongPollServer", accessToken, values)
+	response, err := callMethod("groups.getLongPollServer", values)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
@@ -49,8 +52,8 @@ type vkMessage struct {
 
 func (m *vkMessage) sendMessage(accessToken string) error {
 	text := m.makeTextForMessage()
-	values := m.makeMessageValues(m.PeerID, m.RandomID, text, m.Attachments)
-	_, err := callMethod("messages.send", accessToken, values)
+	values := m.makeMessageValues(m.PeerID, m.RandomID, accessToken, text, m.Attachments)
+	_, err := callMethod("messages.send", values)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user") {
 			return err
@@ -82,13 +85,14 @@ func (m *vkMessage) makeTextForMessage() string {
 	return text
 }
 
-func (m *vkMessage) makeMessageValues(peerID, randomID int, text, attachments string) map[string]string {
-	values := map[string]string{
-		"peer_id":    strconv.Itoa(peerID),
-		"random_id":  strconv.Itoa(randomID),
-		"message":    text,
-		"attachment": attachments,
-		"v":          "5.126",
+func (m *vkMessage) makeMessageValues(peerID, randomID int, accessToken, text, attachments string) url.Values {
+	values := url.Values{
+		"access_token": {accessToken},
+		"peer_id":      {strconv.Itoa(peerID)},
+		"random_id":    {strconv.Itoa(randomID)},
+		"message":      {text},
+		"attachment":   {attachments},
+		"v":            {"5.126"},
 	}
 	return values
 }
@@ -99,12 +103,13 @@ type groupInfo struct {
 }
 
 func getGroupInfo(accessToken string, groupVkID int) groupInfo {
-	values := map[string]string{
-		"group_ids": strconv.Itoa(-groupVkID),
-		"v":         "5.126",
+	values := url.Values{
+		"access_token": {accessToken},
+		"group_ids":    {strconv.Itoa(-groupVkID)},
+		"v":            {"5.126"},
 	}
 
-	response, err := callMethod("groups.getById", accessToken, values)
+	response, err := callMethod("groups.getById", values)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
@@ -138,11 +143,12 @@ type userInfo struct {
 }
 
 func getUserInfo(accessToken string, userVkID int) userInfo {
-	values := map[string]string{
-		"user_ids": strconv.Itoa(userVkID),
-		"v":        "5.126",
+	values := url.Values{
+		"access_token": {accessToken},
+		"user_ids":     {strconv.Itoa(userVkID)},
+		"v":            {"5.126"},
 	}
-	response, err := callMethod("users.get", accessToken, values)
+	response, err := callMethod("users.get", values)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
@@ -169,13 +175,13 @@ func parseUserInfo(response []byte) userInfo {
 	return u
 }
 
-func callMethod(methodName, accessToken string, values map[string]string) ([]byte, error) {
-	response, err := govkapi.Method(methodName, accessToken, values)
+func callMethod(methodName string, values url.Values) ([]byte, error) {
+	response, err := govkapi.Method(methodName, values)
 	if err != nil {
 		switch true {
 		case strings.Contains(strings.ToLower(err.Error()), "too many requests per second"):
 			time.Sleep(340 * time.Millisecond)
-			return callMethod(methodName, accessToken, values)
+			return callMethod(methodName, values)
 		case strings.Contains(strings.ToLower(err.Error()), "too much messages sent to user"):
 			return nil, err
 		default:

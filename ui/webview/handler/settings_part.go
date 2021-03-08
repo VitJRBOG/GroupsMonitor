@@ -12,87 +12,80 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type settings struct {
-	AccessTokens []data_manager.AccessToken
-	Operators    []data_manager.Operator
-	Wards        []data_manager.Ward
-}
-
 func settingsPageHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/settings/access_tokens", http.StatusSeeOther)
 }
 
-func accessTokensPageHandler(w http.ResponseWriter, _ *http.Request) {
-	var s settings
-	s.AccessTokens = data_manager.SelectAccessTokens()
+type accessTokenPageData struct {
+	AccessTokenID int
+	AccessToken   data_manager.AccessToken
+	AccessTokens  []data_manager.AccessToken
+}
 
-	for i := 0; i < len(s.AccessTokens); i++ {
-		v := strings.Split(s.AccessTokens[i].Value, "")
-		switch true {
-		case len(s.AccessTokens[i].Value) >= 8:
-			begin := v[:3]
-			end := v[len(v)-5:]
-			s.AccessTokens[i].Value = fmt.Sprintf("%s ****** %s", strings.Join(begin, ""), strings.Join(end, ""))
-		case len(s.AccessTokens[i].Value) < 8 && len(s.AccessTokens[i].Value) >= 4:
-			end := v[len(v)-4:]
-			s.AccessTokens[i].Value = fmt.Sprintf("****** %s", strings.Join(end, ""))
-		case len(s.AccessTokens[i].Value) > 0 && len(s.AccessTokens[i].Value) < 4:
-			end := v[len(v)-1]
-			s.AccessTokens[i].Value = fmt.Sprintf("****** %s", end)
-		default:
-			s.AccessTokens[i].Value = "******"
-		}
+func (a *accessTokenPageData) hideAccessTokenValues() {
+	for i := 0; i < len(a.AccessTokens); i++ {
+		a.AccessTokens[i].Value = a.hideAccessTokenValue(a.AccessTokens[i].Value)
 	}
+}
+
+func (a *accessTokenPageData) hideAccessTokenValue(value string) string {
+	v := strings.Split(value, "")
+	switch true {
+	case len(v) >= 8:
+		begin := v[:3]
+		end := v[len(v)-5:]
+		value = fmt.Sprintf("%s ****** %s", strings.Join(begin, ""), strings.Join(end, ""))
+	case len(v) < 8 && len(v) >= 4:
+		end := v[len(v)-4:]
+		value = fmt.Sprintf("****** %s", strings.Join(end, ""))
+	case len(v) > 0 && len(v) < 4:
+		end := v[len(v)-1]
+		value = fmt.Sprintf("****** %s", end)
+	default:
+		value = "******"
+	}
+	return value
+}
+
+func accessTokensPageHandler(w http.ResponseWriter, _ *http.Request) {
+	var data accessTokenPageData
+	data.AccessTokens = data_manager.SelectAccessTokens()
+
+	data.hideAccessTokenValues()
 
 	t := getHtmlTemplates()
-	err := t.ExecuteTemplate(w, "access_tokens", s)
+	err := t.ExecuteTemplate(w, "access_tokens", data)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 }
 
 func accessTokenSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
-	accessTokenID, err := strconv.Atoi(mux.Vars(r)["id"])
+	var data accessTokenPageData
+	var err error
+	data.AccessTokenID, err = strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var a data_manager.AccessToken
-	err = a.SelectFromDBByID(accessTokenID)
+	err = data.AccessToken.SelectFromDBByID(data.AccessTokenID)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	s := strings.Split(a.Value, "")
-	switch true {
-	case len(a.Value) >= 8:
-		begin := s[:3]
-		end := s[len(s)-5:]
-		a.Value = fmt.Sprintf("%s ****** %s", strings.Join(begin, ""), strings.Join(end, ""))
-	case len(a.Value) < 8 && len(a.Value) >= 4:
-		end := s[len(s)-4:]
-		a.Value = fmt.Sprintf("****** %s", strings.Join(end, ""))
-	case len(a.Value) > 0 && len(a.Value) < 4:
-		end := s[len(s)-1]
-		a.Value = fmt.Sprintf("****** %s", end)
-	default:
-		a.Value = "******"
-	}
+	data.AccessToken.Value = data.hideAccessTokenValue(data.AccessToken.Value)
 
-	type atSettings struct {
-		AccessTokenID int
-		AccessTokens  []data_manager.AccessToken
-		AccessToken   data_manager.AccessToken
-	}
+	data.AccessTokens = data_manager.SelectAccessTokens()
 
-	var ats atSettings
-	ats.AccessTokenID = accessTokenID
-	ats.AccessToken = a
-	ats.AccessTokens = data_manager.SelectAccessTokens()
+	data.hideAccessTokenValues()
 
 	t := getHtmlTemplates()
-	err = t.ExecuteTemplate(w, "access_token_settings", ats)
+	err = t.ExecuteTemplate(w, "access_token_settings", data)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 }
@@ -101,16 +94,17 @@ func accessTokenNewPageHandler(w http.ResponseWriter, _ *http.Request) {
 	t := getHtmlTemplates()
 	err := t.ExecuteTemplate(w, "access_token_new", nil)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 }
 
 func accessTokenCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
-	var a data_manager.AccessToken
+	var data accessTokenPageData
 
 	name := r.FormValue("name")
 	if len(name) > 0 {
-		err := a.SetName(name)
+		err := data.AccessToken.SetName(name)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -128,7 +122,7 @@ func accessTokenCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	value := r.FormValue("value")
 	if len(value) > 0 {
-		err := a.SetValue(value)
+		err := data.AccessToken.SetValue(value)
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "string length is zero") {
 				fmt.Println("asdasdas") // TODO: обработать ошибку
@@ -141,20 +135,24 @@ func accessTokenCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 		return // TODO: обработать ошибку
 	}
 
-	a.SaveToDB()
+	data.AccessToken.SaveToDB()
 
 	http.Redirect(w, r, "/settings/access_tokens", http.StatusSeeOther)
 }
 
 func accessTokenUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
-	accessTokenID, err := strconv.Atoi(mux.Vars(r)["id"])
+	var data accessTokenPageData
+	var err error
+
+	data.AccessTokenID, err = strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var a data_manager.AccessToken
-	err = a.SelectFromDBByID(accessTokenID)
+	err = data.AccessToken.SelectFromDBByID(data.AccessTokenID)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
@@ -162,7 +160,7 @@ func accessTokenUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
 	if len(name) > 0 {
-		err = a.SetName(name)
+		err = data.AccessToken.SetName(name)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -180,7 +178,7 @@ func accessTokenUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	value := r.FormValue("value")
 	if len(value) > 0 {
-		err = a.SetValue(value)
+		err = data.AccessToken.SetValue(value)
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "string length is zero") {
 				fmt.Println("asdasdas") // TODO: обработать ошибку
@@ -194,84 +192,75 @@ func accessTokenUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if dataIsUpdated {
-		a.UpdateInDB()
+		data.AccessToken.UpdateInDB()
 	}
 
-	s := strings.Split(a.Value, "")
-	switch true {
-	case len(a.Value) >= 8:
-		begin := s[:3]
-		end := s[len(s)-5:]
-		a.Value = fmt.Sprintf("%s ****** %s", strings.Join(begin, ""), strings.Join(end, ""))
-	case len(a.Value) < 8 && len(a.Value) >= 4:
-		end := s[len(s)-5:]
-		a.Value = fmt.Sprintf("****** %s", strings.Join(end, ""))
-	case len(a.Value) > 0 && len(a.Value) < 4:
-		end := s[len(s)-1]
-		a.Value = fmt.Sprintf("****** %s", end)
-	default:
-		a.Value = "******"
-	}
-
-	http.Redirect(w, r, fmt.Sprintf("/settings/access_tokens/%d", a.ID), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/settings/access_tokens/%d",
+		data.AccessTokenID), http.StatusSeeOther)
 }
 
 func accessTokenDeletePageHandler(w http.ResponseWriter, r *http.Request) {
-	accessTokenID, err := strconv.Atoi(mux.Vars(r)["id"])
+	var data accessTokenPageData
+	var err error
+
+	data.AccessTokenID, err = strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var a data_manager.AccessToken
-	err = a.SelectFromDBByID(accessTokenID)
+	err = data.AccessToken.SelectFromDBByID(data.AccessTokenID)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
 	// TODO: запрос подтверждения на удаления
 
-	a.DeleteFromDB()
+	data.AccessToken.DeleteFromDB()
 
 	http.Redirect(w, r, "/settings/access_tokens", http.StatusSeeOther)
 }
 
+type operatorPagesData struct {
+	OperatorID int
+	Operator   data_manager.Operator
+	Operators  []data_manager.Operator
+}
+
 func operatorsPageHandler(w http.ResponseWriter, _ *http.Request) {
-	var s settings
-	s.Operators = data_manager.SelectOperators()
+	var data operatorPagesData
+	data.Operators = data_manager.SelectOperators()
 
 	t := getHtmlTemplates()
-	err := t.ExecuteTemplate(w, "operators", s)
+	err := t.ExecuteTemplate(w, "operators", data)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 }
 
 func operatorSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
-	operatorID, err := strconv.Atoi(mux.Vars(r)["id"])
+	var data operatorPagesData
+	var err error
+	data.OperatorID, err = strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var o data_manager.Operator
-	err = o.SelectFromDBByID(operatorID)
+	err = data.Operator.SelectFromDBByID(data.OperatorID)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	type oSettings struct {
-		OperatorID int
-		Operator   data_manager.Operator
-		Operators  []data_manager.Operator
-	}
-
-	var ost oSettings
-	ost.OperatorID = operatorID
-	ost.Operator = o
-	ost.Operators = data_manager.SelectOperators()
+	data.Operators = data_manager.SelectOperators()
 
 	t := getHtmlTemplates()
-	err = t.ExecuteTemplate(w, "operator_settings", ost)
+	err = t.ExecuteTemplate(w, "operator_settings", data)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 }
@@ -280,16 +269,17 @@ func operatorNewPageHandler(w http.ResponseWriter, _ *http.Request) {
 	t := getHtmlTemplates()
 	err := t.ExecuteTemplate(w, "operator_new", nil)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 }
 
 func operatorCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
-	var o data_manager.Operator
+	var data operatorPagesData
 
 	name := r.FormValue("name")
 	if len(name) > 0 {
-		err := o.SetName(name)
+		err := data.Operator.SetName(name)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -307,7 +297,7 @@ func operatorCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	value := r.FormValue("vk_id")
 	if len(value) > 0 {
-		err := o.SetVkID(value)
+		err := data.Operator.SetVkID(value)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -325,20 +315,24 @@ func operatorCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 		return // TODO: обработать ошибку
 	}
 
-	o.SaveToDB()
+	data.Operator.SaveToDB()
 
 	http.Redirect(w, r, "/settings/operators", http.StatusSeeOther)
 }
 
 func operatorUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
-	operatorID, err := strconv.Atoi(mux.Vars(r)["id"])
+	var data operatorPagesData
+	var err error
+
+	data.OperatorID, err = strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var o data_manager.Operator
-	err = o.SelectFromDBByID(operatorID)
+	err = data.Operator.SelectFromDBByID(data.OperatorID)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
@@ -346,7 +340,7 @@ func operatorUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
 	if len(name) > 0 {
-		err = o.SetName(name)
+		err = data.Operator.SetName(name)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -364,7 +358,7 @@ func operatorUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	value := r.FormValue("vk_id")
 	if len(value) > 0 {
-		err = o.SetVkID(value)
+		err = data.Operator.SetVkID(value)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -383,144 +377,153 @@ func operatorUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if dataIsUpdated {
-		o.UpdateIdDB()
+		data.Operator.UpdateIdDB()
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/settings/operators/%d", o.ID), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/settings/operators/%d",
+		data.OperatorID), http.StatusSeeOther)
 }
 
 func operatorDeletePageHandler(w http.ResponseWriter, r *http.Request) {
-	operatorID, err := strconv.Atoi(mux.Vars(r)["id"])
+	var data operatorPagesData
+	var err error
+
+	data.OperatorID, err = strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var o data_manager.Operator
-	err = o.SelectFromDBByID(operatorID)
+	err = data.Operator.SelectFromDBByID(data.OperatorID)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
 	// TODO: запрос подтверждения на удаления
 
-	o.DeleteFromDB()
+	data.Operator.DeleteFromDB()
 
 	http.Redirect(w, r, "/settings/operators", http.StatusSeeOther)
 }
 
-func wardsPageHandler(w http.ResponseWriter, _ *http.Request) {
-	var s settings
-	s.Wards = data_manager.SelectWards()
-
-	t := getHtmlTemplates()
-	err := t.ExecuteTemplate(w, "wards", s)
-	if err != nil {
-		panic(err.Error())
-	}
-}
-
-type wardSettings struct {
+type wardPageData struct {
 	WardID          int
 	Ward            data_manager.Ward
 	Wards           []data_manager.Ward
 	AccessTokens    []data_manager.AccessToken
 	Operators       []data_manager.Operator
 	Observers       []data_manager.Observer
-	ObserversTypes  []string
+	ObserverTypes   []string
 	WallPostTypes   []string
 	WallPostTypesRu []string
 }
 
+func wardsPageHandler(w http.ResponseWriter, _ *http.Request) {
+	var data wardPageData
+	data.Wards = data_manager.SelectWards()
+
+	t := getHtmlTemplates()
+	err := t.ExecuteTemplate(w, "wards", data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func wardSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
-	wardID, err := strconv.Atoi(mux.Vars(r)["id"])
+	var data wardPageData
+	var err error
+	data.WardID, err = strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var ws wardSettings
-
-	err = ws.Ward.SelectFromDBByID(wardID)
+	err = data.Ward.SelectFromDBByID(data.WardID)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	ws.AccessTokens = data_manager.SelectAccessTokens()
+	data.AccessTokens = data_manager.SelectAccessTokens()
 
-	ws.Operators = data_manager.SelectOperators()
+	data.Operators = data_manager.SelectOperators()
 
-	ws.ObserversTypes = []string{"Посты на стене", "Комментарии на стене", "Фото в альбомах",
+	data.ObserverTypes = []string{"Посты на стене", "Комментарии на стене", "Фото в альбомах",
 		"Комментарии под фото", "Видео в альбомах", "Комментарии под видео", "Обсуждения"}
 
-	observersTypes := []string{
+	observerTypes := []string{
 		"wall_post", "wall_reply", "photo", "photo_comment", "video", "video_comment", "board_post",
 	}
-	for _, item := range observersTypes {
+	for _, item := range observerTypes {
 		var o data_manager.Observer
-		err = o.SelectFromDB(item, ws.Ward.ID)
+		err = o.SelectFromDB(item, data.Ward.ID)
 		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
-		ws.Observers = append(ws.Observers, o)
+		data.Observers = append(data.Observers, o)
 	}
 
-	ws.WallPostTypes = []string{
+	data.WallPostTypes = []string{
 		"post", "suggest", "postponed",
 	}
 
-	ws.WallPostTypesRu = []string{
+	data.WallPostTypesRu = []string{
 		"Опубликованные", "Предложенные", "Отложенные",
 	}
 
-	ws.WardID = wardID
-	ws.Wards = data_manager.SelectWards()
+	data.Wards = data_manager.SelectWards()
 
 	t := getHtmlTemplates()
-	err = t.ExecuteTemplate(w, "ward_settings", ws)
+	err = t.ExecuteTemplate(w, "ward_settings", data)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 }
 
 func wardNewPageHandler(w http.ResponseWriter, _ *http.Request) {
-	var ws wardSettings
+	var data wardPageData
 
-	ws.AccessTokens = data_manager.SelectAccessTokens()
+	data.AccessTokens = data_manager.SelectAccessTokens()
 
-	ws.Operators = data_manager.SelectOperators()
+	data.Operators = data_manager.SelectOperators()
 
-	ws.ObserversTypes = []string{"Посты на стене", "Комментарии на стене", "Фото в альбомах",
+	data.ObserverTypes = []string{"Посты на стене", "Комментарии на стене", "Фото в альбомах",
 		"Комментарии под фото", "Видео в альбомах", "Комментарии под видео", "Обсуждения"}
 
-	observersTypes := []string{
+	observerTypes := []string{
 		"wall_post", "wall_reply", "photo", "photo_comment", "video", "video_comment", "board_post",
 	}
-	for _, item := range observersTypes {
+	for _, item := range observerTypes {
 		var o data_manager.Observer
 		o.SetName(item)
-		ws.Observers = append(ws.Observers, o)
+		data.Observers = append(data.Observers, o)
 	}
 
-	ws.WallPostTypes = []string{
+	data.WallPostTypes = []string{
 		"post", "suggest", "postponed",
 	}
 
-	ws.WallPostTypesRu = []string{
+	data.WallPostTypesRu = []string{
 		"Опубликованные", "Предложенные", "Отложенные",
 	}
 
 	t := getHtmlTemplates()
-	err := t.ExecuteTemplate(w, "ward_new", ws)
+	err := t.ExecuteTemplate(w, "ward_new", data)
 	if err != nil {
 		panic(err.Error())
 	}
 }
 
 func wardCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
-	var ward data_manager.Ward
+	var data wardPageData
 
 	name := r.FormValue("name")
 	if len(name) > 0 {
-		err := ward.SetName(name)
+		err := data.Ward.SetName(name)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -538,7 +541,7 @@ func wardCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	vkID := r.FormValue("vk_id")
 	if len(vkID) > 0 {
-		err := ward.SetVkID(vkID)
+		err := data.Ward.SetVkID(vkID)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -558,7 +561,7 @@ func wardCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	getAccessToken := r.FormValue("get_access_token")
 	if len(getAccessToken) > 0 {
-		err := ward.SetAccessToken(getAccessToken)
+		err := data.Ward.SetAccessToken(getAccessToken)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -574,26 +577,24 @@ func wardCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 		return // TODO: обработать ошибку
 	}
 
-	observersTypes := []string{
+	observerTypes := []string{
 		"wall_post", "wall_reply", "photo", "photo_comment", "video", "video_comment", "board_post",
 	}
 
-	var observers []data_manager.Observer
-
-	for _, item := range observersTypes {
-		var observer data_manager.Observer
-		observer.SetName(item)
+	for _, item := range observerTypes {
+		var o data_manager.Observer
+		o.SetName(item)
 
 		if item == "wall_post" {
 			postType := r.FormValue("post_type")
 			if len(postType) > 0 {
-				observer.SetAdditionalParams(postType)
+				o.SetAdditionalParams(postType)
 			}
 		}
 
 		operatorName := r.FormValue(fmt.Sprintf("%s_operator", item))
 		if len(operatorName) > 0 {
-			err := observer.SetOperator(operatorName)
+			err := o.SetOperator(operatorName)
 			if err != nil {
 				panic(err.Error()) // TODO: обработать ошибку
 			}
@@ -603,7 +604,7 @@ func wardCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 
 		sendAccessToken := r.FormValue(fmt.Sprintf("%s_send_access_token", item))
 		if len(sendAccessToken) > 0 {
-			err := observer.SetAccessToken(sendAccessToken)
+			err := o.SetAccessToken(sendAccessToken)
 			if err != nil {
 				panic(err.Error()) // TODO: обработать ошибку
 			}
@@ -611,19 +612,19 @@ func wardCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 			return // TODO: обработать ошибку
 		}
 
-		observers = append(observers, observer)
+		data.Observers = append(data.Observers, o)
 	}
 
-	ward.SaveToDB()
+	data.Ward.SaveToDB()
 
-	err := ward.SelectFromDB(ward.Name)
+	err := data.Ward.SelectFromDB(data.Ward.Name)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	for _, observer := range observers {
-		observer.SetWardID(ward.ID)
+	for _, observer := range data.Observers {
+		observer.SetWardID(data.Ward.ID)
 		observer.SaveToDB()
 	}
 
@@ -631,15 +632,17 @@ func wardCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func wardUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
-	wardID, err := strconv.Atoi(mux.Vars(r)["id"])
+	var data wardPageData
+	var err error
+	data.WardID, err = strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var ward data_manager.Ward
-
-	err = ward.SelectFromDBByID(wardID)
+	err = data.Ward.SelectFromDBByID(data.WardID)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
@@ -647,7 +650,7 @@ func wardUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
 	if len(name) > 0 {
-		err = ward.SetName(name)
+		err = data.Ward.SetName(name)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -665,7 +668,7 @@ func wardUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	vkID := r.FormValue("vk_id")
 	if len(vkID) > 0 {
-		err = ward.SetVkID(vkID)
+		err = data.Ward.SetVkID(vkID)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -685,7 +688,7 @@ func wardUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	getAccessToken := r.FormValue("get_access_token")
 	if len(getAccessToken) > 0 {
-		err = ward.SetAccessToken(getAccessToken)
+		err = data.Ward.SetAccessToken(getAccessToken)
 		if err != nil {
 			switch true {
 			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
@@ -701,16 +704,15 @@ func wardUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	observersTypes := []string{
+	observerTypes := []string{
 		"wall_post", "wall_reply", "photo", "photo_comment", "video", "video_comment", "board_post",
 	}
 
-	var observers []data_manager.Observer
-
-	for _, item := range observersTypes {
+	for _, item := range observerTypes {
 		var observer data_manager.Observer
-		err = observer.SelectFromDB(item, wardID)
+		err = observer.SelectFromDB(item, data.WardID)
 		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
 			panic(err.Error())
 		}
 
@@ -726,6 +728,7 @@ func wardUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 		if len(operatorName) > 0 {
 			err = observer.SetOperator(operatorName)
 			if err != nil {
+				tools.WriteToLog(err, debug.Stack())
 				panic(err.Error()) // TODO: обработать ошибку
 			} else {
 				dataIsUpdated = true
@@ -736,56 +739,58 @@ func wardUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 		if len(sendAccessToken) > 0 {
 			err = observer.SetAccessToken(sendAccessToken)
 			if err != nil {
+				tools.WriteToLog(err, debug.Stack())
 				panic(err.Error()) // TODO: обработать ошибку
 			} else {
 				dataIsUpdated = true
 			}
 		}
 
-		observers = append(observers, observer)
+		data.Observers = append(data.Observers, observer)
 	}
 
 	if dataIsUpdated {
-		ward.UpdateInDB()
-		for _, observer := range observers {
+		data.Ward.UpdateInDB()
+		for _, observer := range data.Observers {
 			observer.UpdateInDB()
 		}
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/settings/wards/%d", ward.ID), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/settings/wards/%d", data.Ward.ID), http.StatusSeeOther)
 }
 
 func wardDeletePageHandler(w http.ResponseWriter, r *http.Request) {
-	wardID, err := strconv.Atoi(mux.Vars(r)["id"])
+	var data wardPageData
+	var err error
+	data.WardID, err = strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var ward data_manager.Ward
-	err = ward.SelectFromDBByID(wardID)
+	err = data.Ward.SelectFromDBByID(data.WardID)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var observers []data_manager.Observer
-
-	observersTypes := []string{
+	observerTypes := []string{
 		"wall_post", "wall_reply", "photo", "photo_comment", "video", "video_comment", "board_post",
 	}
 
-	for _, item := range observersTypes {
+	for _, item := range observerTypes {
 		var o data_manager.Observer
-		o.SelectFromDB(item, ward.ID)
+		o.SelectFromDB(item, data.Ward.ID)
 
-		observers = append(observers, o)
+		data.Observers = append(data.Observers, o)
 	}
 
 	// TODO: запрос подтверждения на удаления
 
-	for _, observer := range observers {
+	for _, observer := range data.Observers {
 		observer.DeleteFromDB()
 	}
-	ward.DeleteFromDB()
+	data.Ward.DeleteFromDB()
 
 	http.Redirect(w, r, "/settings/wards", http.StatusSeeOther)
 }

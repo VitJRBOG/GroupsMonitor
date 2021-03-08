@@ -41,7 +41,7 @@
 
         <hr class="separator_hr">
 
-        {{ $observers_types := .ObserversTypes }}
+        {{ $observer_types := .ObserverTypes }}
         {{ $operators := .Operators }}
         {{ $access_tokens := .AccessTokens }}
         {{ $wall_post_types := .WallPostTypes }}
@@ -49,7 +49,7 @@
 
         {{ range $i, $observer := .Observers }}
 
-        <div class="content_header">Параметры наблюдателя «{{ index $observers_types $i }}»</div>
+        <div class="content_header">Параметры наблюдателя «{{ index $observer_types $i }}»</div>
         <hr class="separator_hr">
 
         {{ if (eq $observer.Name "wall_post") }}

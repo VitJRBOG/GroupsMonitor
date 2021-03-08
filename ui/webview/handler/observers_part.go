@@ -3,9 +3,12 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"runtime/debug"
 	"strconv"
 
 	"github.com/VitJRBOG/GroupsObserver/data_manager"
+	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/GroupsObserver/vkapi"
 	"github.com/gorilla/mux"
 )
 
@@ -16,42 +19,48 @@ func observersPageHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("/observers/%d", wards[0].ID), http.StatusSeeOther)
 }
 
-type observersData struct {
-	WardID           int
-	Wards            []data_manager.Ward
-	Observers        []data_manager.Observer
-	ObserversTypesRu []string
-}
-
 func observerControlPageHandler(w http.ResponseWriter, r *http.Request) {
 	wardID, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		panic(err.Error())
 	}
 
-	var obs observersData
-
-	obs.WardID = wardID
-
-	obs.Wards = data_manager.SelectWards()
-
-	obs.ObserversTypesRu = []string{"Посты на стене", "Комментарии на стене", "Фото в альбомах",
-		"Комментарии под фото", "Видео в альбомах", "Комментарии под видео", "Обсуждения"}
-
-	observersTypes := []string{
-		"wall_post", "wall_reply", "photo", "photo_comment", "video", "video_comment", "board_post",
+	var ward data_manager.Ward
+	err = ward.SelectFromDBByID(wardID)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
 	}
 
-	for _, item := range observersTypes {
-		var o data_manager.Observer
+	var accessToken data_manager.AccessToken
+	err = accessToken.SelectFromDBByID(ward.GetAccessTokenID)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 
-		o.SelectFromDB(item, wardID)
+	lpApiSettings := vkapi.GetLongPollSettings(accessToken.Value, ward.VkID)
 
-		obs.Observers = append(obs.Observers, o)
+	wards := data_manager.SelectWards()
+
+	type observerControlData struct {
+		WardID        int
+		Ward          data_manager.Ward
+		Wards         []data_manager.Ward
+		AccessToken   data_manager.AccessToken
+		LpApiSettings vkapi.LongPollApiSettings
+	}
+
+	ocd := observerControlData{
+		WardID:        wardID,
+		Ward:          ward,
+		Wards:         wards,
+		AccessToken:   accessToken,
+		LpApiSettings: lpApiSettings,
 	}
 
 	t := getHtmlTemplates()
-	err = t.ExecuteTemplate(w, "observer_control", obs)
+	err = t.ExecuteTemplate(w, "observer_control", ocd)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -65,16 +74,28 @@ func observerTogglePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	observerName := mux.Vars(r)["name"]
 
-	var o data_manager.Observer
-	o.SelectFromDB(observerName, wardID)
+	observerMode := mux.Vars(r)["mode"]
 
-	if o.UnderObservation == 1 {
-		o.SetObservationFlag(false)
-	} else {
-		o.SetObservationFlag(true)
+	var ward data_manager.Ward
+	err = ward.SelectFromDBByID(wardID)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
 	}
 
-	o.UpdateInDB()
+	var accessToken data_manager.AccessToken
+	err = accessToken.SelectFromDBByID(ward.GetAccessTokenID)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	newParam := map[string]string{
+		"event_name": observerName,
+		"mode":       observerMode,
+	}
+
+	vkapi.SetLongPollSettings(accessToken.Value, ward.VkID, newParam)
 
 	http.Redirect(w, r, fmt.Sprintf("/observers/%d", wardID), http.StatusSeeOther)
 }

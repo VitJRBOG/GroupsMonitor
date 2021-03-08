@@ -45,6 +45,90 @@ func parseConnectionDataForLongPollServer(response []byte) longPollServerConnect
 	return lpsConnectionData
 }
 
+type LongPollApiSettings struct {
+	IsEnabled       bool   `json:"is_enabled"`
+	ApiVersion      string `json:"api_version"`
+	WallPostNew     int    `json:"wall_post_new"`
+	WallReplyNew    int    `json:"wall_reply_new"`
+	PhotoNew        int    `json:"photo_new"`
+	PhotoCommentNew int    `json:"photo_comment_new"`
+	VideoNew        int    `json:"video_new"`
+	VideoCommentNew int    `json:"video_comment_new"`
+	BoardPostNew    int    `json:"board_post_new"`
+}
+
+func GetLongPollSettings(accessToken string, wardVkId int) LongPollApiSettings {
+
+	var groupID int
+	if wardVkId < 0 {
+		groupID = wardVkId * -1
+	} else {
+		groupID = wardVkId
+	}
+
+	values := url.Values{
+		"access_token": {accessToken},
+		"group_id":     {strconv.Itoa(groupID)},
+		"v":            {"5.126"},
+	}
+	response, err := callMethod("groups.getLongPollSettings", values)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	lpApiSettings := parseSettingsForLongPollAPI(response)
+	return lpApiSettings
+}
+
+func parseSettingsForLongPollAPI(response []byte) LongPollApiSettings {
+	var lpApiSettings LongPollApiSettings
+
+	var f interface{}
+	err := json.Unmarshal(response, &f)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	s := f.(map[string]interface{})
+
+	lpApiSettings.IsEnabled = s["is_enabled"].(bool)
+	lpApiSettings.ApiVersion = s["api_version"].(string)
+	lpApiSettings.WallPostNew = int(s["events"].(map[string]interface{})["wall_post_new"].(float64))
+	lpApiSettings.WallReplyNew = int(s["events"].(map[string]interface{})["wall_reply_new"].(float64))
+	lpApiSettings.PhotoNew = int(s["events"].(map[string]interface{})["photo_new"].(float64))
+	lpApiSettings.PhotoCommentNew = int(s["events"].(map[string]interface{})["photo_comment_new"].(float64))
+	lpApiSettings.VideoNew = int(s["events"].(map[string]interface{})["video_new"].(float64))
+	lpApiSettings.VideoCommentNew = int(s["events"].(map[string]interface{})["video_comment_new"].(float64))
+	lpApiSettings.BoardPostNew = int(s["events"].(map[string]interface{})["board_post_new"].(float64))
+
+	return lpApiSettings
+}
+
+func SetLongPollSettings(accessToken string, wardVkId int, newParam map[string]string) {
+	var groupID int
+	if wardVkId < 0 {
+		groupID = wardVkId * -1
+	} else {
+		groupID = wardVkId
+	}
+
+	values := url.Values{
+		"access_token":         {accessToken},
+		"group_id":             {strconv.Itoa(groupID)},
+		"api_version":          {"5.126"},
+		newParam["event_name"]: {newParam["mode"]},
+		"v":                    {"5.126"},
+	}
+
+	_, err := callMethod("groups.setLongPollSettings", values)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 type vkMessage struct {
 	PeerID, RandomID                                       int
 	Header, Text, Link, Footer, Attachments, ContentSource string

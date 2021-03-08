@@ -4,43 +4,148 @@
 
     <div class="content">
 
-      {{ $ward_id := .WardID }}
-
-      {{ range .Wards }}
-
-      {{ if (eq $ward_id .ID) }}
-
-      <div class="content_header">{{ .Name }}</div>
+      <div class="content_header">{{ .Ward.Name }}</div>
       <hr class="separator_hr">
 
-      {{ end }}
-
-      {{ end }}
-
-      {{ $observers_types_ru := .ObserversTypesRu }}
-
-      {{ range $i, $observer := .Observers }}
-
       <div class="content_box">
-        <div class="ward_label">{{ index $observers_types_ru $i }}:</div>
+        <div class="ward_label">Посты на стене:</div>
         <div class="ward_observing_tgl_btn">
-          <form action="/observers/{{ $ward_id }}/toggle/{{ .Name }}" method="post">
 
-            {{ if (eq .UnderObservation 1) }}
+          {{ if (eq .LpApiSettings.WallPostNew 1) }}
 
+          <form action="/observers/{{ .WardID }}/toggle/wall_post_new/0" method="post">
             <button class="btn_general">Выкл.</button>
 
-            {{ else }}
+          {{ else }}
 
+          <form action="/observers/{{ .WardID }}/toggle/wall_post_new/1" method="post">
             <button class="btn_general">Вкл.</button>
 
-            {{ end }}
+          {{ end }}
 
           </form>
         </div>
       </div>
 
-      {{ end }}
+      <div class="content_box">
+        <div class="ward_label">Комментарии на стене:</div>
+        <div class="ward_observing_tgl_btn">
+
+          {{ if (eq .LpApiSettings.WallReplyNew 1) }}
+
+          <form action="/observers/{{ .WardID }}/toggle/wall_reply_new/0" method="post">
+            <button class="btn_general">Выкл.</button>
+
+          {{ else }}
+
+          <form action="/observers/{{ .WardID }}/toggle/wall_reply_new/1" method="post">
+            <button class="btn_general">Вкл.</button>
+
+          {{ end }}
+
+          </form>
+        </div>
+      </div>
+
+      <div class="content_box">
+        <div class="ward_label">Фото в альбомах:</div>
+        <div class="ward_observing_tgl_btn">
+          
+          {{ if (eq .LpApiSettings.PhotoNew 1) }}
+
+          <form action="/observers/{{ .WardID }}/toggle/photo_new/0" method="post">
+            <button class="btn_general">Выкл.</button>
+
+          {{ else }}
+
+          <form action="/observers/{{ .WardID }}/toggle/photo_new/1" method="post">
+            <button class="btn_general">Вкл.</button>
+
+          {{ end }}
+
+          </form>
+        </div>
+      </div>
+
+      <div class="content_box">
+        <div class="ward_label">Комментарии под фото:</div>
+        <div class="ward_observing_tgl_btn">
+
+          {{ if (eq .LpApiSettings.PhotoCommentNew 1) }}
+
+          <form action="/observers/{{ .WardID }}/toggle/photo_comment_new/0" method="post">
+            <button class="btn_general">Выкл.</button>
+
+          {{ else }}
+
+          <form action="/observers/{{ .WardID }}/toggle/photo_comment_new/1" method="post">
+            <button class="btn_general">Вкл.</button>
+
+          {{ end }}
+
+          </form>
+        </div>
+      </div>
+
+      <div class="content_box">
+        <div class="ward_label">Видео в альбомах:</div>
+        <div class="ward_observing_tgl_btn">
+          
+          {{ if (eq .LpApiSettings.VideoNew 1) }}
+
+          <form action="/observers/{{ .WardID }}/toggle/video_new/0" method="post">
+            <button class="btn_general">Выкл.</button>
+
+          {{ else }}
+
+          <form action="/observers/{{ .WardID }}/toggle/video_new/1" method="post">
+            <button class="btn_general">Вкл.</button>
+
+          {{ end }}
+
+          </form>
+        </div>
+      </div>
+
+      <div class="content_box">
+        <div class="ward_label">Комментарии под видео:</div>
+        <div class="ward_observing_tgl_btn">
+
+          {{ if (eq .LpApiSettings.VideoCommentNew 1) }}
+
+          <form action="/observers/{{ .WardID }}/toggle/video_comment_new/0" method="post">
+            <button class="btn_general">Выкл.</button>
+
+          {{ else }}
+
+          <form action="/observers/{{ .WardID }}/toggle/video_comment_new/1" method="post">
+            <button class="btn_general">Вкл.</button>
+
+          {{ end }}
+
+          </form>
+        </div>
+      </div>
+
+      <div class="content_box">
+        <div class="ward_label">Обсуждения:</div>
+        <div class="ward_observing_tgl_btn">
+
+          {{ if (eq .LpApiSettings.BoardPostNew 1) }}
+
+          <form action="/observers/{{ .WardID }}/toggle/board_post_new/0" method="post">
+            <button class="btn_general">Выкл.</button>
+
+          {{ else }}
+
+          <form action="/observers/{{ .WardID }}/toggle/board_post_new/1" method="post">
+            <button class="btn_general">Вкл.</button>
+
+          {{ end }}
+
+          </form>
+        </div>
+      </div>
 
     </div>
 
@@ -49,6 +154,7 @@
       <hr class="separator_hr">
       <nav>
 
+        {{ $ward_id := .WardID }}
         {{ range .Wards }}
 
         <p>

@@ -106,6 +106,29 @@ func parseSettingsForLongPollAPI(response []byte) LongPollApiSettings {
 	return lpApiSettings
 }
 
+func TurnOnLongPollAPI(accessToken string, wardVkId int) {
+	var groupID int
+	if wardVkId < 0 {
+		groupID = wardVkId * -1
+	} else {
+		groupID = wardVkId
+	}
+
+	values := url.Values{
+		"access_token": {accessToken},
+		"group_id":     {strconv.Itoa(groupID)},
+		"api_version":  {"5.126"},
+		"enabled":      {"1"},
+		"v":            {"5.126"},
+	}
+
+	_, err := callMethod("groups.setLongPollSettings", values)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func SetLongPollSettings(accessToken string, wardVkId int, newParam map[string]string) {
 	var groupID int
 	if wardVkId < 0 {

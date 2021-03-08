@@ -49,6 +49,12 @@ func StartObserver(params *ModuleParams) {
 			}
 			var accessToken db.AccessToken
 			accessToken.SelectByID(params.Ward.GetAccessTokenID)
+
+			longPollApiIsEnabled := checkLongPollAPIEnabling(accessToken.Value, params.Ward.VkID)
+			if !longPollApiIsEnabled {
+				vkapi.TurnOnLongPollAPI(accessToken.Value, params.Ward.VkID)
+			}
+
 			respLPS := vkapi.ListenLongPollServer(accessToken.Value, -(params.Ward.VkID), params.Ward.LastTS)
 			params.Status = "processing"
 			err := parseLongPollServerResponse(respLPS, &params.Ward)
@@ -189,6 +195,11 @@ func parseLongPollServerResponse(respLPS vkapi.ResponseLongPollServer, ward *db.
 		updateWard(ward, respLPS.TS)
 	}
 	return nil
+}
+
+func checkLongPollAPIEnabling(accessToken string, wardVkId int) bool {
+	lpApiSettings := vkapi.GetLongPollSettings(accessToken, wardVkId)
+	return lpApiSettings.IsEnabled
 }
 
 func checkWallPostType(wardID int, w vkapi.WallPost) bool {

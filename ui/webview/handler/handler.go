@@ -17,12 +17,13 @@ func InitHandler() {
 	// General part //
 
 	rtr.HandleFunc("/", homePageHandler).Methods("GET")
-	rtr.HandleFunc("/wards/{id:[0-9]+}/toggle", wardObservationTogglePageHandler).Methods("POST")
+	rtr.HandleFunc("/wards/{id:[0-9]+}/toggle", wardObservationModeSwitcher).Methods("POST")
 
 	// Observers part //
 
 	rtr.HandleFunc("/observers", observersPageHandler).Methods("GET")
 	rtr.HandleFunc("/observers/{id:[0-9]+}", observerControlPageHandler).Methods("GET", "POST")
+	rtr.HandleFunc("/observers/{id:[0-9]+}/get", observerControlGet).Methods("POST")
 	rtr.HandleFunc("/observers/{id:[0-9]+}/toggle/{name:[a-zA-Z_]+}/{mode:[0-1]}",
 		observerTogglePageHandler).Methods("POST")
 
@@ -31,32 +32,41 @@ func InitHandler() {
 	rtr.HandleFunc("/settings", settingsPageHandler).Methods("GET")
 
 	rtr.HandleFunc("/settings/access_tokens", accessTokensPageHandler).Methods("GET", "POST")
+	rtr.HandleFunc("/settings/access_tokens/get", accessTokensGet).Methods("POST")
 	rtr.HandleFunc("/settings/access_tokens/new", accessTokenNewPageHandler).Methods("GET", "POST")
 	rtr.HandleFunc("/settings/access_tokens/new/create",
 		accessTokenCreateNewPageHandler).Methods("POST")
 	rtr.HandleFunc("/settings/access_tokens/{id:[0-9]+}",
 		accessTokenSettingsPageHandler).Methods("GET", "POST")
+	rtr.HandleFunc("/settings/access_tokens/{id:[0-9]+}/get",
+		accessTokenSettingsGet).Methods("POST")
 	rtr.HandleFunc("/settings/access_tokens/{id:[0-9]+}/delete",
 		accessTokenDeletePageHandler).Methods("POST")
 	rtr.HandleFunc("/settings/access_tokens/{id:[0-9]+}/update",
 		accessTokenUpdatePageHandler).Methods("POST")
 
 	rtr.HandleFunc("/settings/operators", operatorsPageHandler).Methods("GET", "POST")
+	rtr.HandleFunc("/settings/operators/get", operatorsGet).Methods("POST")
 	rtr.HandleFunc("/settings/operators/new", operatorNewPageHandler).Methods("GET", "POST")
 	rtr.HandleFunc("/settings/operators/new/create", operatorCreateNewPageHandler).Methods("POST")
 	rtr.HandleFunc("/settings/operators/{id:[0-9]+}",
 		operatorSettingsPageHandler).Methods("GET", "POST")
+	rtr.HandleFunc("/settings/operators/{id:[0-9]+}/get",
+		operatorSettingsGet).Methods("POST")
 	rtr.HandleFunc("/settings/operators/{id:[0-9]+}/delete",
 		operatorDeletePageHandler).Methods("POST")
 	rtr.HandleFunc("/settings/operators/{id:[0-9]+}/update",
 		operatorUpdatePageHandler).Methods("POST")
 
 	rtr.HandleFunc("/settings/wards", wardsPageHandler).Methods("GET", "POST")
+	rtr.HandleFunc("/settings/wards/get", wardsGet).Methods("POST")
 	rtr.HandleFunc("/settings/wards/new", wardNewPageHandler).Methods("GET", "POST")
+	rtr.HandleFunc("/settings/wards/new/get", wardGetNew).Methods("POST")
 	rtr.HandleFunc("/settings/wards/new/create",
 		wardCreateNewPageHandler).Methods("POST")
 	rtr.HandleFunc("/settings/wards/{id:[0-9]+}",
 		wardSettingsPageHandler).Methods("GET", "POST")
+	rtr.HandleFunc("/settings/wards/{id:[0-9]+}/get", wardSettingsGet).Methods("POST")
 	rtr.HandleFunc("/settings/wards/{id:[0-9]+}/delete",
 		wardDeletePageHandler).Methods("POST")
 	rtr.HandleFunc("/settings/wards/{id:[0-9]+}/update",
@@ -85,9 +95,7 @@ func getHtmlTemplates() *template.Template {
 	t, err := template.ParseFiles(
 		pathToResourcesWebview+"html/header.html",
 		pathToResourcesWebview+"html/general/index.html",
-		pathToResourcesWebview+"html/observers/observers.html",
 		pathToResourcesWebview+"html/observers/observer_control.html",
-		pathToResourcesWebview+"html/settings/settings.html",
 		pathToResourcesWebview+"html/settings/access_tokens.html",
 		pathToResourcesWebview+"html/settings/access_token_new.html",
 		pathToResourcesWebview+"html/settings/access_token_settings.html",

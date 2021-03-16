@@ -2,26 +2,27 @@ package handler
 
 import (
 	"net/http"
+	"runtime/debug"
 	"strconv"
 
 	"github.com/VitJRBOG/GroupsObserver/data_manager"
+	"github.com/VitJRBOG/GroupsObserver/tools"
 	"github.com/gorilla/mux"
 )
 
 func homePageHandler(w http.ResponseWriter, _ *http.Request) {
-
-	wards := data_manager.SelectWards()
-
 	t := getHtmlTemplates()
-	err := t.ExecuteTemplate(w, "index", wards)
+	err := t.ExecuteTemplate(w, "index", nil)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 }
 
-func wardObservationTogglePageHandler(w http.ResponseWriter, r *http.Request) {
+func wardObservationModeSwitcher(w http.ResponseWriter, r *http.Request) {
 	wardID, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
@@ -35,6 +36,4 @@ func wardObservationTogglePageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ward.UpdateInDB()
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

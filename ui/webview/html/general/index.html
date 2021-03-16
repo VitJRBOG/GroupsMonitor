@@ -2,38 +2,15 @@
 
 {{ template "header" }}
 
-    <div class="content" style="width: 745px;">
+    <div class="content" id="content" style="width: 745px;">
 
       <div class="content_header">Общее</div>
       <hr class="separator_hr">
-
-      {{ range . }}
-
-      <div class="content_box">
-        <form action="/wards/{{ .ID }}/toggle" method="post">
-          <div class="ward_label">
-            {{ .Name }}:
-          </div>
-
-          <div class="ward_observing_tgl_btn">
-
-            {{ if (eq .UnderObservation 1) }}
-
-            <button class="btn_general">Приостановить</button>
-
-            {{ else }}
-
-            <button class="btn_general">Запустить</button>
-
-            {{ end }}
-
-          </div>
-        </form>
-      </div>
-      
-      {{ end }}
-  
+      <!-- верстка с помощью JavaScript -->
+      </div>  
     </div>
+
+    <script>makeHomePage();</script>
 
 {{ template "footer" }}
 

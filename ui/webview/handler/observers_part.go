@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -13,55 +14,65 @@ import (
 )
 
 func observersPageHandler(w http.ResponseWriter, r *http.Request) {
-
 	wards := data_manager.SelectWards()
 
 	http.Redirect(w, r, fmt.Sprintf("/observers/%d", wards[0].ID), http.StatusSeeOther)
 }
 
-func observerControlPageHandler(w http.ResponseWriter, r *http.Request) {
-	wardID, err := strconv.Atoi(mux.Vars(r)["id"])
+type observerControlPageData struct {
+	WardID        int                       `json:"ward_id"`
+	Ward          data_manager.Ward         `json:"ward"`
+	Wards         []data_manager.Ward       `json:"wards"`
+	LpApiSettings vkapi.LongPollApiSettings `json:"lp_api_settings"`
+}
+
+func observerControlGet(w http.ResponseWriter, r *http.Request) {
+	var data observerControlPageData
+	var err error
+
+	data.WardID, err = strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	var ward data_manager.Ward
-	err = ward.SelectFromDBByID(wardID)
+	err = data.Ward.SelectFromDBByID(data.WardID)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
 	var accessToken data_manager.AccessToken
-	err = accessToken.SelectFromDBByID(ward.GetAccessTokenID)
+	err = accessToken.SelectFromDBByID(data.Ward.GetAccessTokenID)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	lpApiSettings := vkapi.GetLongPollSettings(accessToken.Value, ward.VkID)
+	data.LpApiSettings = vkapi.GetLongPollSettings(accessToken.Value, data.Ward.VkID)
 
-	wards := data_manager.SelectWards()
+	data.Wards = data_manager.SelectWards()
 
-	type observerControlData struct {
-		WardID        int
-		Ward          data_manager.Ward
-		Wards         []data_manager.Ward
-		AccessToken   data_manager.AccessToken
-		LpApiSettings vkapi.LongPollApiSettings
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
 	}
 
-	ocd := observerControlData{
-		WardID:        wardID,
-		Ward:          ward,
-		Wards:         wards,
-		AccessToken:   accessToken,
-		LpApiSettings: lpApiSettings,
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
 	}
+}
+
+func observerControlPageHandler(w http.ResponseWriter, r *http.Request) {
+	wardID := mux.Vars(r)["id"]
 
 	t := getHtmlTemplates()
-	err = t.ExecuteTemplate(w, "observer_control", ocd)
+	err := t.ExecuteTemplate(w, "observer_control", wardID)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 }
@@ -69,6 +80,7 @@ func observerControlPageHandler(w http.ResponseWriter, r *http.Request) {
 func observerTogglePageHandler(w http.ResponseWriter, r *http.Request) {
 	wardID, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
@@ -96,6 +108,4 @@ func observerTogglePageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vkapi.SetLongPollSettings(accessToken.Value, ward.VkID, newParam)
-
-	http.Redirect(w, r, fmt.Sprintf("/observers/%d", wardID), http.StatusSeeOther)
 }

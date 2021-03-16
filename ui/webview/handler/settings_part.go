@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -17,9 +18,10 @@ func settingsPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type accessTokenPageData struct {
-	AccessTokenID int
-	AccessToken   data_manager.AccessToken
-	AccessTokens  []data_manager.AccessToken
+	AccessTokenID int                        `json:"access_token_id"`
+	AccessToken   data_manager.AccessToken   `json:"access_token"`
+	AccessTokens  []data_manager.AccessToken `json:"access_tokens"`
+	Error         string                     `json:"error"`
 }
 
 func (a *accessTokenPageData) hideAccessTokenValues() {
@@ -61,7 +63,37 @@ func accessTokensPageHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
+func accessTokensGet(w http.ResponseWriter, _ *http.Request) {
+	var data accessTokenPageData
+	data.AccessTokens = data_manager.SelectAccessTokens()
+
+	data.hideAccessTokenValues()
+
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func accessTokenSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
+	accessTokenID := mux.Vars(r)["id"]
+
+	t := getHtmlTemplates()
+	err := t.ExecuteTemplate(w, "access_token_settings", accessTokenID)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
+func accessTokenSettingsGet(w http.ResponseWriter, r *http.Request) {
 	var data accessTokenPageData
 	var err error
 	data.AccessTokenID, err = strconv.Atoi(mux.Vars(r)["id"])
@@ -82,8 +114,13 @@ func accessTokenSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	data.hideAccessTokenValues()
 
-	t := getHtmlTemplates()
-	err = t.ExecuteTemplate(w, "access_token_settings", data)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
@@ -103,41 +140,45 @@ func accessTokenCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 	var data accessTokenPageData
 
 	name := r.FormValue("name")
-	if len(name) > 0 {
-		err := data.AccessToken.SetName(name)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "access token with this name already exists"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
+	err := data.AccessToken.SetName(name)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Поле «Название» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "access token with this name already exists"):
+			data.Error = "Ключ с таким названием уже существует."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
-	} else {
-		return // TODO: обработать ошибку
 	}
 
 	value := r.FormValue("value")
-	if len(value) > 0 {
-		err := data.AccessToken.SetValue(value)
-		if err != nil {
-			if strings.Contains(strings.ToLower(err.Error()), "string length is zero") {
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			} else {
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
+	err = data.AccessToken.SetValue(value)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "string length is zero") {
+			data.Error = "Поле «Значение» не должно быть пустым."
+		} else {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
-	} else {
-		return // TODO: обработать ошибку
 	}
 
-	data.AccessToken.SaveToDB()
+	if data.Error == "" {
+		data.AccessToken.SaveToDB()
+	}
 
-	http.Redirect(w, r, "/settings/access_tokens", http.StatusSeeOther)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 }
 
 func accessTokenUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -156,47 +197,46 @@ func accessTokenUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 
-	var dataIsUpdated bool
-
 	name := r.FormValue("name")
-	if len(name) > 0 {
-		err = data.AccessToken.SetName(name)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "access token with this name already exists"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
-		} else {
-			dataIsUpdated = true
+	err = data.AccessToken.SetName(name)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Поле «Название» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "access token with this name already exists"):
+			data.Error = "Ключ с таким названием уже существует."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
 	}
 
 	value := r.FormValue("value")
-	if len(value) > 0 {
-		err = data.AccessToken.SetValue(value)
-		if err != nil {
-			if strings.Contains(strings.ToLower(err.Error()), "string length is zero") {
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			} else {
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
+	err = data.AccessToken.SetValue(value)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "string length is zero") {
+			data.Error = "Поле «Значение» не должно быть пустым."
 		} else {
-			dataIsUpdated = true
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
 	}
 
-	if dataIsUpdated {
+	if data.Error == "" {
 		data.AccessToken.UpdateInDB()
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/settings/access_tokens/%d",
-		data.AccessTokenID), http.StatusSeeOther)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 }
 
 func accessTokenDeletePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -215,17 +255,26 @@ func accessTokenDeletePageHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 
-	// TODO: запрос подтверждения на удаления
-
 	data.AccessToken.DeleteFromDB()
 
-	http.Redirect(w, r, "/settings/access_tokens", http.StatusSeeOther)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 }
 
 type operatorPagesData struct {
-	OperatorID int
-	Operator   data_manager.Operator
-	Operators  []data_manager.Operator
+	OperatorID int                     `json:"operator_id"`
+	Operator   data_manager.Operator   `json:"operator"`
+	Operators  []data_manager.Operator `json:"operators"`
+	Error      string                  `json:"error"`
 }
 
 func operatorsPageHandler(w http.ResponseWriter, _ *http.Request) {
@@ -240,7 +289,35 @@ func operatorsPageHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
+func operatorsGet(w http.ResponseWriter, r *http.Request) {
+	var data operatorPagesData
+	data.Operators = data_manager.SelectOperators()
+
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func operatorSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
+	operatorID := mux.Vars(r)["id"]
+
+	t := getHtmlTemplates()
+	err := t.ExecuteTemplate(w, "operator_settings", operatorID)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
+func operatorSettingsGet(w http.ResponseWriter, r *http.Request) {
 	var data operatorPagesData
 	var err error
 	data.OperatorID, err = strconv.Atoi(mux.Vars(r)["id"])
@@ -257,8 +334,13 @@ func operatorSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	data.Operators = data_manager.SelectOperators()
 
-	t := getHtmlTemplates()
-	err = t.ExecuteTemplate(w, "operator_settings", data)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
@@ -278,46 +360,50 @@ func operatorCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 	var data operatorPagesData
 
 	name := r.FormValue("name")
-	if len(name) > 0 {
-		err := data.Operator.SetName(name)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
+	err := data.Operator.SetName(name)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Поле «Название» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists"):
+			data.Error = "Оператор с таким названием уже существует."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
-	} else {
-		return // TODO: обработать ошибку
 	}
 
 	value := r.FormValue("vk_id")
-	if len(value) > 0 {
-		err := data.Operator.SetVkID(value)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
+	err = data.Operator.SetVkID(value)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Поле «ID в ВК» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
+			data.Error = "Идентификатор ВК не должен начинаться с нуля."
+		case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
+			data.Error = "Идентификатор ВК должен быть числом."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
-	} else {
-		return // TODO: обработать ошибку
 	}
 
-	data.Operator.SaveToDB()
+	if data.Error == "" {
+		data.Operator.SaveToDB()
+	}
 
-	http.Redirect(w, r, "/settings/operators", http.StatusSeeOther)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 }
 
 func operatorUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -336,52 +422,51 @@ func operatorUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 
-	var dataIsUpdated bool
-
 	name := r.FormValue("name")
-	if len(name) > 0 {
-		err = data.Operator.SetName(name)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
-		} else {
-			dataIsUpdated = true
+	err = data.Operator.SetName(name)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Поле «Название» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "operator with this name already exists"):
+			data.Error = "Оператор с таким названием уже существует."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
 	}
 
 	value := r.FormValue("vk_id")
-	if len(value) > 0 {
-		err = data.Operator.SetVkID(value)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
-				fmt.Println("asdasdas") // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
-		} else {
-			dataIsUpdated = true
+	err = data.Operator.SetVkID(value)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Поле «ID в ВК» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
+			data.Error = "Идентификатор ВК не должен начинаться с нуля."
+		case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
+			data.Error = "Идентификатор ВК должен быть числом."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
 	}
 
-	if dataIsUpdated {
+	if data.Error == "" {
 		data.Operator.UpdateIdDB()
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/settings/operators/%d",
-		data.OperatorID), http.StatusSeeOther)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 }
 
 func operatorDeletePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -400,23 +485,32 @@ func operatorDeletePageHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 
-	// TODO: запрос подтверждения на удаления
-
 	data.Operator.DeleteFromDB()
 
-	http.Redirect(w, r, "/settings/operators", http.StatusSeeOther)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 }
 
 type wardPageData struct {
-	WardID          int
-	Ward            data_manager.Ward
-	Wards           []data_manager.Ward
-	AccessTokens    []data_manager.AccessToken
-	Operators       []data_manager.Operator
-	Observers       []data_manager.Observer
-	ObserverTypes   []string
-	WallPostTypes   []string
-	WallPostTypesRu []string
+	WardID          int                        `json:"ward_id"`
+	Ward            data_manager.Ward          `json:"ward"`
+	Wards           []data_manager.Ward        `json:"wards"`
+	AccessTokens    []data_manager.AccessToken `json:"access_tokens"`
+	Operators       []data_manager.Operator    `json:"operators"`
+	Observers       []data_manager.Observer    `json:"observers"`
+	ObserverTypes   []string                   `json:"observer_types"`
+	WallPostTypes   []string                   `json:"wall_post_types"`
+	WallPostTypesRu []string                   `json:"wall_post_types_ru"`
+	Error           string                     `json:"error"`
 }
 
 func wardsPageHandler(w http.ResponseWriter, _ *http.Request) {
@@ -431,7 +525,35 @@ func wardsPageHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
+func wardsGet(w http.ResponseWriter, r *http.Request) {
+	var data wardPageData
+	data.Wards = data_manager.SelectWards()
+
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
 func wardSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
+	wardID := mux.Vars(r)["id"]
+
+	t := getHtmlTemplates()
+	err := t.ExecuteTemplate(w, "ward_settings", wardID)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+}
+
+func wardSettingsGet(w http.ResponseWriter, r *http.Request) {
 	var data wardPageData
 	var err error
 	data.WardID, err = strconv.Atoi(mux.Vars(r)["id"])
@@ -476,8 +598,13 @@ func wardSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	data.Wards = data_manager.SelectWards()
 
-	t := getHtmlTemplates()
-	err = t.ExecuteTemplate(w, "ward_settings", data)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
@@ -485,6 +612,14 @@ func wardSettingsPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func wardNewPageHandler(w http.ResponseWriter, _ *http.Request) {
+	t := getHtmlTemplates()
+	err := t.ExecuteTemplate(w, "ward_new", nil)
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func wardGetNew(w http.ResponseWriter, _ *http.Request) {
 	var data wardPageData
 
 	data.AccessTokens = data_manager.SelectAccessTokens()
@@ -511,9 +646,15 @@ func wardNewPageHandler(w http.ResponseWriter, _ *http.Request) {
 		"Опубликованные", "Предложенные", "Отложенные",
 	}
 
-	t := getHtmlTemplates()
-	err := t.ExecuteTemplate(w, "ward_new", data)
+	d, err := json.Marshal(data)
 	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 }
@@ -522,59 +663,47 @@ func wardCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 	var data wardPageData
 
 	name := r.FormValue("name")
-	if len(name) > 0 {
-		err := data.Ward.SetName(name)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				return // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "ward with this name already exists"):
-				return // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
+	err := data.Ward.SetName(name)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Поле «Название» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "ward with this name already exists"):
+			data.Error = "Подопечный с таким названием уже существует."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
-	} else {
-		return // TODO: обработать ошибку
 	}
 
 	vkID := r.FormValue("vk_id")
-	if len(vkID) > 0 {
-		err := data.Ward.SetVkID(vkID)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				return // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
-				return // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
-				return // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
+	err = data.Ward.SetVkID(vkID)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Поле «ID в ВК» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
+			data.Error = "Идентификатор ВК не должен начинаться с нуля."
+		case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
+			data.Error = "Идентификатор ВК должен быть числом."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
-	} else {
-		return // TODO: обработать ошибку
 	}
 
 	getAccessToken := r.FormValue("get_access_token")
-	if len(getAccessToken) > 0 {
-		err := data.Ward.SetAccessToken(getAccessToken)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				return // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "no such access token found"):
-				return // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
+	err = data.Ward.SetAccessToken(getAccessToken)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Значение «Get-ключ доступа» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "no such access token found"):
+			data.Error = "Указанный ключ доступ не найден."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
-	} else {
-		return // TODO: обработать ошибку
 	}
 
 	observerTypes := []string{
@@ -593,42 +722,62 @@ func wardCreateNewPageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		operatorName := r.FormValue(fmt.Sprintf("%s_operator", item))
-		if len(operatorName) > 0 {
-			err := o.SetOperator(operatorName)
-			if err != nil {
-				panic(err.Error()) // TODO: обработать ошибку
+		err = o.SetOperator(operatorName)
+		if err != nil {
+			switch true {
+			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+				data.Error = "Значение «Оператор» не должно быть пустым."
+			case strings.Contains(strings.ToLower(err.Error()), "no such operator found"):
+				data.Error = "Оператор с таким названием не найден."
+			default:
+				tools.WriteToLog(err, debug.Stack())
+				panic(err.Error())
 			}
-		} else {
-			return // TODO: обработать ошибку
 		}
 
 		sendAccessToken := r.FormValue(fmt.Sprintf("%s_send_access_token", item))
-		if len(sendAccessToken) > 0 {
-			err := o.SetAccessToken(sendAccessToken)
-			if err != nil {
-				panic(err.Error()) // TODO: обработать ошибку
+		err = o.SetAccessToken(sendAccessToken)
+		if err != nil {
+			switch true {
+			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+				data.Error = "Значение «Get-ключ доступа» не должно быть пустым."
+			case strings.Contains(strings.ToLower(err.Error()), "no such access token found"):
+				data.Error = "Указанный ключ доступ не найден."
+			default:
+				tools.WriteToLog(err, debug.Stack())
+				panic(err.Error())
 			}
-		} else {
-			return // TODO: обработать ошибку
 		}
 
 		data.Observers = append(data.Observers, o)
 	}
 
-	data.Ward.SaveToDB()
+	if data.Error == "" {
+		data.Ward.SaveToDB()
 
-	err := data.Ward.SelectFromDB(data.Ward.Name)
+		err := data.Ward.SelectFromDB(data.Ward.Name)
+		if err != nil {
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
+		}
+
+		for _, observer := range data.Observers {
+			observer.SetWardID(data.Ward.ID)
+			observer.SaveToDB()
+		}
+	}
+
+	d, err := json.Marshal(data)
 	if err != nil {
 		tools.WriteToLog(err, debug.Stack())
 		panic(err.Error())
 	}
 
-	for _, observer := range data.Observers {
-		observer.SetWardID(data.Ward.ID)
-		observer.SaveToDB()
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
 	}
-
-	http.Redirect(w, r, "/settings/wards", http.StatusSeeOther)
 }
 
 func wardUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -646,61 +795,47 @@ func wardUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err.Error())
 	}
 
-	var dataIsUpdated bool
-
 	name := r.FormValue("name")
-	if len(name) > 0 {
-		err = data.Ward.SetName(name)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				return // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "ward with this name already exists"):
-				return // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
-		} else {
-			dataIsUpdated = true
+	err = data.Ward.SetName(name)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Поле «Название» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "ward with this name already exists"):
+			data.Error = "Подопечный с таким названием уже существует."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
 	}
 
 	vkID := r.FormValue("vk_id")
-	if len(vkID) > 0 {
-		err = data.Ward.SetVkID(vkID)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				return // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
-				return // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
-				return // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
-		} else {
-			dataIsUpdated = true
+	err = data.Ward.SetVkID(vkID)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Поле «ID в ВК» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "vk id starts with zero"):
+			data.Error = "Идентификатор ВК не должен начинаться с нуля."
+		case strings.Contains(strings.ToLower(err.Error()), "invalid syntax"):
+			data.Error = "Идентификатор ВК должен быть числом."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
 	}
 
 	getAccessToken := r.FormValue("get_access_token")
-	if len(getAccessToken) > 0 {
-		err = data.Ward.SetAccessToken(getAccessToken)
-		if err != nil {
-			switch true {
-			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
-				return // TODO: обработать ошибку
-			case strings.Contains(strings.ToLower(err.Error()), "no such access token found"):
-				return // TODO: обработать ошибку
-			default:
-				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error())
-			}
-		} else {
-			dataIsUpdated = true
+	err = data.Ward.SetAccessToken(getAccessToken)
+	if err != nil {
+		switch true {
+		case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+			data.Error = "Значение «Get-ключ доступа» не должно быть пустым."
+		case strings.Contains(strings.ToLower(err.Error()), "no such access token found"):
+			data.Error = "Указанный ключ доступ не найден."
+		default:
+			tools.WriteToLog(err, debug.Stack())
+			panic(err.Error())
 		}
 	}
 
@@ -718,45 +853,58 @@ func wardUpdatePageHandler(w http.ResponseWriter, r *http.Request) {
 
 		if item == "wall_post" {
 			postType := r.FormValue("post_type")
-			if len(postType) > 0 {
-				observer.SetAdditionalParams(postType)
-				dataIsUpdated = true
-			}
+			observer.SetAdditionalParams(postType)
 		}
 
 		operatorName := r.FormValue(fmt.Sprintf("%s_operator", item))
-		if len(operatorName) > 0 {
-			err = observer.SetOperator(operatorName)
-			if err != nil {
+		err = observer.SetOperator(operatorName)
+		if err != nil {
+			switch true {
+			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+				data.Error = "Значение «Оператор» не должно быть пустым."
+			case strings.Contains(strings.ToLower(err.Error()), "no such operator found"):
+				data.Error = "Оператор с таким названием не найден."
+			default:
 				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error()) // TODO: обработать ошибку
-			} else {
-				dataIsUpdated = true
+				panic(err.Error())
 			}
 		}
 
 		sendAccessToken := r.FormValue(fmt.Sprintf("%s_send_access_token", item))
-		if len(sendAccessToken) > 0 {
-			err = observer.SetAccessToken(sendAccessToken)
-			if err != nil {
+		err = observer.SetAccessToken(sendAccessToken)
+		if err != nil {
+			switch true {
+			case strings.Contains(strings.ToLower(err.Error()), "string length is zero"):
+				data.Error = "Значение «Get-ключ доступа» не должно быть пустым."
+			case strings.Contains(strings.ToLower(err.Error()), "no such access token found"):
+				data.Error = "Указанный ключ доступ не найден."
+			default:
 				tools.WriteToLog(err, debug.Stack())
-				panic(err.Error()) // TODO: обработать ошибку
-			} else {
-				dataIsUpdated = true
+				panic(err.Error())
 			}
 		}
 
 		data.Observers = append(data.Observers, observer)
 	}
 
-	if dataIsUpdated {
+	if data.Error == "" {
 		data.Ward.UpdateInDB()
 		for _, observer := range data.Observers {
 			observer.UpdateInDB()
 		}
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/settings/wards/%d", data.Ward.ID), http.StatusSeeOther)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 }
 
 func wardDeletePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -785,12 +933,20 @@ func wardDeletePageHandler(w http.ResponseWriter, r *http.Request) {
 		data.Observers = append(data.Observers, o)
 	}
 
-	// TODO: запрос подтверждения на удаления
-
 	for _, observer := range data.Observers {
 		observer.DeleteFromDB()
 	}
 	data.Ward.DeleteFromDB()
 
-	http.Redirect(w, r, "/settings/wards", http.StatusSeeOther)
+	d, err := json.Marshal(data)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
+
+	_, err = w.Write(d)
+	if err != nil {
+		tools.WriteToLog(err, debug.Stack())
+		panic(err.Error())
+	}
 }

@@ -4,16 +4,17 @@
 
     <div class="content">
       <div class="content_header">
-        <form action="/settings/access_tokens/new" method="post">
-          Ключи доступа
-          <button class="btn_general" style="margin-left: 205px;">Добавить новый</button>
-        </form>
+        Ключи доступа
+        <button class="btn_general" onclick="openNewAccessTokenPage()" 
+        style="margin-left: 205px;">
+          Добавить новый
+        </button>
       </div>
       <hr class="separator_hr">
 
       <div class="table_box">
         <table class="table">
-          <tbody>
+          <tbody id="access_tokens_table">
             <tr class="table_th">
               <th class="table_th">
                 Название
@@ -22,20 +23,7 @@
                 Значение
               </th>
             </tr>
-  
-            {{ range .AccessTokens }}
-  
-            <tr class="table_td">
-              <td class="table_td">
-                <a class="table_item_name" href="/settings/access_tokens/{{ .ID }}">{{ .Name }}</a>
-              </td>
-              <td class="table_td" style="text-align: center;">
-                {{ .Value }}
-              </td>
-            </tr>
-  
-            {{ end }}
-  
+            <!-- верстка с помощью JavaScript -->
           </tbody>
         </table>
       </div>
@@ -44,35 +32,12 @@
     <div class="right_menu">
       <div class="right_menu_header">Параметры</div>
       <hr class="separator_hr">
-      <nav>
-        <p>
-          <div class="right_menu_btn_box_selected">
-            <a class="right_menu_btn" href="/settings/access_tokens">Ключи доступа</a>
-          </div>
-        </p>
-
-        {{ range .AccessTokens }}
-
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_under_btn" href="/settings/access_tokens/{{ .ID }}">{{ .Name }}</a>
-          </div>
-        </p>
-
-        {{ end }}
-
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/operators">Операторы</a>
-          </div>
-        </p>
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/wards">Подопечные</a>
-          </div>
-        </p>
+      <nav id="right_menu_btns">
+        <!-- верстка с помощью JavaScript -->
       </nav>
     </div>
+
+    <script>makeAccessTokensPage();</script>
 
 {{ template "footer" }}
 

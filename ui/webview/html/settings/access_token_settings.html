@@ -2,79 +2,42 @@
 
 {{ template "header" }}
 
-    {{ $accessTokenID := .AccessTokenID }}
-
-    <div class="content">
+    <div class="content" id="settings_fields">
       <div class="content_header">Параметры ключа доступа</div>
       <hr class="separator_hr">
 
-      <form action="/settings/access_tokens/{{ .AccessToken.ID }}/update" method="post">
-        <div class="content_box">
-          <a class="text_field_label">Название:</a>
-          <input class="text_field" type="text" id="name" name="name" 
-          value="{{ .AccessToken.Name }}" placeholder="{{ .AccessToken.Name }}">
-        </div>
-        <div class="content_box">
-          <a class="text_field_label">Значение:</a>
-          <input class="text_field" type="text" id="value" name="value" 
-          placeholder="{{ .AccessToken.Value }}">
-        </div>
-        <hr class="separator_hr">
-        <div class="btn_add">
-          <button class="btn_general">Сохранить</button>
-        </div>
-      </form>
-      <form action="/settings/access_tokens/{{ .AccessToken.ID }}/delete" method="post">
-        <div class="btn_add">
-          <button class="btn_del">Удалить</button>
-        </div>
-      </form>
+      <div class="error_msg_box" id="error_msg" style="display: none;">
+        <b>Ошибка сохранения записи</b>
+        <br>
+        <a id="error_text"></a>
+      </div>
+      
+      <div class="content_box">
+        <a class="text_field_label">Название:</a>
+        <input class="text_field" type="text" id="name" name="name">
+      </div>
+      <div class="content_box">
+        <a class="text_field_label">Значение:</a>
+        <input class="text_field" type="text" id="value" name="value">
+      </div>
+      <hr class="separator_hr">
+      <div class="btn_add">
+        <button class="btn_general" id="btn_save">Сохранить</button>
+      </div>
+      <div class="btn_add">
+        <button class="btn_del" id="btn_del">Удалить</button>
+      </div>
     </div>
 
     <div class="right_menu">
       <div class="right_menu_header">Параметры</div>
       <hr class="separator_hr">
-      <nav>
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/access_tokens">Ключи доступа</a>
-          </div>
-        </p>
-
-        {{ range .AccessTokens }}
-
-        <p>
-          <div 
-          
-          {{ if (eq $accessTokenID .ID) }}
-
-          class="right_menu_btn_box_selected"
-
-          {{ else }}
-          
-          class="right_menu_btn_box"
-
-          {{ end }}
-          
-          >
-            <a class="right_menu_under_btn" href="/settings/access_tokens/{{ .ID }}">{{ .Name }}</a>
-          </div>
-        </p>
-
-        {{ end }}
-
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/operators">Операторы</a>
-          </div>
-        </p>
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/wards">Подопечные</a>
-          </div>
-        </p>
+      <nav id="right_menu_btns">
+        <!-- верстка с помощью JavaScript -->
       </nav>
     </div>
+
+    <script>makeAccessTokenSettingsPage('{{ . }}');</script>
 
 {{ template "footer" }}
 

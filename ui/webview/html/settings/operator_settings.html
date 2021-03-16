@@ -2,79 +2,42 @@
 
 {{ template "header" }}
 
-    {{ $operatorID := .OperatorID }}
-
-    <div class="content">
+    <div class="content" id="settings_fields">
       <div class="content_header">Параметры оператора</div>
       <hr class="separator_hr">
 
-      <form action="/settings/operators/{{ .Operator.ID }}/update" method="post">
-        <div class="content_box">
-          <a class="text_field_label">Название:</a>
-          <input class="text_field" type="text" id="name" name="name" 
-          placeholder="{{ .Operator.Name }}" value="{{ .Operator.Name }}">
-        </div>
-        <div class="content_box">
-          <a class="text_field_label">ID в ВК:</a>
-          <input class="text_field" type="text" id="vk_id" name="vk_id"
-          placeholder="{{ .Operator.VkID }}" value="{{ .Operator.VkID }}">
-        </div>
-        <hr class="separator_hr">
-        <div class="btn_add">
-          <button class="btn_general">Сохранить</button>
-        </div>
-      </form>
-      <form action="/settings/operators/{{ .Operator.ID }}/delete" method="post">
-        <div class="btn_add">
-          <button class="btn_del">Удалить</button>
-        </div>
-      </form>
+      <div class="error_msg_box" id="error_msg" style="display: none;">
+        <b>Ошибка сохранения записи</b>
+        <br>
+        <a id="error_text"></a>
+      </div>
+
+      <div class="content_box">
+        <a class="text_field_label">Название:</a>
+        <input class="text_field" type="text" id="name" name="name">
+      </div>
+      <div class="content_box">
+        <a class="text_field_label">ID в ВК:</a>
+        <input class="text_field" type="text" id="vk_id" name="vk_id">
+      </div>
+      <hr class="separator_hr">
+      <div class="btn_add">
+        <button class="btn_general" id="btn_save">Сохранить</button>
+      </div>
+      <div class="btn_add">
+        <button class="btn_del" id="btn_del">Удалить</button>
+      </div>
     </div>
 
     <div class="right_menu">
       <div class="right_menu_header">Параметры</div>
       <hr class="separator_hr">
-      <nav>
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/access_tokens">Ключи доступа</a>
-          </div>
-        </p>
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/operators">Операторы</a>
-          </div>
-        </p>
-
-        {{ range .Operators }}
-
-        <p>
-          <div 
-          
-          {{ if (eq $operatorID .ID) }}
-
-          class="right_menu_btn_box_selected"
-
-          {{ else }}
-          
-          class="right_menu_btn_box"
-
-          {{ end }}
-          
-          >
-            <a class="right_menu_under_btn" href="/settings/operators/{{ .ID }}">{{ .Name }}</a>
-          </div>
-        </p>
-
-        {{ end }}
-
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/wards">Подопечные</a>
-          </div>
-        </p>
+      <nav id="right_menu_btns">
+        <!-- верстка с помощью JavaScript -->
       </nav>
     </div>
+
+    <script>makeOperatorSettingsPage('{{ . }}');</script>
 
 {{ template "footer" }}
 

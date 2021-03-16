@@ -2,181 +2,155 @@
 
 {{ template "header" }}
 
-    {{ $wardID := .WardID }}
-    {{ $ward := .Ward }}
-
-    <div class="content">
+    <div class="content" id="content">
       <div class="content_header">Основные параметры подопечного</div>
       <hr class="separator_hr">
 
-      <form action="/settings/wards/{{ .Ward.ID }}/update" method="post">
-        <div class="content_box">
-          <a class="text_field_label">Название:</a>
-          <input class="text_field" type="text" id="name" name="name"
-          value="{{ .Ward.Name }}" placeholder="{{ .Ward.Name }}">
-        </div>
-        <div class="content_box">
-          <a class="text_field_label">ID в ВК:</a>
-          <input class="text_field" type="text" id="vk_id" name="vk_id"
-          value="{{ .Ward.VkID }}" placeholder="{{ .Ward.VkID }}">
-        </div>
-        <div class="content_box">
-          <a class="text_field_label">Get-ключ доступа:</a>
-          <select class="text_field" id="get_access_token" name="get_access_token">
+      <div class="error_msg_box" id="error_msg" style="display: none;">
+        <b>Ошибка сохранения записи</b>
+        <br>
+        <a id="error_text"></a>
+      </div>
 
-            {{ range .AccessTokens }}
+      <div class="content_box">
+        <a class="text_field_label">Название:</a>
+        <input class="text_field" type="text" id="name" name="name">
+      </div>
+      <div class="content_box">
+        <a class="text_field_label">ID в ВК:</a>
+        <input class="text_field" type="text" id="vk_id" name="vk_id">
+      </div>
+      <div class="content_box">
+        <a class="text_field_label">Get-ключ доступа:</a>
+        <select class="text_field" id="get_access_token" name="get_access_token"></select>
+      </div>
 
-            <option 
-            
-            {{ if (eq .ID $ward.GetAccessTokenID) }}
+      <hr class="separator_hr">
+      <div class="content_header">Параметры наблюдателя «Посты на стене»</div>
+      <hr class="separator_hr">
 
-            {{ end }}
-            
-            value="{{ .Name }}">{{ .Name }}</option>
+      <div class="content_box">
+        <a class="text_field_label">Типы постов:</a>
+        <select class="text_field" id="post_type" name="post_type"></select>
+      </div>
 
-            {{ end }}
+      <div class="content_box">
+        <a class="text_field_label">Оператор:</a>
+        <select class="text_field" id="wall_post_operator" name="wall_post_operator"></select>
+      </div>
 
-          </select>
-        </div>
+      <div class="content_box">
+        <a class="text_field_label">Send-ключ доступа:</a>
+        <select class="text_field" id="wall_post_send_access_token" 
+          name="wall_post_send_access_token"></select>
+      </div>
 
-        <hr class="separator_hr">
+      <hr class="separator_hr">
+      <div class="content_header">Параметры наблюдателя «Комментарии на стене»</div>
+      <hr class="separator_hr">
 
-        {{ $observer_types := .ObserverTypes }}
-        {{ $operators := .Operators }}
-        {{ $access_tokens := .AccessTokens }}
-        {{ $wall_post_types := .WallPostTypes }}
-        {{ $wall_post_types_ru := .WallPostTypesRu }}
+      <div class="content_box">
+        <a class="text_field_label">Оператор:</a>
+        <select class="text_field" id="wall_reply_operator" name="wall_reply_operator"></select>
+      </div>
 
-        {{ range $i, $observer := .Observers }}
+      <div class="content_box">
+        <a class="text_field_label">Send-ключ доступа:</a>
+        <select class="text_field" id="wall_reply_send_access_token" 
+          name="wall_reply_send_access_token"></select>
+      </div>
 
-        <div class="content_header">Параметры наблюдателя «{{ index $observer_types $i }}»</div>
-        <hr class="separator_hr">
+      <hr class="separator_hr">
+      <div class="content_header">Параметры наблюдателя «Фото в альбомах»</div>
+      <hr class="separator_hr">
 
-        {{ if (eq $observer.Name "wall_post") }}
+      <div class="content_box">
+        <a class="text_field_label">Оператор:</a>
+        <select class="text_field" id="photo_operator" name="photo_operator"></select>
+      </div>
 
-        <div class="content_box">
-          <a class="text_field_label">Типы постов:</a>
-          <select class="text_field" id="post_type" name="post_type">
-            {{ range $n, $post_type := $wall_post_types }}
+      <div class="content_box">
+        <a class="text_field_label">Send-ключ доступа:</a>
+        <select class="text_field" id="photo_send_access_token" name="photo_send_access_token"></select>
+      </div>
 
-            <option 
-            
-            {{ if (eq $observer.AdditionalParams.WallPost.PostType $post_type) }}
+      <hr class="separator_hr">
+      <div class="content_header">Параметры наблюдателя «Комментарии под фото»</div>
+      <hr class="separator_hr">
 
-            selected
+      <div class="content_box">
+        <a class="text_field_label">Оператор:</a>
+        <select class="text_field" id="photo_comment_operator" name="photo_comment_operator"></select>
+      </div>
 
-            {{ end }}
-            
-            value="{{ $post_type }}">{{ index $wall_post_types_ru $n }}</option>
+      <div class="content_box">
+        <a class="text_field_label">Send-ключ доступа:</a>
+        <select class="text_field" id="photo_comment_send_access_token" 
+          name="photo_comment_send_access_token"></select>
+      </div>
 
-            {{ end }}
+      <hr class="separator_hr">
+      <div class="content_header">Параметры наблюдателя «Видео в альбомах»</div>
+      <hr class="separator_hr">
 
-          </select>
-        </div>
+      <div class="content_box">
+        <a class="text_field_label">Оператор:</a>
+        <select class="text_field" id="video_operator" name="video_operator"></select>
+      </div>
 
-        {{ end }}
+      <div class="content_box">
+        <a class="text_field_label">Send-ключ доступа:</a>
+        <select class="text_field" id="video_send_access_token" name="video_send_access_token"></select>
+      </div>
 
-        <div class="content_box">
-          <a class="text_field_label">Оператор:</a>
-          <select class="text_field" id="{{ $observer.Name }}_operator" name="{{ $observer.Name }}_operator">
+      <hr class="separator_hr">
+      <div class="content_header">Параметры наблюдателя «Комментарии под видео»</div>
+      <hr class="separator_hr">
 
-            {{ range $operators }}
+      <div class="content_box">
+        <a class="text_field_label">Оператор:</a>
+        <select class="text_field" id="video_comment_operator" name="video_comment_operator"></select>
+      </div>
 
-            <option 
-            
-            {{ if (eq .ID $observer.OperatorID) }}
+      <div class="content_box">
+        <a class="text_field_label">Send-ключ доступа:</a>
+        <select class="text_field" id="video_comment_send_access_token" 
+          name="video_comment_send_access_token"></select>
+      </div>
 
-            selected
+      <hr class="separator_hr">
+      <div class="content_header">Параметры наблюдателя «Обсуждения»</div>
+      <hr class="separator_hr">
 
-            {{ end }}
-            
-            value="{{ .Name }}">{{ .Name }}</option>
+      <div class="content_box">
+        <a class="text_field_label">Оператор:</a>
+        <select class="text_field" id="board_post_operator" name="board_post_operator"></select>
+      </div>
 
-            {{ end }}
+      <div class="content_box">
+        <a class="text_field_label">Send-ключ доступа:</a>
+        <select class="text_field" id="board_post_send_access_token" 
+          name="board_post_send_access_token"></select>
+      </div>
+  
+      <div class="btn_add">
+        <button class="btn_general" id="btn_save">Сохранить</button>
+      </div>
 
-          </select>
-        </div>
-
-        <div class="content_box">
-          <a class="text_field_label">Send-ключ доступа</a>
-          <select class="text_field" id="{{ $observer.Name }}_send_access_token" name="{{ $observer.Name }}_send_access_token">
-
-            {{ range $access_tokens }}
-
-            <option 
-
-            {{ if (eq .ID $observer.SendAccessTokenID) }}
-
-            selected
-            
-            {{ end }}
-            
-            value="{{ .Name }}">{{ .Name }}</option>
-
-            {{ end }}
-            
-          </select>
-        </div>
-
-        <hr class="separator_hr">
-        
-        {{ end }}
-    
-        <div class="btn_add">
-          <button class="btn_general">Сохранить</button>
-        </div>
-      </form>
-      <form action="/settings/wards/{{ .Ward.ID }}/delete" method="post">
-        <div class="btn_add">
-          <button class="btn_del">Удалить</button>
-        </div>
-      </form>
+      <div class="btn_add">
+        <button class="btn_del" id="btn_del">Удалить</button>
+      </div>
     </div>
 
     <div class="right_menu">
       <div class="right_menu_header">Параметры</div>
       <hr class="separator_hr">
-      <nav>
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/access_tokens">Ключи доступа</a>
-          </div>
-        </p>
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/operators">Операторы</a>
-          </div>
-        </p>
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/wards">Подопечные</a>
-          </div>
-        </p>
-
-        {{ range .Wards }}
-
-        <p>
-          <div 
-          
-          {{ if (eq $wardID .ID) }}
-
-          class="right_menu_btn_box_selected"
-
-          {{ else }}
-          
-          class="right_menu_btn_box"
-
-          {{ end }}
-          
-          >
-            <a class="right_menu_under_btn" href="/settings/wards/{{ .ID }}">{{ .Name }}</a>
-          </div>
-        </p>
-
-        {{ end }}
-
+      <nav id="right_menu_btns">
+        <!-- верстка с помощью JavaScript -->
       </nav>
     </div>
+
+    <script>makeWardSettingsPage('{{ . }}');</script>
 
 {{ template "footer" }}
 

@@ -6,20 +6,24 @@
       <div class="content_header">Параметры нового оператора</div>
       <hr class="separator_hr">
 
-      <form action="/settings/operators/new/create" method="post">
-        <div class="content_box">
-          <a class="text_field_label">Название:</a>
-          <input class="text_field" type="text" id="name" name="name">
-        </div>
-        <div class="content_box">
-          <a class="text_field_label">ID в ВК:</a>
-          <input class="text_field" type="text" id="vk_id" name="vk_id">
-        </div>
-        <hr class="separator_hr">
-        <div class="btn_add">
-          <button class="btn_general">Добавить</button>
-        </div>
-      </form>
+      <div class="error_msg_box" id="error_msg" style="display: none;">
+        <b>Ошибка добавления записи</b>
+        <br>
+        <a id="error_text"></a>
+      </div>
+
+      <div class="content_box">
+        <a class="text_field_label">Название:</a>
+        <input class="text_field" type="text" id="name" name="name">
+      </div>
+      <div class="content_box">
+        <a class="text_field_label">ID в ВК:</a>
+        <input class="text_field" type="text" id="vk_id" name="vk_id">
+      </div>
+      <hr class="separator_hr">
+      <div class="btn_add">
+        <button class="btn_general" onclick="addOperator()">Добавить</button>
+      </div>
     </div>
 
     <div class="right_menu">

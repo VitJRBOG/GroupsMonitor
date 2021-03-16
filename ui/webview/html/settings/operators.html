@@ -13,7 +13,7 @@
 
       <div class="table_box">
         <table class="table">
-          <tbody>
+          <tbody id="operators_table">
             <tr class="table_th">
               <th class="table_th">
                 Название
@@ -22,20 +22,7 @@
                 ID в ВК
               </th>
             </tr>
-  
-            {{ range .Operators }}
-  
-            <tr class="table_td">
-              <td class="table_td">
-                <a class="table_item_name" href="/settings/operators/{{ .ID }}">{{ .Name }}</a>
-              </td>
-              <td class="table_td" style="text-align: center;">
-                {{ .VkID }}
-              </td>
-            </tr>
-  
-            {{ end }}
-  
+            <!-- верстка с помощью JavaScript -->
           </tbody>
         </table>
       </div>
@@ -44,35 +31,12 @@
     <div class="right_menu">
       <div class="right_menu_header">Параметры</div>
       <hr class="separator_hr">
-      <nav>
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/access_tokens">Ключи доступа</a>
-          </div>
-        </p>
-        <p>
-          <div class="right_menu_btn_box_selected">
-            <a class="right_menu_btn" href="/settings/operators">Операторы</a>
-          </div>
-        </p>
-
-        {{ range .Operators }}
-
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_under_btn" href="/settings/operators/{{ .ID }}">{{ .Name }}</a>
-          </div>
-        </p>
-
-        {{ end }}
-
-        <p>
-          <div class="right_menu_btn_box">
-            <a class="right_menu_btn" href="/settings/wards">Подопечные</a>
-          </div>
-        </p>
+      <nav id="right_menu_btns">
+        <!-- верстка с помощью JavaScript -->
       </nav>
     </div>
+
+    <script>makeOperatorsPage();</script>
 
 {{ template "footer" }}
 

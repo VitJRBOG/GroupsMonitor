@@ -6,20 +6,24 @@
       <div class="content_header">Параметры нового ключа доступа</div>
       <hr class="separator_hr">
 
-      <form action="/settings/access_tokens/new/create" method="post">
-        <div class="content_box">
-          <a class="text_field_label">Название:</a>
-          <input class="text_field" type="text" id="name" name="name">
-        </div>
-        <div class="content_box">
-          <a class="text_field_label">Значение:</a>
-          <input class="text_field" type="text" id="value" name="value">
-        </div>
-        <hr class="separator_hr">
-        <div class="btn_add">
-          <button class="btn_general">Добавить</button>
-        </div>
-      </form>
+      <div class="error_msg_box" id="error_msg" style="display: none;">
+        <b>Ошибка добавления записи</b>
+        <br>
+        <a id="error_text"></a>
+      </div>
+
+      <div class="content_box">
+        <a class="text_field_label">Название:</a>
+        <input class="text_field" type="text" id="name" name="name">
+      </div>
+      <div class="content_box">
+        <a class="text_field_label">Значение:</a>
+        <input class="text_field" type="text" id="value" name="value">
+      </div>
+      <hr class="separator_hr">
+      <div class="btn_add">
+        <button class="btn_general" onclick="addAccessToken()">Добавить</button>
+      </div>
     </div>
 
     <div class="right_menu">

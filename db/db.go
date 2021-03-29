@@ -143,7 +143,7 @@ func SelectAccessTokens() []AccessToken {
 		}
 	}()
 
-	query := fmt.Sprintf("SELECT * FROM access_token")
+	query := "SELECT * FROM access_token"
 	rows := sendSelectQuery(dbase, query)
 	defer func() {
 		err := rows.Close()
@@ -298,7 +298,7 @@ func SelectOperators() []Operator {
 		}
 	}()
 
-	query := fmt.Sprintf("SELECT * FROM operator")
+	query := "SELECT * FROM operator"
 	rows := sendSelectQuery(dbase, query)
 	defer func() {
 		err := rows.Close()
@@ -458,7 +458,7 @@ func SelectWards() []Ward {
 		}
 	}()
 
-	query := fmt.Sprintf("SELECT * FROM ward")
+	query := "SELECT * FROM ward"
 	rows := sendSelectQuery(dbase, query)
 	defer func() {
 		err := rows.Close()
@@ -690,7 +690,7 @@ func initDB() {
 		}
 	}()
 
-	query := fmt.Sprintf(`BEGIN TRANSACTION;
+	query := `BEGIN TRANSACTION;
 	CREATE TABLE IF NOT EXISTS "access_token" (
 		"id"	INTEGER NOT NULL UNIQUE,
 		"name"	TEXT NOT NULL UNIQUE,
@@ -726,7 +726,7 @@ func initDB() {
 		FOREIGN KEY("get_access_token_id") REFERENCES "access_token"("id"),
 		PRIMARY KEY("id" AUTOINCREMENT)
 	);
-	COMMIT;`)
+	COMMIT;`
 	sendUpdateQuery(dbase, query)
 }
 

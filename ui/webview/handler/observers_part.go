@@ -7,9 +7,9 @@ import (
 	"runtime/debug"
 	"strconv"
 
-	"github.com/VitJRBOG/GroupsObserver/data_manager"
-	"github.com/VitJRBOG/GroupsObserver/tools"
-	"github.com/VitJRBOG/GroupsObserver/vkapi"
+	"github.com/VitJRBOG/Watcher/data_manager"
+	"github.com/VitJRBOG/Watcher/tools"
+	"github.com/VitJRBOG/Watcher/vkapi"
 	"github.com/gorilla/mux"
 )
 

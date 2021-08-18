@@ -2,6 +2,6 @@
 .idea/
 .vscode/
 data/
-go_build_github_com_VitJRBOG_GroupsObserver
+go_build_github_com_VitJRBOG_Watcher
 log.txt
 config.json

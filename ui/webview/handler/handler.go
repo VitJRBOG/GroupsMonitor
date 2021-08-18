@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/Watcher/tools"
 	"github.com/gorilla/mux"
 )
 

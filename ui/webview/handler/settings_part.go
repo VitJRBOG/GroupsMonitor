@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/VitJRBOG/GroupsObserver/data_manager"
-	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/Watcher/data_manager"
+	"github.com/VitJRBOG/Watcher/tools"
 	"github.com/gorilla/mux"
 )
 

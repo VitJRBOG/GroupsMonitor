@@ -9,7 +9,7 @@ import (
 	"time"
 
 	govkapi "github.com/VitJRBOG/GoVkApi/v3"
-	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/Watcher/tools"
 )
 
 type longPollServerConnectionData struct {

@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/Watcher/tools"
 )
 
 type WallPost struct {

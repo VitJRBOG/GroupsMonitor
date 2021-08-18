@@ -1,9 +1,9 @@
 package ui
 
 import (
-	"github.com/VitJRBOG/GroupsObserver/observer"
-	"github.com/VitJRBOG/GroupsObserver/ui/cli"
-	"github.com/VitJRBOG/GroupsObserver/ui/webview"
+	"github.com/VitJRBOG/Watcher/observer"
+	"github.com/VitJRBOG/Watcher/ui/cli"
+	"github.com/VitJRBOG/Watcher/ui/webview"
 )
 
 func ShowUI(dbHasBeenInitialized bool) {

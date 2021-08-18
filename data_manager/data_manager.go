@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/VitJRBOG/GroupsObserver/db"
+	"github.com/VitJRBOG/Watcher/db"
 )
 
 type AccessToken db.AccessToken

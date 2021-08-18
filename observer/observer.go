@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/VitJRBOG/GroupsObserver/db"
-	"github.com/VitJRBOG/GroupsObserver/tools"
-	"github.com/VitJRBOG/GroupsObserver/vkapi"
+	"github.com/VitJRBOG/Watcher/db"
+	"github.com/VitJRBOG/Watcher/tools"
+	"github.com/VitJRBOG/Watcher/vkapi"
 )
 
 type ModuleParams struct {

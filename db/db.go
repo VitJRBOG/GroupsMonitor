@@ -7,7 +7,7 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/Watcher/tools"
 	_ "github.com/mattn/go-sqlite3"
 )
 

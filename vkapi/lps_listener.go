@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/VitJRBOG/GroupsObserver/tools"
+	"github.com/VitJRBOG/Watcher/tools"
 )
 
 type ResponseLongPollServer struct {

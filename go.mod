@@ -1,4 +1,4 @@
-module github.com/VitJRBOG/GroupsObserver
+module github.com/VitJRBOG/Watcher
 
 go 1.16
 

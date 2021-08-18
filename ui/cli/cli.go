@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/VitJRBOG/GroupsObserver/observer"
-	"github.com/VitJRBOG/GroupsObserver/tools"
-	"github.com/VitJRBOG/GroupsObserver/ui/cli/input"
-	"github.com/VitJRBOG/GroupsObserver/ui/cli/upd_data"
+	"github.com/VitJRBOG/Watcher/observer"
+	"github.com/VitJRBOG/Watcher/tools"
+	"github.com/VitJRBOG/Watcher/ui/cli/input"
+	"github.com/VitJRBOG/Watcher/ui/cli/upd_data"
 )
 
 func ShowDBStatus(dbHasBeenInitialized bool) {

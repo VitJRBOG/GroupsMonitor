@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/VitJRBOG/GroupsObserver/db"
-	"github.com/VitJRBOG/GroupsObserver/tools"
-	"github.com/VitJRBOG/GroupsObserver/ui"
+	"github.com/VitJRBOG/Watcher/db"
+	"github.com/VitJRBOG/Watcher/tools"
+	"github.com/VitJRBOG/Watcher/ui"
 )
 
 func main() {

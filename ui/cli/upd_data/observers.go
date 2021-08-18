@@ -2,12 +2,13 @@ package upd_data
 
 import (
 	"fmt"
-	"github.com/VitJRBOG/GroupsObserver/data_manager"
-	"github.com/VitJRBOG/GroupsObserver/tools"
-	"github.com/VitJRBOG/GroupsObserver/ui/cli/input"
 	"runtime/debug"
 	"strconv"
 	"strings"
+
+	"github.com/VitJRBOG/Watcher/data_manager"
+	"github.com/VitJRBOG/Watcher/tools"
+	"github.com/VitJRBOG/Watcher/ui/cli/input"
 )
 
 func addNewObserver(ward *data_manager.Ward) {
